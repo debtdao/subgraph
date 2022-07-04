@@ -1,0 +1,56 @@
+specVersion: 0.0.1
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: CreditLoan
+    network: mainnet
+    source:
+      address: "0x6B1050C1C6B288C79Ac1db299Dc481048aBBBbcD"
+      abi: CreditLoan
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - AddDebtPosition
+        - Borrow
+        - CloseDebtPosition
+        - Default
+        - DeployLoan
+        - InterestAccrued
+        - Liquidate
+        - MutualUpgradeRegistered
+        - RepayInterest
+        - RepayPrincipal
+        - UpdateLoanStatus
+        - Withdraw
+      abis:
+        - name: CreditLoan
+          file: ./abis/CreditLoan.json
+      eventHandlers:
+        - event: AddDebtPosition(indexed address,indexed address,indexed uint256,uint256)
+          handler: handleAddDebtPosition
+        - event: Borrow(indexed bytes32,indexed uint256,indexed uint256)
+          handler: handleBorrow
+        - event: CloseDebtPosition(indexed bytes32)
+          handler: handleCloseDebtPosition
+        - event: Default(indexed bytes32,indexed uint256,indexed uint256)
+          handler: handleDefault
+        - event: DeployLoan(indexed address,indexed address,indexed address)
+          handler: handleDeployLoan
+        - event: InterestAccrued(indexed bytes32,indexed uint256,indexed uint256)
+          handler: handleInterestAccrued
+        - event: Liquidate(indexed bytes32,indexed uint256,indexed address)
+          handler: handleLiquidate
+        - event: MutualUpgradeRegistered(bytes32)
+          handler: handleMutualUpgradeRegistered
+        - event: RepayInterest(indexed bytes32,indexed uint256,indexed uint256)
+          handler: handleRepayInterest
+        - event: RepayPrincipal(indexed bytes32,indexed uint256,indexed uint256)
+          handler: handleRepayPrincipal
+        - event: UpdateLoanStatus(indexed uint256)
+          handler: handleUpdateLoanStatus
+        - event: Withdraw(indexed bytes32,indexed uint256)
+          handler: handleWithdraw
+      file: ./src/mapping.ts
