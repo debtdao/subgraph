@@ -1,6 +1,294 @@
-type ExampleEntity @entity {
+
+# LoC
+type LineOfCredit @entity {
   id: ID!
-  count: BigInt!
-  lender: Bytes! # address
-  token: Bytes! # address
+  type: String! # LoC, Bullet, etc.
+  # modules
+  escrow: Escrow @derivedFrom(field: "contract")
+  spigot: Spgiot @derivedFrom(field: "contract")
+  #stakeholders
+  borrower: Borrower!
+  oracle: Bytes!
+  arbiter: Bytes!
+
+  debts: [DebtPositions!]! @derivedFrom(field: "contract")
+  events: [DebtEvents!]!  @derivedFrom(field: "contract")
+}
+
+type DebtPosition @entity {
+  id: ID!
+  contract: LineOfCredit!
+  token: Token!
+  lender: Lender!
+  borrower: Borrower!
+  
+  deposit: BitInt!
+  principal: BitInt!
+  
+  interestAccrued: BigInt!
+  interestRepaid: BigInt!
+  
+  # track raets in positoin, not separate InterestRate entity
+  drawnInterestRate: BigInt!
+  facilityInterestRate: BigInt!
+}
+
+type Lender @entity {
+  id: ID!
+  credits: [DebtPosition!]! @derivedFrom(field: "lender")
+}
+
+type Borrower @entity {
+  id: ID!
+  contracts: [DebtContract!]! @derivedFrom(field: "borrower")
+  debts: [DebtPosition!]! @derivedFrom(field: "borrower") #all debts on all contracts
+}
+
+#  EVENTS 
+
+type DeployLoanEvent  @entity {
+  id: ID!
+  block: BigInt!
+  timestamp: BigInt!
+
+  oracle: Bytes!
+  arbiter: Bytes!
+  bottower: Bytes!
+}
+
+
+interface DebtEvent {
+  id: ID!
+  positionId: DebtPosition!
+  block: BigInt!
+  timestamp: BigInt!
+}
+
+type UpdateStatusEvent implements DebtEvent @entity {
+  id: ID!
+  positionId: DebtPosition!
+  block: BigInt!
+  timestamp: BigInt!
+
+  status: Int!
+}
+
+type AddPositionEvent implements DebtEvent @entity {
+  id: ID!
+  positionId: DebtPosition!
+  block: BigInt!
+  timestamp: BigInt!
+
+  amount: BigInt!
+  value: BigDecimal!
+  drawnRate: BigInt!
+  facilityRate: BigInt!
+}
+
+type ClosePositionEvent implements DebtEvent @entity {
+  id: ID!
+  positionId: DebtPosition!
+  block: BigInt!
+  timestamp: BigInt!
+}
+
+type WithdrawEvent implements DebtEvent @entity {
+  id: ID!
+  positionId: DebtPosition!
+  block: BigInt!
+  timestamp: BigInt!
+
+  amount: BigInt!
+  value: BigDecimal!
+}
+
+
+type BorrowEvent implements DebtEvent @entity {
+  id: ID!
+  positionId: DebtPosition!
+  block: BigInt!
+  timestamp: BigInt!
+
+  amount: BigInt!
+  value: BigDecimal!
+}
+
+type InterestAccruedEvent implements DebtEvent @entity {
+  id: ID!
+  positionId: DebtPosition!
+  block: BigInt!
+  timestamp: BigInt!
+
+  amount: BigInt!
+  value: BigDecimal!
+}
+
+type RepayInterestEvent implements DebtEvent @entity {
+  id: ID!
+  positionId: DebtPosition!
+  block: BigInt!
+  timestamp: BigInt!
+
+  amount: BigInt!
+  value: BigDecimal!
+}
+
+type RepayPrincipalEvent implements DebtEvent @entity {
+  id: ID!
+  positionId: DebtPosition!
+  block: BigInt!
+  timestamp: BigInt!
+
+  amount: BigInt!
+  value: BigDecimal!
+}
+
+
+type LiquidateEvent implements DebtEvent @entity {
+  id: ID!
+  positionId: DebtPosition!
+  block: BigInt!
+  timestamp: BigInt!
+
+  amount: BigInt!
+  value: BigDecimal!
+}
+
+type DefaultEvent implements DebtEvent @entity {
+  id: ID!
+  positionId: DebtPosition!
+  block: BigInt!
+  timestamp: BigInt!
+
+  amount: BigInt!
+  value: BigDecimal!
+}
+
+
+# MODULES
+
+# Spigot / Spigot Consumer
+
+type SpigotController @entity {
+  id: ID! # address
+  contract: DebtContract! # a.k.a `owner`
+
+  operator: BYtes
+  treasury: Bytes
+
+  dex: Bytes! # zero ex exchange address we trade against
+}
+
+
+
+type WhitelistFunctionEvent @entity {
+  id: ID! # address
+  spigot: SpigotController!
+  block: BigInt!
+  timestamp: BigInt!
+
+  function: Bytes
+}
+
+type Spigot @entity {
+  id: ID! # spigot-revenueContract
+  controller: SpigotController!
+  
+  contract: Bytes!
+  token: Token!
+  ownerSplit: Int!
+}
+
+interface SpigotEvent {
+  id: ID! # address
+  spigot: Spigot!
+  block: BigInt!
+  timestamp: BigInt!
+}
+
+type AddSpigotEvent implements SpigotEvent @entity {
+  id: ID! # address
+  spigot: Spigot!
+  block: BigInt!
+  timestamp: BigInt!
+}
+
+type RemoveSpigotEvent implements SpigotEvent @entity {
+  id: ID! # address
+  spigot: Spigot!
+  block: BigInt!
+  timestamp: BigInt!
+}
+
+type ClaimRevenueEvent implements SpigotEvent @entity {
+  id: ID! # address
+  spigot: Spigot!
+  block: BigInt!
+  timestamp: BigInt!
+
+  revenueToken: Token!
+  escrowed: BigInt! 
+  netIncome: BigInt! # amount of tokens sent to Treasury after Loan cut escrowed
+}
+
+# @dev only tracks revenue. does not track actual loan repayment
+type TradeRevenueEvent implements SpigotEvent @entity {
+  id: ID! # address
+  spigot: Spigot!
+  block: BigInt!
+  timestamp: BigInt!
+
+  revenueToken: Token!
+  sold: BigInt! # amount of tokens about
+
+  debtToken: Token!
+  bought: BigInt!
+}
+
+# Escrow
+
+type Escrow @entity {
+  id: ID! # address
+  contract: LineOfCredit!
+  cratio: BigDecimal
+  deposits: [ExcrowDeposit!]! @derivedFrom(field: "escrow")
+}
+
+type ExcrowDeposit @entity {
+  id: ID! # address-token
+  escrow: Escrow!
+  token: Token!
+  amount: BigInt!
+}
+
+interface EscrowEvent {
+  id: ID!
+  deposit: EscrowDeposit!
+  block: BigInt!
+  timestamp: BigInt!
+}
+
+type AddCollateralEvent implements EscrowEvent @entity {
+  id: ID!
+  deposit: EscrowDeposit!
+  block: BigInt!
+  timestamp: BigInt!
+}
+
+type RemoveCollateralEvent implements EscrowEvent @entity {
+  id: ID!
+  deposit: EscrowDeposit!
+  block: BigInt!
+  timestamp: BigInt!
+}
+
+type LiquidateEvent implements EscrowEvent @entity {
+  id: ID!
+  deposit: EscrowDeposit!
+  block: BigInt!
+  timestamp: BigInt!
+
+  amount: BigInt! # number of tokens liquidated from EscrowDeposit
+  liquidator: Bytes!  # contract or arbiter responsible for executing liquidations
+
 }

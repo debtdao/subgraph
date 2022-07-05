@@ -1,6 +1,7 @@
-specVersion: 0.0.1
+specVersion: 0.0.2
 schema:
   file: ./schema.graphql
+
 dataSources:
   - kind: ethereum
     name: CreditLoan
@@ -13,22 +14,30 @@ dataSources:
       apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
-        - AddDebtPosition
-        - Borrow
-        - CloseDebtPosition
-        - Default
-        - DeployLoan
-        - InterestAccrued
-        - Liquidate
+        - Borrower 
+        - Lender
+        - DebtContract
+        - Escrow
+        - Spigot
+        - AddositionEvent
+        - BorrowEvent
+        - ClosePositionEvent
+        - DefaultEvent
+        - DeployLoanEvent
+        - InterestAccruedEvent
+        - LiquidateEvent
         - MutualUpgradeRegistered
-        - RepayInterest
-        - RepayPrincipal
-        - UpdateLoanStatus
-        - Withdraw
+        - RepayInterestEvent
+        - RepayPrincipalEvent
+        - UpdateLoanStatusEvent
+        - WithdrawEvent
       abis:
-        - name: CreditLoan
-          file: ./abis/CreditLoan.json
+        - name: SpigotedLoan
+          file: ./abis/SpigotedLoan.json
+        - name: EscrowedLoan
+          file: ./abis/EscrowedLoan.json
       eventHandlers:
+        # standard loan events
         - event: AddDebtPosition(indexed address,indexed address,indexed uint256,uint256)
           handler: handleAddDebtPosition
         - event: Borrow(indexed bytes32,indexed uint256,indexed uint256)
@@ -43,8 +52,6 @@ dataSources:
           handler: handleInterestAccrued
         - event: Liquidate(indexed bytes32,indexed uint256,indexed address)
           handler: handleLiquidate
-        - event: MutualUpgradeRegistered(bytes32)
-          handler: handleMutualUpgradeRegistered
         - event: RepayInterest(indexed bytes32,indexed uint256,indexed uint256)
           handler: handleRepayInterest
         - event: RepayPrincipal(indexed bytes32,indexed uint256,indexed uint256)
@@ -53,4 +60,62 @@ dataSources:
           handler: handleUpdateLoanStatus
         - event: Withdraw(indexed bytes32,indexed uint256)
           handler: handleWithdraw
+        # SpigotedLoan events
+        - event: TradeSpigotRevenue(indexed address,uint256,indexed address,indexed uint256)
+          handler: handleRevenueTrade
+        
       file: ./src/mapping.ts
+      
+templates:
+  - name: Spigot
+    kind: ethereum/contract
+    network: mainnet
+    source:
+      abi: Spigot
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/spigot.ts
+      entities:
+        - Spigot
+      abis:
+        - ./abis/Spigot.json
+      eventHandlers:
+        - event: AddSpigot(indexed address,address,uint256)
+          handler: handleAddSpigot
+        # - ClaimEscrow # tracked via ClaimAndTrade
+        - event: RemoveSpigot(indexed address,address)
+          handler: handleRemoveSpigot
+        - event: ClaimRevenue(indexed address,indexed uint256,uint256,address)
+          handler: handleClaimRevenue
+
+        - event: UpdateOwner(indexed address)
+          handler: handleUpdateOwner
+        - event: UpdateTreasury(indexed address)
+          handler: handleUpdateTreasury
+        - event: UpdateOperator(indexed address)
+          handler: handleUpdateOperator
+        - event: UpdateWhitelistedFunction(indexed bytes4,bool)
+          handler: handleWhitelistedFunc
+
+  - name: Escrow
+    kind: ethereum/contract
+    network: mainnet
+    source:
+      abi: Escrow
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/escrow.ts
+      entities:
+        - Escrow
+      abis:
+        - ./abis/Escrow.json
+      eventHandlers:
+        - event: CollateralAdded(indexed address,uint256)
+          handler: handleCollateralAdded
+        - event: CollateralRemoved(indexed address,uint256)
+          handler: handleCollateralRemoved
+
