@@ -36,7 +36,7 @@ import {
 
 export function handleDeploySecuredLine(event: DeployedSecuredLine): void {
   // track all events emitted on new line
-  SecuredLineTemplate.create(event.params.line);
+  SecuredLineTemplate.create(event.params.deployedAt);
 
   // dont need  to create LoC entity bc created in line's own deploy event
 
@@ -45,19 +45,19 @@ export function handleDeploySecuredLine(event: DeployedSecuredLine): void {
   deployEvent.factory = event.address;
   deployEvent.block = event.block.number;
   deployEvent.timestamp = event.block.timestamp;
-  deployEvent.address = event.params.line;
+  deployEvent.address = event.params.deployedAt;
   deployEvent.deployer = event.transaction.from;
 
-  deployEvent.contract = event.params.line.toHexString();
+  deployEvent.line = event.params.deployedAt.toHexString();
   deployEvent.credit = BYTES32_ZERO_STR; // no positions yet but need to add to line log
   
-  // deployEvent.escrow = event.params.escrow;
-  // deployEvent.spigot = event.params.spigot;
+  deployEvent.escrow = event.params.escrow.toHexString();
+  deployEvent.spigot = event.params.spigot.toHexString();
   deployEvent.save();
 }
 
 export function handleDeploySpigot(event: DeployedSpigot): void {
-  const addr = event.params.spigotAddress;
+  const addr = event.params.deployedAt;
   // track all events emitted on new spigot
   SpigotTemplate.create(addr);
 
@@ -65,8 +65,8 @@ export function handleDeploySpigot(event: DeployedSpigot): void {
   // modules dont have their own deploy event like LoC so need to create here
   const spigot = new SpigotController(addr.toHexString());
   spigot.owner = event.params.owner;
-  spigot.contract = null; // LoC will claim Spigot when deployed
-  // spigot.operator = event.params.operator;
+  spigot.line = null; // LoC will claim module when deployed
+  spigot.operator = event.params.operator;
   spigot.treasury = event.params.treasury;
   spigot.startTime = event.block.number;
   spigot.save()
@@ -80,21 +80,21 @@ export function handleDeploySpigot(event: DeployedSpigot): void {
   deployEvent.deployer = event.transaction.from;
 
   deployEvent.owner = event.params.owner;
-  // deployEvent.operator = event.params.operator;
+  deployEvent.operator = event.params.operator;
   deployEvent.treasury = event.params.treasury;
   deployEvent.save();
 }
 
 export function handleDeployEscrow(event: DeployedEscrow): void {
-  const addr = event.params.escrowAddress;
+  const addr = event.params.deployedAt;
   // track all events emitted on new spigot
   EscrowTemplate.create(addr);
 
   // create and save entity to use later
   // modules dont have their own deploy event like LoC so need to create here
   const escrow = new Escrow(addr.toHexString());
-  escrow.contract = event.params.borrower.toHexString();
-  // escrow.oracle = event.params.oracle;
+  escrow.line = null; // LoC will claim module when deployed
+  escrow.oracle = event.params.oracle;
   escrow.cratio = BIG_DECIMAL_ZERO;
   escrow.collateralValue = BIG_DECIMAL_ZERO;
   escrow.minCRatio = new BigDecimal(event.params.minCRatio);

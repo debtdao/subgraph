@@ -1,15 +1,7 @@
 {
   "goerli": {
-    "LineOfCredit": {
-      "address": "0xcce02a908809aa48ec0f72c5427430e6cc03cb73",
-      "startBlock": 7423109
-    },
-    "Escrow": {
-      "address": "0xd8E89577B717F0735E8D03b99f350ad4d44bE4C7",
-      "startBlock": 7423109
-    },
-    "Spigot": {
-      "address": "0xe147B11bD4143C9D95891C5FA0Be59fbF98A1FEf",
+    "LineFactory": {
+      "address": "",
       "startBlock": 7423109
     }
   }

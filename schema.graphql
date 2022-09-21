@@ -30,8 +30,8 @@ type LineOfCredit @entity {
   # add global usd/interest value for easy dispaly on frontend cards? (also more accurate historical pricing)
 
   # modules
-  escrow: Escrow @derivedFrom(field: "contract")
-  spigot: SpigotController @derivedFrom(field: "contract")
+  escrow: Escrow @derivedFrom(field: "line")
+  spigot: SpigotController @derivedFrom(field: "line")
   # 0x exchange address we trade against
   dex: Bytes!
 
@@ -41,13 +41,13 @@ type LineOfCredit @entity {
   arbiter: Bytes!
 
   # `lines` not guaranteed to return in order of repayment queue like smart contract
-  lines: [Credit!]! @derivedFrom(field: "contract")
-  events: [LineEvent!]!  @derivedFrom(field: "contract")
+  lines: [Credit!]! @derivedFrom(field: "line")
+  events: [LineEvent!]!  @derivedFrom(field: "line")
 }
 
 type Credit @entity {
   id: ID!       # keccak(line,lender,token)
-  contract: LineOfCredit!
+  line: LineOfCredit!
   token: Token!
   lender: Lender!
   borrower: Borrower!
@@ -100,7 +100,7 @@ interface LineEvent {
   id: ID!                 # block-logIndex
   block: BigInt!
   timestamp: BigInt!
-  contract: LineOfCredit! # could get from Credit but this makes it easier to traverse
+  line: LineOfCredit! # could get from Credit but this makes it easier to traverse
   credit: Credit!
 }
 
@@ -109,7 +109,7 @@ type UpdateStatusEvent implements LineEvent @entity {
   credit: Credit!  # the first line in payment queue at time of status update
   block: BigInt!
   timestamp: BigInt!
-  contract: LineOfCredit!
+  line: LineOfCredit!
 
   status: Int!
 }
@@ -119,7 +119,7 @@ type AddCreditEvent implements LineEvent @entity {
   credit: Credit!
   block: BigInt!
   timestamp: BigInt!
-  contract: LineOfCredit!
+  line: LineOfCredit!
 
   amount: BigInt!
   value: BigDecimal!
@@ -132,7 +132,7 @@ type ClosePositionEvent implements LineEvent @entity {
   credit: Credit!
   block: BigInt!
   timestamp: BigInt!
-  contract: LineOfCredit!
+  line: LineOfCredit!
 }
 
 type WithdrawProfitEvent implements LineEvent @entity {
@@ -140,7 +140,7 @@ type WithdrawProfitEvent implements LineEvent @entity {
   credit: Credit!
   block: BigInt!
   timestamp: BigInt!
-  contract: LineOfCredit!
+  line: LineOfCredit!
 
   amount: BigInt!
   value: BigDecimal!
@@ -151,7 +151,7 @@ type WithdrawDepositEvent implements LineEvent @entity {
   credit: Credit!
   block: BigInt!
   timestamp: BigInt!
-  contract: LineOfCredit!
+  line: LineOfCredit!
 
   amount: BigInt!
   value: BigDecimal!
@@ -162,7 +162,7 @@ type BorrowEvent implements LineEvent @entity {
   credit: Credit!
   block: BigInt!
   timestamp: BigInt!
-  contract: LineOfCredit!
+  line: LineOfCredit!
 
   amount: BigInt!
   value: BigDecimal!
@@ -173,7 +173,7 @@ type InterestAccruedEvent implements LineEvent @entity {
   credit: Credit!
   block: BigInt!
   timestamp: BigInt!
-  contract: LineOfCredit!
+  line: LineOfCredit!
 
   amount: BigInt!
   value: BigDecimal!
@@ -184,7 +184,7 @@ type RepayInterestEvent implements LineEvent @entity {
   credit: Credit!
   block: BigInt!
   timestamp: BigInt!
-  contract: LineOfCredit!
+  line: LineOfCredit!
 
   amount: BigInt!
   value: BigDecimal!
@@ -195,7 +195,7 @@ type RepayPrincipalEvent implements LineEvent @entity {
   credit: Credit!
   block: BigInt!
   timestamp: BigInt!
-  contract: LineOfCredit!
+  line: LineOfCredit!
 
   amount: BigInt!
   value: BigDecimal!
@@ -207,7 +207,7 @@ type LiquidateEvent implements LineEvent @entity {
   credit: Credit!
   block: BigInt!
   timestamp: BigInt!
-  contract: LineOfCredit!
+  line: LineOfCredit!
 
   amount: BigInt!
   value: BigDecimal! # not necessarily the amount received from executingliquidation 
@@ -220,7 +220,7 @@ type DefaultEvent implements LineEvent @entity {
   credit: Credit!
   block: BigInt!
   timestamp: BigInt!
-  contract: LineOfCredit!
+  line: LineOfCredit!
 
   amount: BigInt!
   value: BigDecimal!
@@ -231,7 +231,7 @@ type SetRatesEvent implements LineEvent @entity {
   credit: Credit!
   block: BigInt!
   timestamp: BigInt!
-  contract: LineOfCredit!
+  line: LineOfCredit!
 
   drawnRate: Int!    # bps
   facilityRate: Int! # bps
@@ -245,7 +245,7 @@ type SetRatesEvent implements LineEvent @entity {
 type SpigotController @entity {
   id: ID!                         # address
   owner: Bytes!
-  contract: LineOfCredit          # should be `owner` if configured for collateral
+  line: LineOfCredit          # should be `owner` if configured for collateral
   startTime: BigInt!              # timestamp when deployed
 
   operator: Bytes!
@@ -318,7 +318,7 @@ type Spigot @entity {
   id: ID!                       # spigot-revenueContract
   controller: SpigotController!
   token: Token!                 # token revenue is earned in
-  contract: Bytes!              #revenue generating contract
+  contract: Bytes!              # revenue generating contract
   startTime: BigInt!            # time that spigot started
 
   active: Boolean!              # if contract is currently attached to spigot
@@ -399,7 +399,8 @@ type TradeRevenueEvent implements SpigotEvent @entity {
 type Escrow @entity {
   id: ID! # address
   oracle: Bytes!
-  contract: LineOfCredit!
+  owner: Bytes!
+  line: LineOfCredit
   
   collateralValue: BigDecimal!
   cratio: BigDecimal!
@@ -474,7 +475,7 @@ type DeploySecuredLineEvent implements DeployEvent & LineEvent @entity {
   address: Bytes!
 
   # LineEvent conformity
-  contract: LineOfCredit # same as address. Surfaces event in line logs
+  line: LineOfCredit # same as address. Surfaces event in line logs
   credit: Credit! # always 0
 
   # event params

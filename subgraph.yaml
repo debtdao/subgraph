@@ -20,11 +20,11 @@ dataSources:
         - name: LineFactory
           file: ./abis/LineFactory.json
       eventHandlers:
-        - event: DeployedSpigot(indexed address,indexed address,indexed address)
+        - event: DeployedSpigot(indexed address,indexed address,indexed address,address)
           handler: handleDeploySpigot
-        - event: DeployedEscrow(indexed address,indexed uint32,indexed address)
+        - event: DeployedEscrow(indexed address,indexed uint32,indexed address,address)
           handler: handleDeployEscrow
-        - event: DeployedSecuredLine(address,address,uint32)
+        - event: DeployedSecuredLine(indexed address,indexed address,indexed address,address)
           handler: handleDeploySecuredLine
 templates:
   - name: SecuredLine
