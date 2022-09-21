@@ -1,7 +1,7 @@
 {
   "goerli": {
     "LineFactory": {
-      "address": "",
+      "address": "0x6c416F84970F37398cD130b9b16991174d4AcaF4",
       "startBlock": 7423109
     }
   }
