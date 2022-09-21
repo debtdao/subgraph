@@ -93,48 +93,29 @@ export function handleDeployLine(event: DeployLine): void {
   line.arbiter = event.params.arbiter;
   line.start = event.block.timestamp.toI32();
   line.end = LoC.deadline().toI32();
+  line.dex =  LoC.swapTarget();
   line.lines = [];
   line.events = [];
   line.status = STATUSES.get(0); // LoC is UNINITIALIZED on deployment
+  line.save();
   
   // Add modules if present
-  if(LoC.spigot() !== ZERO_ADDRESS) {
-    const addr = LoC.spigot();
-    // start tracking events emitted by spigot
-    SpigotTemplate.create(addr);
-    // call contract to init data
-    const Spigot = SpigotContract.bind(addr);
-    let spigot = new SpigotController(addr.toHexString());
-    
-    // save module to line
-    line.spigot = spigot.id;
-    
+  const spigotAddr = LoC.spigot();
+  if(spigotAddr !== ZERO_ADDRESS) {
+    let spigot = new SpigotController(spigotAddr.toHexString());
     spigot.contract = line.id;
-    spigot.operator = Spigot.operator()
-    spigot.treasury = Spigot.treasury()
-    spigot.dex =  LoC.swapTarget()
-    spigot.startTime = event.block.number;
-    spigot.save()
+    // claim spigot
+    spigot.save();
   }
+  const escrowAddr = LoC.escrow();
 
-  if(LoC.escrow() !== ZERO_ADDRESS) {
-    const addr = LoC.escrow();
-    let escrow = new Escrow(addr.toHexString());
-    line.spigot = escrow.id;
-    // start tracking events emitted by escrow
-    EscrowTemplate.create(addr);
-    
+  if(escrowAddr !== ZERO_ADDRESS) {
+    let escrow = new Escrow(escrowAddr.toHexString());
     escrow.contract = line.id;
-    escrow.oracle = line.oracle;
-    escrow.minCRatio = new BigDecimal(
-      (EscrowContract.bind(addr)).minimumCollateralRatio()
-    );
-    escrow.cratio = BIG_DECIMAL_ZERO;
-    escrow.collateralValue = BIG_DECIMAL_ZERO;
-    escrow.save()
+    // claim escrow
+    escrow.save();
   }
 
-  line.save();
 }
 
 export function handleUpdateStatus(event: UpdateStatus): void {

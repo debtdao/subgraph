@@ -39,6 +39,10 @@ export const ZERO_ADDRESS_STR = "0x0000000000000000000000000000000000000000";
 export const ZERO_ADDRESS = Address.fromString(ZERO_ADDRESS_STR);
 export const BYTES32_ZERO_STR = "0x00000000000000000000000000000000000000000000000000000000000000";
 
+// Line types
+export const LINE_TYPE_SECURED = "secured";
+
+
 // Line statuses
 export const STATUS_UNINITIALIZED = "UNINITIALIZED";
 export const STATUS_INITIALIZED = "INITIALIZED";
@@ -196,6 +200,7 @@ export function getOrCreateLine(contract: Address, type: string = ""): LineOfCre
 
   return line;
 }
+
 
 // export function createLineEvent<T>(Type: T, event: any): T {
 //   let lineEvent = new Type();

@@ -2,17 +2,41 @@ specVersion: 0.0.2
 schema:
   file: ./schema.graphql
 dataSources:
-  - kind: ethereum
-    name: LineOfCredit
+  - name: LineFactory
+    kind: ethereum/contract
     network: goerli
     source:
-      abi: SecuredLine
-      address: "0xcce02a908809aa48ec0f72c5427430e6cc03cb73"
-      startBlock: 7423109
+      abi: LineFactory
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
+      file: ./src/line-factory.ts
+      entities:
+        - DeploySpigotEvent
+        - DeployEscrowEvent
+        - DeploySecuredLineEvent
+      abis:
+        - name: LineFactory
+          file: ./abis/LineFactory.json
+      eventHandlers:
+        - event: DeployedSpigot(indexed address,indexed address,indexed address)
+          handler: handleDeploySpigot
+        - event: DeployedEscrow(indexed address,indexed uint32,indexed address)
+          handler: handleDeployEscrow
+        - event: DeployedSecuredLine(address,address,uint32)
+          handler: handleDeploySecuredLine
+templates:
+  - name: SecuredLine
+    kind: ethereum/contract
+    network: goerli
+    source:
+      abi: SecuredLine
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/line-of-credit.ts
       entities:
         - Borrower
         - Lender
@@ -66,8 +90,6 @@ dataSources:
           handler: handleTradeRevenue
         - event: Liquidate(indexed bytes32,indexed uint256,indexed address)
           handler: handleLiquidate
-      file: ./src/line-of-credit.ts
-templates:
   - name: Spigot
     kind: ethereum/contract
     network: goerli

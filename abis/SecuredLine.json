@@ -68,7 +68,7 @@
   },
   {
     "inputs": [],
-    "name": "BadTradingPair",
+    "name": "BadRollover",
     "type": "error"
   },
   {
@@ -129,38 +129,12 @@
   },
   {
     "inputs": [],
-    "name": "ReleaseSpigotFailed",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "TokenTransferFailed",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "TradeFailed",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "Unauthorized",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amountAvailable",
-        "type": "uint256"
-      }
-    ],
-    "name": "UsedExcessTokens",
     "type": "error"
   },
   {
@@ -270,6 +244,62 @@
       {
         "indexed": true,
         "internalType": "bytes32",
+        "name": "positionId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "Liquidate",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "revenueToken",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "revenueTokenAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "debtToken",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "debtTokensBought",
+        "type": "uint256"
+      }
+    ],
+    "name": "TradeSpigotRevenue",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
         "name": "id",
         "type": "bytes32"
       },
@@ -321,6 +351,12 @@
         "indexed": true,
         "internalType": "address",
         "name": "token",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "escrow",
         "type": "address"
       }
     ],
@@ -420,37 +456,6 @@
       }
     ],
     "name": "SetRates",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "revenueToken",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "revenueTokenAmount",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "debtToken",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "debtTokensBought",
-        "type": "uint256"
-      }
-    ],
-    "name": "TradeSpigotRevenue",
     "type": "event"
   },
   {

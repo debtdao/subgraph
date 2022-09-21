@@ -32,6 +32,8 @@ type LineOfCredit @entity {
   # modules
   escrow: Escrow @derivedFrom(field: "contract")
   spigot: SpigotController @derivedFrom(field: "contract")
+  # 0x exchange address we trade against
+  dex: Bytes!
 
   #stakeholders
   borrower: Borrower!
@@ -80,7 +82,7 @@ type Borrower @entity {
   lines: [Credit!] @derivedFrom(field: "borrower") # all lines on all contracts
 }
 
-#  EVENTS 
+#  Line EVENTS 
 
 # dont need to track in database, just need event to initialize data
 # type DeployLineEvent  @entity {
@@ -242,13 +244,12 @@ type SetRatesEvent implements LineEvent @entity {
 
 type SpigotController @entity {
   id: ID!                         # address
-  contract: LineOfCredit!         # a.k.a `owner`
+  owner: Bytes!
+  contract: LineOfCredit          # should be `owner` if configured for collateral
   startTime: BigInt!              # timestamp when deployed
 
   operator: Bytes!
   treasury: Bytes!
-
-  dex: Bytes!                     # 0x exchange address we trade against
 
   spigots: [Spigot!] @derivedFrom(field: "controller")
   events: [SpigotControllerEvent!] @derivedFrom(field: "controller")
@@ -261,6 +262,35 @@ interface SpigotControllerEvent {
   timestamp: BigInt!
 }
 
+type UpdateOwnerEvent implements SpigotControllerEvent @entity {
+  id: ID! # block-logIndex
+  controller: SpigotController!
+  block: BigInt!
+  timestamp: BigInt!
+
+  oldOwner: Bytes!
+  newOwner: Bytes!
+}
+
+type UpdateOperatorEvent implements SpigotControllerEvent @entity {
+  id: ID! # block-logIndex
+  controller: SpigotController!
+  block: BigInt!
+  timestamp: BigInt!
+
+  oldOperator: Bytes!
+  newOperator: Bytes!
+}
+
+type UpdateTreasuryEvent implements SpigotControllerEvent @entity {
+  id: ID! # block-logIndex
+  controller: SpigotController!
+  block: BigInt!
+  timestamp: BigInt!
+
+  oldTreasury: Bytes!
+  newTreasury: Bytes!
+}
 
 type WhitelistFunctionEvent implements SpigotControllerEvent @entity {
   id: ID! # block-logIndex
@@ -311,7 +341,6 @@ interface SpigotEvent {
   timestamp: BigInt!
 }
 
-
 type UpdateOwnerSplitEvent implements SpigotEvent @entity {
   id: ID! # block-logIndex
   spigot: Spigot!
@@ -349,8 +378,6 @@ type ClaimRevenueEvent implements SpigotEvent @entity {
   value: BigDecimal!
 }
 
-
-
 # @dev only tracks revenue. does not track actual line repayment
 type TradeRevenueEvent implements SpigotEvent @entity {
   id: ID! # block-logIndex
@@ -387,6 +414,7 @@ type EscrowDeposit @entity {
   enabled: Boolean!
   token: Token!
   amount: BigInt!
+  events: [EscrowEvent!]! @derivedFrom(field: "deposit")
 }
 
 interface EscrowEvent {
@@ -424,3 +452,63 @@ type RemoveCollateralEvent implements EscrowEvent @entity {
 }
 
 # LiquidateEvent handled in LineOfCredit because more data available
+
+
+#  Factory EVENTS 
+interface DeployEvent {
+  id: ID!
+  timestamp: BigInt!
+  block: BigInt!
+  factory: Bytes!
+  deployer: Bytes!
+  address: Bytes!
+}
+
+type DeploySecuredLineEvent implements DeployEvent & LineEvent @entity {
+  #DeployEvent
+  id: ID!
+  timestamp: BigInt!
+  block: BigInt!
+  factory: Bytes!
+  deployer: Bytes!
+  address: Bytes!
+
+  # LineEvent conformity
+  contract: LineOfCredit # same as address. Surfaces event in line logs
+  credit: Credit! # always 0
+
+  # event params
+  escrow: Escrow!
+  spigot: Spigot!
+
+}
+
+type DeploySpigotEvent implements DeployEvent & SpigotControllerEvent @entity {
+  # DeployEvent
+  id: ID!
+  timestamp: BigInt!
+  block: BigInt!
+  factory: Bytes!
+  deployer: Bytes!
+  address: Bytes!
+
+  # SpigotControllerEvent conformity
+  controller: SpigotController!
+  
+  # event params
+  owner: Bytes!
+  operator: Bytes!
+  treasury: Bytes!
+}
+
+type DeployEscrowEvent implements DeployEvent @entity {
+  id: ID!
+  timestamp: BigInt!
+  block: BigInt!
+  factory: Bytes!
+  deployer: Bytes!
+  address: Bytes!
+
+  # event params
+  minCRatio: BigInt!
+}
