@@ -17,14 +17,19 @@
         "type": "address"
       },
       {
-        "internalType": "address",
+        "internalType": "address payable",
         "name": "swapTarget_",
         "type": "address"
       },
       {
-        "internalType": "uint256",
-        "name": "minCollateral_",
-        "type": "uint256"
+        "internalType": "address",
+        "name": "spigot_",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "escrow_",
+        "type": "address"
       },
       {
         "internalType": "uint256",
@@ -39,6 +44,124 @@
     ],
     "stateMutability": "nonpayable",
     "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "AlreadyInitialized",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "module",
+        "type": "address"
+      }
+    ],
+    "name": "BadModule",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "BadNewLine",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "BadTradingPair",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "CallerAccessDenied",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "CloseFailedWithPrincipal",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "DebtOwed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NoLiquidity",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NoTokenPrice",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotActive",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotBorrowing",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "module",
+        "type": "address"
+      }
+    ],
+    "name": "NotInsolvent",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotLiquidatable",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "PositionExists",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ReleaseSpigotFailed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "TokenTransferFailed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "TradeFailed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "Unauthorized",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amountAvailable",
+        "type": "uint256"
+      }
+    ],
+    "name": "UsedExcessTokens",
+    "type": "error"
   },
   {
     "anonymous": false,
@@ -63,12 +186,12 @@
       },
       {
         "indexed": false,
-        "internalType": "uint256",
-        "name": "initialPrincipal",
-        "type": "uint256"
+        "internalType": "bytes32",
+        "name": "positionId",
+        "type": "bytes32"
       }
     ],
-    "name": "AddDebtPosition",
+    "name": "AddCredit",
     "type": "event"
   },
   {
@@ -77,19 +200,13 @@
       {
         "indexed": true,
         "internalType": "bytes32",
-        "name": "positionId",
+        "name": "id",
         "type": "bytes32"
       },
       {
         "indexed": true,
         "internalType": "uint256",
         "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "value",
         "type": "uint256"
       }
     ],
@@ -102,11 +219,11 @@
       {
         "indexed": true,
         "internalType": "bytes32",
-        "name": "positionId",
+        "name": "id",
         "type": "bytes32"
       }
     ],
-    "name": "CloseDebtPosition",
+    "name": "CloseCreditPosition",
     "type": "event"
   },
   {
@@ -115,20 +232,8 @@
       {
         "indexed": true,
         "internalType": "bytes32",
-        "name": "positionId",
+        "name": "id",
         "type": "bytes32"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "value",
-        "type": "uint256"
       }
     ],
     "name": "Default",
@@ -156,7 +261,7 @@
         "type": "address"
       }
     ],
-    "name": "DeployLoan",
+    "name": "DeployLine",
     "type": "event"
   },
   {
@@ -165,19 +270,32 @@
       {
         "indexed": true,
         "internalType": "bytes32",
-        "name": "positionId",
+        "name": "id",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "deposit",
+        "type": "uint256"
+      }
+    ],
+    "name": "IncreaseCredit",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "id",
         "type": "bytes32"
       },
       {
         "indexed": true,
         "internalType": "uint256",
         "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "value",
         "type": "uint256"
       }
     ],
@@ -215,11 +333,11 @@
       {
         "indexed": false,
         "internalType": "bytes32",
-        "name": "_upgradeHash",
+        "name": "_consentHash",
         "type": "bytes32"
       }
     ],
-    "name": "MutualUpgradeRegistered",
+    "name": "MutualConsentRegistered",
     "type": "event"
   },
   {
@@ -228,19 +346,13 @@
       {
         "indexed": true,
         "internalType": "bytes32",
-        "name": "positionId",
+        "name": "id",
         "type": "bytes32"
       },
       {
         "indexed": true,
         "internalType": "uint256",
         "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "value",
         "type": "uint256"
       }
     ],
@@ -253,19 +365,13 @@
       {
         "indexed": true,
         "internalType": "bytes32",
-        "name": "positionId",
+        "name": "id",
         "type": "bytes32"
       },
       {
         "indexed": true,
         "internalType": "uint256",
         "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "value",
         "type": "uint256"
       }
     ],
@@ -289,6 +395,31 @@
       }
     ],
     "name": "RevenuePayment",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "id",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint128",
+        "name": "drawnRate",
+        "type": "uint128"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint128",
+        "name": "facilityRate",
+        "type": "uint128"
+      }
+    ],
+    "name": "SetRates",
     "type": "event"
   },
   {
@@ -332,7 +463,7 @@
         "type": "uint256"
       }
     ],
-    "name": "UpdateLoanStatus",
+    "name": "UpdateStatus",
     "type": "event"
   },
   {
@@ -341,32 +472,7 @@
       {
         "indexed": true,
         "internalType": "bytes32",
-        "name": "positionId",
-        "type": "bytes32"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint128",
-        "name": "drawnRate",
-        "type": "uint128"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint128",
-        "name": "facilityRate",
-        "type": "uint128"
-      }
-    ],
-    "name": "UpdateRates",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "positionId",
+        "name": "id",
         "type": "bytes32"
       },
       {
@@ -385,7 +491,7 @@
       {
         "indexed": true,
         "internalType": "bytes32",
-        "name": "positionId",
+        "name": "id",
         "type": "bytes32"
       },
       {
@@ -403,9 +509,9 @@
     "name": "accrueInterest",
     "outputs": [
       {
-        "internalType": "uint256",
-        "name": "accruedValue",
-        "type": "uint256"
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
       }
     ],
     "stateMutability": "nonpayable",
@@ -415,12 +521,12 @@
     "inputs": [
       {
         "internalType": "uint128",
-        "name": "drawnRate",
+        "name": "drate",
         "type": "uint128"
       },
       {
         "internalType": "uint128",
-        "name": "facilityRate",
+        "name": "frate",
         "type": "uint128"
       },
       {
@@ -439,15 +545,15 @@
         "type": "address"
       }
     ],
-    "name": "addDebtPosition",
+    "name": "addCredit",
     "outputs": [
       {
-        "internalType": "bool",
+        "internalType": "bytes32",
         "name": "",
-        "type": "bool"
+        "type": "bytes32"
       }
     ],
-    "stateMutability": "nonpayable",
+    "stateMutability": "payable",
     "type": "function"
   },
   {
@@ -480,7 +586,7 @@
             "type": "bytes4"
           }
         ],
-        "internalType": "struct SpigotController.SpigotSettings",
+        "internalType": "struct ISpigot.Setting",
         "name": "setting",
         "type": "tuple"
       }
@@ -513,7 +619,7 @@
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "positionId",
+        "name": "id",
         "type": "bytes32"
       },
       {
@@ -562,9 +668,9 @@
     "name": "claimAndRepay",
     "outputs": [
       {
-        "internalType": "bool",
+        "internalType": "uint256",
         "name": "",
-        "type": "bool"
+        "type": "uint256"
       }
     ],
     "stateMutability": "nonpayable",
@@ -587,7 +693,7 @@
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "tokensBought",
+        "name": "",
         "type": "uint256"
       }
     ],
@@ -598,7 +704,7 @@
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "positionId",
+        "name": "id",
         "type": "bytes32"
       }
     ],
@@ -610,13 +716,18 @@
         "type": "bool"
       }
     ],
-    "stateMutability": "nonpayable",
+    "stateMutability": "payable",
     "type": "function"
   },
   {
     "inputs": [],
-    "name": "deadline",
+    "name": "counts",
     "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
       {
         "internalType": "uint256",
         "name": "",
@@ -634,7 +745,7 @@
         "type": "bytes32"
       }
     ],
-    "name": "debts",
+    "name": "credits",
     "outputs": [
       {
         "internalType": "uint256",
@@ -663,16 +774,42 @@
       },
       {
         "internalType": "address",
-        "name": "lender",
+        "name": "token",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "token",
+        "name": "lender",
         "type": "address"
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "deadline",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "declareInsolvent",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -698,7 +835,7 @@
         "type": "bool"
       }
     ],
-    "stateMutability": "nonpayable",
+    "stateMutability": "payable",
     "type": "function"
   },
   {
@@ -717,7 +854,7 @@
         "type": "bool"
       }
     ],
-    "stateMutability": "nonpayable",
+    "stateMutability": "payable",
     "type": "function"
   },
   {
@@ -725,7 +862,7 @@
     "name": "escrow",
     "outputs": [
       {
-        "internalType": "contract Escrow",
+        "internalType": "contract IEscrow",
         "name": "",
         "type": "address"
       }
@@ -735,23 +872,66 @@
   },
   {
     "inputs": [],
-    "name": "getOutstandingDebt",
+    "name": "healthcheck",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "enum LineLib.STATUS",
         "name": "",
-        "type": "uint256"
+        "type": "uint8"
       }
     ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "healthcheck",
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "ids",
     "outputs": [
       {
-        "internalType": "enum LoanLib.STATUS",
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "id",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "increaseCredit",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "init",
+    "outputs": [
+      {
+        "internalType": "enum LineLib.STATUS",
         "name": "",
         "type": "uint8"
       }
@@ -773,25 +953,7 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "interestUsd",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "positionId",
-        "type": "bytes32"
-      },
       {
         "internalType": "uint256",
         "name": "amount",
@@ -815,19 +977,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "loanStatus",
-    "outputs": [
-      {
-        "internalType": "enum LoanLib.STATUS",
-        "name": "",
-        "type": "uint8"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "bytes32",
@@ -835,7 +984,7 @@
         "type": "bytes32"
       }
     ],
-    "name": "mutualUpgrades",
+    "name": "mutualConsents",
     "outputs": [
       {
         "internalType": "bool",
@@ -860,40 +1009,56 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "positionIds",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "principalUsd",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "releaseSpigot",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newLine",
+        "type": "address"
+      }
+    ],
+    "name": "rollover",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "id",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint128",
+        "name": "drate",
+        "type": "uint128"
+      },
+      {
+        "internalType": "uint128",
+        "name": "frate",
+        "type": "uint128"
+      }
+    ],
+    "name": "setRates",
     "outputs": [
       {
         "internalType": "bool",
@@ -909,9 +1074,22 @@
     "name": "spigot",
     "outputs": [
       {
-        "internalType": "contract SpigotController",
+        "internalType": "contract ISpigot",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "status",
+    "outputs": [
+      {
+        "internalType": "enum LineLib.STATUS",
+        "name": "",
+        "type": "uint8"
       }
     ],
     "stateMutability": "view",
@@ -922,7 +1100,7 @@
     "name": "swapTarget",
     "outputs": [
       {
-        "internalType": "address",
+        "internalType": "address payable",
         "name": "",
         "type": "address"
       }
@@ -932,6 +1110,11 @@
   },
   {
     "inputs": [
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
       {
         "internalType": "address",
         "name": "token",
@@ -969,6 +1152,24 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "updateOutstandingDebt",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -977,7 +1178,13 @@
       }
     ],
     "name": "updateOwnerSplit",
-    "outputs": [],
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -990,7 +1197,7 @@
       },
       {
         "internalType": "bool",
-        "name": "a",
+        "name": "allowed",
         "type": "bool"
       }
     ],
@@ -1008,8 +1215,27 @@
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "useAndRepay",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes32",
-        "name": "positionId",
+        "name": "id",
         "type": "bytes32"
       },
       {
@@ -1028,5 +1254,9 @@
     ],
     "stateMutability": "nonpayable",
     "type": "function"
+  },
+  {
+    "stateMutability": "payable",
+    "type": "receive"
   }
 ]

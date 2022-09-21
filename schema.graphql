@@ -20,12 +20,14 @@ type LineOfCredit @entity {
   id: ID!
   # LoC, Bullet, etc.
   type: String!
-  # when loan was deployed
+  # when line was deployed
   start: Int!
   # when ttl expires
   end: Int!
   # 
   status: String!
+
+  # add global usd/interest value for easy dispaly on frontend cards? (also more accurate historical pricing)
 
   # modules
   escrow: Escrow @derivedFrom(field: "contract")
@@ -36,13 +38,13 @@ type LineOfCredit @entity {
   oracle: Bytes!
   arbiter: Bytes!
 
-  # `debts` not guaranteed to return in order of repayment queue like smart contract
-  debts: [DebtPosition!] @derivedFrom(field: "contract")
-  events: [DebtEvent!]  @derivedFrom(field: "contract")
+  # `lines` not guaranteed to return in order of repayment queue like smart contract
+  lines: [Credit!]! @derivedFrom(field: "contract")
+  events: [LineEvent!]!  @derivedFrom(field: "contract")
 }
 
-type DebtPosition @entity {
-  id: ID!       # keccak(loan,lender,token)
+type Credit @entity {
+  id: ID!       # keccak(line,lender,token)
   contract: LineOfCredit!
   token: Token!
   lender: Lender!
@@ -53,11 +55,13 @@ type DebtPosition @entity {
   
   deposit: BigInt!
   principal: BigInt!
-  principalUsd: BigDecimal!
   interestAccrued: BigInt!
-  interestUsd: BigDecimal!
   interestRepaid: BigInt!
   totalInterestEarned: BigInt! # lifetime gross revenue of lender on position
+  # TODO remove usd vals, use Token price to calculate. Suffers same stale data issues as contracts
+  principalUsd: BigDecimal!
+  interestUsd: BigDecimal!
+  
 
   # interest in bps charged on principal
   drawnRate: Int!
@@ -67,19 +71,19 @@ type DebtPosition @entity {
 
 type Lender @entity {
   id: ID!
-  credits: [DebtPosition!] @derivedFrom(field: "lender")
+  credits: [Credit!] @derivedFrom(field: "lender")
 }
 
 type Borrower @entity {
   id: ID!
-  contracts: [LineOfCredit!] @derivedFrom(field: "borrower") # all contracts
-  debts: [DebtPosition!] @derivedFrom(field: "borrower") # all debts on all contracts
+  debts: [LineOfCredit!] @derivedFrom(field: "borrower") # all contracts
+  lines: [Credit!] @derivedFrom(field: "borrower") # all lines on all contracts
 }
 
 #  EVENTS 
 
 # dont need to track in database, just need event to initialize data
-# type DeployLoanEvent  @entity {
+# type DeployLineEvent  @entity {
 #   id: ID!
 #   block: BigInt!
 #   timestamp: BigInt!
@@ -90,28 +94,30 @@ type Borrower @entity {
 # }
 
 
-interface DebtEvent {
+interface LineEvent {
   id: ID!                 # block-logIndex
   block: BigInt!
   timestamp: BigInt!
-  contract: LineOfCredit! # could get from DebtPosition but this makes it easier to traverse
-  positionId: DebtPosition!
+  contract: LineOfCredit! # could get from Credit but this makes it easier to traverse
+  credit: Credit!
 }
 
-type UpdateStatusEvent implements DebtEvent @entity {
+type UpdateStatusEvent implements LineEvent @entity {
   id: ID! # block-logIndex
-  positionId: DebtPosition!
+  credit: Credit!  # the first line in payment queue at time of status update
   block: BigInt!
   timestamp: BigInt!
+  contract: LineOfCredit!
 
   status: Int!
 }
 
-type AddPositionEvent implements DebtEvent @entity {
+type AddCreditEvent implements LineEvent @entity {
   id: ID! # block-logIndex
-  positionId: DebtPosition!
+  credit: Credit!
   block: BigInt!
   timestamp: BigInt!
+  contract: LineOfCredit!
 
   amount: BigInt!
   value: BigDecimal!
@@ -119,79 +125,87 @@ type AddPositionEvent implements DebtEvent @entity {
   facilityRate: BigInt!
 }
 
-type ClosePositionEvent implements DebtEvent @entity {
+type ClosePositionEvent implements LineEvent @entity {
   id: ID! # block-logIndex
-  positionId: DebtPosition!
+  credit: Credit!
   block: BigInt!
   timestamp: BigInt!
+  contract: LineOfCredit!
 }
 
-type WithdrawProfitEvent implements DebtEvent @entity {
+type WithdrawProfitEvent implements LineEvent @entity {
   id: ID! # block-logIndex
-  positionId: DebtPosition!
+  credit: Credit!
   block: BigInt!
   timestamp: BigInt!
+  contract: LineOfCredit!
 
   amount: BigInt!
   value: BigDecimal!
 }
 
-type WithdrawDepositEvent implements DebtEvent @entity {
+type WithdrawDepositEvent implements LineEvent @entity {
   id: ID! # block-logIndex
-  positionId: DebtPosition!
+  credit: Credit!
   block: BigInt!
   timestamp: BigInt!
+  contract: LineOfCredit!
 
   amount: BigInt!
   value: BigDecimal!
 }
 
-type BorrowEvent implements DebtEvent @entity {
+type BorrowEvent implements LineEvent @entity {
   id: ID! # block-logIndex
-  positionId: DebtPosition!
+  credit: Credit!
   block: BigInt!
   timestamp: BigInt!
+  contract: LineOfCredit!
 
   amount: BigInt!
   value: BigDecimal!
 }
 
-type InterestAccruedEvent implements DebtEvent @entity {
+type InterestAccruedEvent implements LineEvent @entity {
   id: ID! # block-logIndex
-  positionId: DebtPosition!
+  credit: Credit!
   block: BigInt!
   timestamp: BigInt!
+  contract: LineOfCredit!
 
   amount: BigInt!
   value: BigDecimal!
 }
 
-type RepayInterestEvent implements DebtEvent @entity {
+type RepayInterestEvent implements LineEvent @entity {
   id: ID! # block-logIndex
-  positionId: DebtPosition!
+  credit: Credit!
   block: BigInt!
   timestamp: BigInt!
+  contract: LineOfCredit!
 
   amount: BigInt!
   value: BigDecimal!
 }
 
-type RepayPrincipalEvent implements DebtEvent @entity {
+type RepayPrincipalEvent implements LineEvent @entity {
   id: ID! # block-logIndex
-  positionId: DebtPosition!
+  credit: Credit!
   block: BigInt!
   timestamp: BigInt!
+  contract: LineOfCredit!
 
   amount: BigInt!
   value: BigDecimal!
 }
 
 
-type LiquidateEvent implements DebtEvent @entity {
+type LiquidateEvent implements LineEvent @entity {
   id: ID! # block-logIndex
-  positionId: DebtPosition!
+  credit: Credit!
   block: BigInt!
   timestamp: BigInt!
+  contract: LineOfCredit!
 
   amount: BigInt!
   value: BigDecimal! # not necessarily the amount received from executingliquidation 
@@ -199,21 +213,23 @@ type LiquidateEvent implements DebtEvent @entity {
 
 }
 
-type DefaultEvent implements DebtEvent @entity {
+type DefaultEvent implements LineEvent @entity {
   id: ID! # block-logIndex
-  positionId: DebtPosition!
+  credit: Credit!
   block: BigInt!
   timestamp: BigInt!
+  contract: LineOfCredit!
 
   amount: BigInt!
   value: BigDecimal!
 }
 
-type UpdateRatesEvent implements DebtEvent @entity {
+type SetRatesEvent implements LineEvent @entity {
   id: ID! # block-logIndex
-  positionId: DebtPosition!
+  credit: Credit!
   block: BigInt!
   timestamp: BigInt!
+  contract: LineOfCredit!
 
   drawnRate: Int!    # bps
   facilityRate: Int! # bps
@@ -225,18 +241,28 @@ type UpdateRatesEvent implements DebtEvent @entity {
 # Spigot / Spigot Consumer
 
 type SpigotController @entity {
-  id: ID! # address
-  contract: LineOfCredit! # a.k.a `owner`
+  id: ID!                         # address
+  contract: LineOfCredit!         # a.k.a `owner`
+  startTime: BigInt!              # timestamp when deployed
 
   operator: Bytes!
   treasury: Bytes!
 
-  dex: Bytes! # zero ex exchange address we trade against
+  dex: Bytes!                     # 0x exchange address we trade against
 
   spigots: [Spigot!] @derivedFrom(field: "controller")
+  events: [SpigotControllerEvent!] @derivedFrom(field: "controller")
 }
 
-type WhitelistFunctionEvent @entity {
+interface SpigotControllerEvent {
+  id: ID! # block-logIndex
+  controller: SpigotController!
+  block: BigInt!
+  timestamp: BigInt!
+}
+
+
+type WhitelistFunctionEvent implements SpigotControllerEvent @entity {
   id: ID! # block-logIndex
   controller: SpigotController!
   block: BigInt!
@@ -246,27 +272,59 @@ type WhitelistFunctionEvent @entity {
   whitelisted: Boolean!
 }
 
-type Spigot @entity {
-  id: ID! # spigot-revenueContract
+type ClaimEscrowEvent implements SpigotControllerEvent @entity {
+  id: ID! # block-logIndex
   controller: SpigotController!
-  
-  contract: Bytes!
-  token: Token!
-  ownerSplit: Int!
+  block: BigInt!
+  timestamp: BigInt!
+  to: LineOfCredit!
 
+  amount: BigInt! # amount of tokens sent to Owner from escrow
+  value: BigDecimal!
+}
+
+# TODO rename Seting and Controlelr to Spigot
+type Spigot @entity {
+  id: ID!                       # spigot-revenueContract
+  controller: SpigotController!
+  token: Token!                 # token revenue is earned in
+  contract: Bytes!              #revenue generating contract
+  startTime: BigInt!            # time that spigot started
+
+  active: Boolean!              # if contract is currently attached to spigot
+  ownerSplit: Int!              # % of tokens escrowed for owner
+  escrowed: BigInt!             # current amount of tokens available for owner to claim
+
+  totalVolume: BigInt!          # total amount of tokens earned as revenue
+  totalVolumeUsd: BigDecimal!    # usd value of total token volume
+  
   events: [SpigotEvent!] @derivedFrom(field: "spigot")
 }
+
+
 
 interface SpigotEvent {
   id: ID! # block-logIndex
   spigot: Spigot!
+  revenueToken: Token!
   block: BigInt!
   timestamp: BigInt!
+}
+
+
+type UpdateOwnerSplitEvent implements SpigotEvent @entity {
+  id: ID! # block-logIndex
+  spigot: Spigot!
+  revenueToken: Token!
+  block: BigInt!
+  timestamp: BigInt!
+  newSplit: Int!
 }
 
 type AddSpigotEvent implements SpigotEvent @entity {
   id: ID! # block-logIndex
   spigot: Spigot!
+  revenueToken: Token!
   block: BigInt!
   timestamp: BigInt!
 }
@@ -274,6 +332,7 @@ type AddSpigotEvent implements SpigotEvent @entity {
 type RemoveSpigotEvent implements SpigotEvent @entity {
   id: ID! # block-logIndex
   spigot: Spigot!
+  revenueToken: Token!
   block: BigInt!
   timestamp: BigInt!
 }
@@ -286,10 +345,13 @@ type ClaimRevenueEvent implements SpigotEvent @entity {
 
   revenueToken: Token!
   escrowed: BigInt! 
-  netIncome: BigInt! # amount of tokens sent to Treasury after Loan cut escrowed
+  netIncome: BigInt! # amount of tokens sent to Treasury after Line cut escrowed
+  value: BigDecimal!
 }
 
-# @dev only tracks revenue. does not track actual loan repayment
+
+
+# @dev only tracks revenue. does not track actual line repayment
 type TradeRevenueEvent implements SpigotEvent @entity {
   id: ID! # block-logIndex
   spigot: Spigot!
@@ -298,9 +360,11 @@ type TradeRevenueEvent implements SpigotEvent @entity {
 
   revenueToken: Token!
   sold: BigInt! # amount of tokens about
+  soldValue: BigDecimal! # usd value to 8 decimals
 
   debtToken: Token!
   bought: BigInt!
+  boughtValue: BigDecimal! # usd value to 8 decimals
 }
 
 # Escrow
@@ -309,15 +373,18 @@ type Escrow @entity {
   id: ID! # address
   oracle: Bytes!
   contract: LineOfCredit!
+  
   collateralValue: BigDecimal!
   cratio: BigDecimal!
   minCRatio: BigDecimal!
+
   deposits: [EscrowDeposit!]! @derivedFrom(field: "escrow")
 }
 
 type EscrowDeposit @entity {
   id: ID! # address-token
   escrow: Escrow!
+  enabled: Boolean!
   token: Token!
   amount: BigInt!
 }
@@ -329,11 +396,21 @@ interface EscrowEvent {
   timestamp: BigInt!
 }
 
+type EnableCollateralEvent implements EscrowEvent @entity {
+  id: ID! # block-logIndex
+  deposit: EscrowDeposit!
+  block: BigInt!
+  timestamp: BigInt!
+}
+
 type AddCollateralEvent implements EscrowEvent @entity {
   id: ID! # block-logIndex
   deposit: EscrowDeposit!
   block: BigInt!
   timestamp: BigInt!
+  
+  amount: BigInt!
+  value: BigDecimal!
 }
 
 type RemoveCollateralEvent implements EscrowEvent @entity {
@@ -341,6 +418,9 @@ type RemoveCollateralEvent implements EscrowEvent @entity {
   deposit: EscrowDeposit!
   block: BigInt!
   timestamp: BigInt!
+
+  amount: BigInt!
+  value: BigDecimal!
 }
 
 # LiquidateEvent handled in LineOfCredit because more data available

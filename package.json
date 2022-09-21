@@ -2,8 +2,10 @@
   "name": "debt-dao",
   "license": "UNLICENSED",
   "scripts": {
-    "codegen": "graph codegen",
+    "prebuild": "graph codegen",
     "build": "graph build",
+    "predeploy-test": "yarn run build --network goerli --network-file ./networks.json",
+    "deploy-test": "graph deploy --product hosted-service kibagateaux/dd-test",
     "deploy": "graph deploy --node https://api.thegraph.com/deploy/ kibagateaux/debt-dao",
     "create-local": "graph create --node http://localhost:8020/ kibagateaux/debt-dao",
     "remove-local": "graph remove --node http://localhost:8020/ kibagateaux/debt-dao",

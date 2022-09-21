@@ -12,13 +12,15 @@ import {
   AddSpigot,
   RemoveSpigot,
   ClaimRevenue,
+  ClaimEscrow,
+  UpdateOwnerSplit,
   UpdateWhitelistFunction,
 } from "../generated/templates/Spigot/Spigot"
   
 import {
-  SecuredLoan,
+  SecuredLine,
   TradeSpigotRevenue,
-} from "../generated/LineOfCredit/SecuredLoan"
+} from "../generated/LineOfCredit/SecuredLine"
 
 import {
   Token,
@@ -29,7 +31,9 @@ import {
   AddSpigotEvent,
   RemoveSpigotEvent,
   ClaimRevenueEvent,
+  ClaimEscrowEvent,
   TradeRevenueEvent,
+  UpdateOwnerSplitEvent,
 } from "../generated/schema"
 import {
   STATUSES,
@@ -43,8 +47,8 @@ import {
   getEventId,
   getOrCreateToken,
   updateTokenPrice,
-  computePositionId,
 } from "./utils";
+import { getUsdPrice } from "./prices";
 
 
 export function handleAddSpigot(event: AddSpigot): void {
@@ -53,78 +57,152 @@ export function handleAddSpigot(event: AddSpigot): void {
   spigot.contract = event.params.revenueContract;
   const token = getOrCreateToken(event.params.token.toHexString());
   spigot.token = token.id;
+  spigot.active = true;
+  spigot.startTime = event.block.number;
+  spigot.totalVolume = BIG_INT_ZERO;
+  spigot.totalVolumeUsd = BIG_DECIMAL_ZERO;
   spigot.ownerSplit = event.params.ownerSplit.toI32();
   spigot.save();
 
-  const eventId = getEventId(event.block.number, event.logIndex);
-  let loanEvent = new AddSpigotEvent(eventId);
-  loanEvent.spigot = spigot.id;
-  loanEvent.block = event.block.number;
-  loanEvent.timestamp = event.block.timestamp;
-  loanEvent.save();
+  const eventId = getEventId(spigot.startTime, event.logIndex);
+  let spigotEvent = new AddSpigotEvent(eventId);
+  spigotEvent.spigot = spigot.id;
+  spigotEvent.block = spigot.startTime;
+  spigotEvent.timestamp = event.block.timestamp;
+  spigotEvent.save();
 }
 
 export function handleRemoveSpigot(event: RemoveSpigot): void {
   let spigot = new Spigot(`${event.address}-${event.params.revenueContract}`);
-  spigot.ownerSplit = 0;
+  spigot.active = false;
+
   spigot.save();
 
   const eventId = getEventId(event.block.number, event.logIndex);
-  let loanEvent = new RemoveSpigotEvent(eventId);
-  loanEvent.spigot = spigot.id;
-  loanEvent.block = event.block.number;
-  loanEvent.timestamp = event.block.timestamp;
-  loanEvent.save();
+  let spigotEvent = new RemoveSpigotEvent(eventId);
+  spigotEvent.spigot = spigot.id;
+  spigotEvent.block = event.block.number;
+  spigotEvent.timestamp = event.block.timestamp;
+  spigotEvent.save();
 }
 
 
 export function handleClaimRevenue(event: ClaimRevenue): void {
-  const eventId = getEventId(event.block.number, event.logIndex);
-  let loanEvent = new ClaimRevenueEvent(eventId);
-
-  loanEvent.spigot = `${event.address}-${event.params.revenueContract}`;
-  loanEvent.block = event.block.number;
-  loanEvent.timestamp = event.block.timestamp;
-  loanEvent.revenueToken = event.params.token.toHexString(); // already exists from AddSpigot
-  loanEvent.escrowed = event.params.escrowed;
-  loanEvent.netIncome = event.params.amount.minus(loanEvent.escrowed);
+  let spigot = Spigot.load(`${event.address}-${event.params.revenueContract}`)!;
   
-  loanEvent.save();
+  spigot.escrowed = spigot.escrowed.plus(event.params.escrowed);
+  spigot.totalVolume = spigot.totalVolume.plus(event.params.amount);
+  let value = getUsdPrice(event.params.token, new BigDecimal(event.params.amount));
+  spigot.totalVolumeUsd = spigot.totalVolumeUsd.plus(value);
+  
+  spigot.save();
+  const token = event.params.token.toHexString();
+  // update price in subgraph for revenue token potentially not tracked by oracle
+  updateTokenPrice(
+    value.div(new BigDecimal(event.params.amount)),
+    event.block.number,
+    token,
+    new Token(token)
+  );
+  
+  const eventId = getEventId(event.block.number, event.logIndex);
+  let spigotEvent = new ClaimRevenueEvent(eventId);
+
+  spigotEvent.spigot = `${event.address}-${event.params.revenueContract}`;
+  spigotEvent.block = event.block.number;
+  spigotEvent.timestamp = event.block.timestamp;
+  spigotEvent.revenueToken = token; // already exists from AddSpigot
+  spigotEvent.escrowed = spigot.escrowed;
+  spigotEvent.netIncome = event.params.amount.minus(spigot.escrowed);
+  spigotEvent.value = value;
+
+  spigotEvent.save();
+}
+
+export function handleUpdateOwnerSplit(event: UpdateOwnerSplit): void {
+  let spigot = new Spigot(`${event.address}-${event.params.revenueContract}`);
+  spigot.ownerSplit = event.params.split;
+
+  spigot.save();
+  
+  const eventId = getEventId(event.block.number, event.logIndex);
+  let spigotEvent = new UpdateOwnerSplitEvent(eventId);
+
+  spigotEvent.spigot = `${event.address}-${event.params.revenueContract}`;
+  spigotEvent.block = event.block.number;
+  spigotEvent.timestamp = event.block.timestamp;
+  
+  spigotEvent.save();
+}
+
+export function handleClaimEscrow(event: ClaimEscrow): void {
+  let spigot = Spigot.load(event.params.token.toHexString())!;
+  spigot.escrowed = spigot.escrowed.minus(event.params.amount);
+  spigot.save();
+
+  
+  const eventId = getEventId(event.block.number, event.logIndex);
+  let spigotEvent = new ClaimEscrowEvent(eventId);
+
+  spigotEvent.controller = event.address.toHexString();
+  spigotEvent.block = event.block.number;
+  spigotEvent.timestamp = event.block.timestamp;
+  spigotEvent.amount = event.params.amount;
+  spigotEvent.value = getUsdPrice(event.params.token, new BigDecimal(spigotEvent.amount));
+  spigotEvent.to = event.params.owner.toHexString();
+  spigotEvent.save();
+
+  let token = event.params.token.toHexString();
+  // update price in subgraph for revenue token potentially not tracked by oracle
+  updateTokenPrice(
+    spigotEvent.value.div(new BigDecimal(spigotEvent.amount)),
+    event.block.number,
+    token,
+    new Token(token)
+  );
 }
 
 
-// technically event is generated in Loan contract but makes more sense to store code here
+// technically event is generated in Line contract but makes more sense to store code here
 export function handleTradeRevenue(event: TradeSpigotRevenue): void {
   const eventId = getEventId(event.block.number, event.logIndex);
-  const loan = SecuredLoan.bind(event.address);
-  let loanEvent = new TradeRevenueEvent(eventId);
+  const line = SecuredLine.bind(event.address);
+  let spigotEvent = new TradeRevenueEvent(eventId);
 
-  loanEvent.spigot = `${loan.spigot()}-${event.logIndex}`
-  loanEvent.block = event.block.number;
-  loanEvent.timestamp = event.block.timestamp;
+  spigotEvent.spigot = `${line.spigot()}-${event.logIndex}`
+  spigotEvent.block = event.block.number;
+  spigotEvent.timestamp = event.block.timestamp;
 
-  loanEvent.revenueToken = event.params.revenueToken.toHexString(); // already exists from AddSpigot
-  loanEvent.sold = event.params.revenueTokenAmount;
-  loanEvent.debtToken = event.params.debtToken.toHexString(); // already exists from AddDebtPosition
-  loanEvent.bought = event.params.debtTokensBought;
-
-  const debtTokenPrice = getValue( // implicitly updates
-    loan.oracle(),
-    Token.load(loanEvent.debtToken)!,
-    loanEvent.bought,
-    loanEvent.block
-  );
-
-  const revenueTokenPrice = loanEvent.bought
-    .times(BigInt.fromString(debtTokenPrice.toString()))
-    .div(loanEvent.sold);
-
-  updateTokenPrice(
-    new BigDecimal(revenueTokenPrice),
-    loanEvent.block,
-    loanEvent.revenueToken,
-    new Token("")
-  );
+  spigotEvent.revenueToken = event.params.revenueToken.toHexString(); // entity already exists from AddSpigot
+  spigotEvent.sold = event.params.revenueTokenAmount;
+  spigotEvent.debtToken = event.params.debtToken.toHexString(); // entity already exists from AddCredit
+  spigotEvent.bought = event.params.debtTokensBought;
   
-  loanEvent.save();
+  // we dont necessarily have an oracle for revenue tokens so  get best dex price
+  // Can compare dex price vs trade execution price
+  const revenueTokenValue = getUsdPrice(event.params.revenueToken, new BigDecimal(spigotEvent.sold));
+  let token = event.params.revenueToken.toHexString();
+  // update price in subgraph for revenue token potentially not tracked by oracle
+  updateTokenPrice(
+    revenueTokenValue.div(new BigDecimal(spigotEvent.sold)),
+    event.block.number,
+    token,
+    new Token(token)
+  );
+  // can also derive from debt token price oracle
+  // const revenueTokenValue = spigotEvent.sold
+  //   .times(BigInt.fromString(data[1].toString()))
+  //   .div(spigotEvent.bought);
+
+  spigotEvent.soldValue = revenueTokenValue;
+
+  const data = getValue(
+    line.oracle(),
+    Token.load(spigotEvent.debtToken)!,
+    spigotEvent.bought,
+    spigotEvent.block
+  );
+  spigotEvent.boughtValue = data[0];
+  
+  spigotEvent.save();
 }

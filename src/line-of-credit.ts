@@ -8,23 +8,23 @@ import {
 } from "@graphprotocol/graph-ts"
 
 import {
-  SecuredLoan,
+  SecuredLine,
   // ABI events
-  AddDebtPosition,
+  AddCredit,
   Borrow,
-  CloseDebtPosition,
+  CloseCreditPosition,
   Default,
-  DeployLoan,
+  DeployLine,
   InterestAccrued,
   Liquidate,
   RepayInterest,
   RepayPrincipal,
-  UpdateLoanStatus,
+  UpdateStatus,
   WithdrawProfit,
   WithdrawDeposit,
   TradeSpigotRevenue,
-  UpdateRates,
-} from "../generated/LineOfCredit/SecuredLoan"
+  SetRates,
+} from "../generated/LineOfCredit/SecuredLine"
 
 import { Spigot as SpigotContract } from "../generated/templates/Spigot/Spigot"
 import { Escrow as EscrowContract } from "../generated/templates/Escrow/Escrow"
@@ -32,10 +32,11 @@ import {
   Spigot as SpigotTemplate,
   Escrow as EscrowTemplate,
 } from "../generated/templates"
+import { getUsdPrice, getUsdPricePerToken } from "./prices"
 
 import {
   LineOfCredit,
-  DebtPosition,
+  Credit,
   Borrower,
   Token,
   Lender,
@@ -44,7 +45,7 @@ import {
   Escrow,
 
   // graph schema events
-  AddPositionEvent,
+  AddCreditEvent,
   BorrowEvent,
   ClosePositionEvent,
   DefaultEvent,
@@ -57,7 +58,7 @@ import {
   WithdrawDepositEvent,
   RemoveSpigotEvent,
   TradeRevenueEvent,  
-  UpdateRatesEvent,
+  SetRatesEvent,
 } from "../generated/schema"
 
 import {
@@ -66,390 +67,400 @@ import {
   BIG_INT_ZERO,
   BIG_DECIMAL_ZERO,
   ZERO_ADDRESS,
+  BYTES32_ZERO_STR,
+  STATUS_DEFAULT,
 
   getValue,
   getQueueIndex,
   getEventId,
   getOrCreateToken,
   updateTokenPrice,
-  computePositionId,
+  getValueForPosition,
+  updateCollateralValue,
 } from "./utils";
 
 import { handleTradeRevenue as _handleTradeRevenue } from "./spigot"
 
-export function handleDeployLoan(event: DeployLoan): void {
-  const loan = new LineOfCredit(event.address.toHexString());
+export function handleDeployLine(event: DeployLine): void {
+  log.warning("calling handleDeployLine addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  const line = new LineOfCredit(event.address.toHexString());
   const borrower = new Borrower(event.params.borrower.toHexString());
+  const LoC = SecuredLine.bind(event.address);
 
-  loan.borrower = borrower.id;
-  loan.oracle = event.params.oracle;
-  loan.arbiter = event.params.arbiter;
-  loan.start = event.block.timestamp.toI32();
-  loan.end = SecuredLoan.bind(event.address).deadline().toI32();
-  loan.status = STATUSES.get(2); // LoC is ACTIVE on deployment
+  line.borrower = borrower.id;
+  line.type = "Crypto Credit Account";
+  line.oracle = event.params.oracle;
+  line.arbiter = event.params.arbiter;
+  line.start = event.block.timestamp.toI32();
+  line.end = LoC.deadline().toI32();
+  line.lines = [];
+  line.events = [];
+  line.status = STATUSES.get(0); // LoC is UNINITIALIZED on deployment
   
-  const Loan = SecuredLoan.bind(Address.fromString(loan.id));
   // Add modules if present
-  if(Loan.spigot() !== ZERO_ADDRESS) {
-    const addr = Loan.spigot();
+  if(LoC.spigot() !== ZERO_ADDRESS) {
+    const addr = LoC.spigot();
     // start tracking events emitted by spigot
     SpigotTemplate.create(addr);
     // call contract to init data
     const Spigot = SpigotContract.bind(addr);
     let spigot = new SpigotController(addr.toHexString());
     
-    // save module to loan
-    loan.spigot = spigot.id;
+    // save module to line
+    line.spigot = spigot.id;
     
-    spigot.contract = loan.id;
+    spigot.contract = line.id;
     spigot.operator = Spigot.operator()
     spigot.treasury = Spigot.treasury()
-    spigot.dex =  Loan.swapTarget()
+    spigot.dex =  LoC.swapTarget()
+    spigot.startTime = event.block.number;
     spigot.save()
   }
 
-  if(Loan.escrow() !== ZERO_ADDRESS) {
-    const addr = Loan.escrow();
+  if(LoC.escrow() !== ZERO_ADDRESS) {
+    const addr = LoC.escrow();
     let escrow = new Escrow(addr.toHexString());
-    loan.spigot = escrow.id;
+    line.spigot = escrow.id;
     // start tracking events emitted by escrow
     EscrowTemplate.create(addr);
     
-    escrow.contract = loan.id;
-    escrow.oracle = loan.oracle;
+    escrow.contract = line.id;
+    escrow.oracle = line.oracle;
     escrow.minCRatio = new BigDecimal(
       (EscrowContract.bind(addr)).minimumCollateralRatio()
-      );
+    );
     escrow.cratio = BIG_DECIMAL_ZERO;
     escrow.collateralValue = BIG_DECIMAL_ZERO;
     escrow.save()
   }
 
-  loan.save();
+  line.save();
 }
 
-export function handleUpdateLoanStatus(event: UpdateLoanStatus): void {
-  if(STATUSES.has(event.params.status.toI32())) {
-    let position = LineOfCredit.load(event.address.toHexString())!;
-    position.status = STATUSES.get(event.params.status.toI32());
-    position.save();
+export function handleUpdateStatus(event: UpdateStatus): void {
+  log.warning("calling handleUpdateStatus addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  if(STATUSES.has(event.params.status.toI32())) { // ensure its a known status with human label
+    
+    let credit = LineOfCredit.load(event.address.toHexString());
+    if(!credit) return; // line doesnt exist yet
+    
+    credit.status = STATUSES.get(event.params.status.toI32());
+    credit.save();
 
     const eventId = getEventId(event.block.number, event.logIndex);
-    let loanEvent = new UpdateStatusEvent(eventId);
-    loanEvent.positionId = position.id;
-    loanEvent.block = event.block.number;
-    loanEvent.timestamp = event.block.timestamp;
-    loanEvent.status = event.params.status.toI32();
-    loanEvent.save();
+    let creditEvent = new UpdateStatusEvent(eventId);
+    creditEvent.id = credit.id;
+    creditEvent.block = event.block.number;
+    creditEvent.contract = event.address.toHexString();
+    creditEvent.credit = credit.lines[0] || BYTES32_ZERO_STR;
+    creditEvent.status = event.params.status.toI32();
+
+    creditEvent.save();
   } else {
     log.error('No STATUSES mapped for event', [event.params.status.toString()])
   }
 }
 
 
-export function handleAddPosition(event: AddDebtPosition): void {
-  const loan = LineOfCredit.load(event.address.toHexString())!;
+export function handleAddCrfedit(event: AddCredit): void {
+  log.warning("calling handleAddCrfedit addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  const line = LineOfCredit.load(event.address.toHexString())!;
   const token = getOrCreateToken(event.params.token.toHexString());
-  const id = computePositionId(event.address, event.params.lender, event.params.token)
-  let position = DebtPosition.load(id);
-  if(position) {
-    // same lender/token already participated on loan but it was closed, then reopened
+  const id = event.params.positionId.toHexString();
+  let credit = Credit.load(id);
+  if(credit) {
+    // same lender/token already participated on line but it was closed, then reopened
     // keep historical data e.g. totalInterestAccrued and clear active data
   } else {
-    position = new DebtPosition(id);
+    credit = new Credit(id);
   }
-  position.token = token.id;
-  position.contract = loan.id;
-  position.lender = event.params.lender.toHexString();
-  position.deposit = event.params.deposit;
+  credit.token = token.id;
+  credit.contract = line.id;
+  credit.lender = event.params.lender.toHexString();
+  credit.deposit = event.params.deposit;
   
-  position.principal = BIG_INT_ZERO;
-  position.interestAccrued = BIG_INT_ZERO;
-  position.totalInterestEarned = BIG_INT_ZERO;
+  credit.principal = BIG_INT_ZERO;
+  credit.interestAccrued = BIG_INT_ZERO;
+  credit.totalInterestEarned = BIG_INT_ZERO;
   
   // rates properly set on UpdateInterestRate event
-  position.drawnRate = 0; // get set on UpdateRates
-  position.facilityRate = 0; // get set on UpdateRates
-  position.queue = NOT_IN_QUEUE.toI32();
-  position.save();
+  credit.drawnRate = 0; // get set on SetRates
+  credit.facilityRate = 0; // get set on SetRates
+  credit.queue = NOT_IN_QUEUE.toI32();
+  credit.save();
 
   const eventId = getEventId(event.block.number, event.logIndex);
-  let loanEvent = new AddPositionEvent(eventId);
-  loanEvent.positionId = id;
-  loanEvent.block = event.block.number;
-  loanEvent.timestamp = event.block.timestamp;
-  loanEvent.amount = event.params.deposit;
-  loanEvent.value = getValue(
-    loan.oracle as Address,
+  let creditEvent = new AddCreditEvent(eventId);
+  creditEvent.block = event.block.number;
+    creditEvent.contract = event.address.toHexString();
+  creditEvent.timestamp = event.block.timestamp;
+  creditEvent.amount = event.params.deposit;
+  creditEvent.value = getValue(
+    line.oracle as Address,
     token,
-    position.deposit,
+    credit.deposit,
     event.block.number
-  );
-  loanEvent.save();
-
-
-
-
-  // Note: If a handler doesn't require existing field values, it is faster
-  // _not_ to load the entity from the store. Instead, create it fresh with
-  // `new Entity(...)`, set the fields that should be updated and save the
-  // entity back to the store. Fields that were not set or unset remain
-  // unchanged, allowing for partial updates to be applied.
-
-  // It is also possible to access smart contracts from mappings. For
-  // example, the contract that has emitted the event can be connected to
-  // with:
-  //
-  // const contract = Contract.bind(event.address)
-  //
-  // The following functions can then be called on this contract to access
-  // state variables and other data:
-  //
-  // - contract.accrueInterest(...)
-  // - contract.addDebtPosition(...)
-  // - contract.arbiter(...)
-  // - contract.borrow(...)
-  // - contract.borrower(...)
-  // - contract.close(...)
-  // - contract.deadline(...)
-  // - contract.debts(...)
-  // - contract.depositAndClose(...)
-  // - contract.depositAndRepay(...)
-  // - contract.getOutstandingDebt(...)
-  // - contract.healthcheck(...)
-  // - contract.interestRate(...)
-  // - contract.interestUsd(...)
-  // - contract.liquidate(...)
-  // - contract.loanStatus(...)
-  // - contract.mutualUpgrades(...)
-  // - contract.oracle(...)
-  // - contract.positionIds(...)
-  // - contract.principalUsd(...)
-  // - contract.withdraw(...)
+  )[0];
+  creditEvent.save();
 }
 
-export function handleCloseDebtPosition(event: CloseDebtPosition): void {
-  let position = DebtPosition.load(event.params.positionId.toHexString())!;
-  position.principal = BIG_INT_ZERO;
-  position.deposit = BIG_INT_ZERO;
-  position.interestAccrued = BIG_INT_ZERO;
-  position.interestRepaid = BIG_INT_ZERO;
-  position.drawnRate = 0;
-  position.facilityRate = 0;
-  position.queue = NOT_IN_QUEUE.toI32(); // TODO figure out how to make null/undefined with type system
-  position.save();
+export function handleCloseCreditPosition(event: CloseCreditPosition): void {
+  log.warning("calling handleCloseCreditPosition addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  let credit = Credit.load(event.params.id.toHexString())!;
+  credit.principal = BIG_INT_ZERO;
+  credit.deposit = BIG_INT_ZERO;
+  credit.interestAccrued = BIG_INT_ZERO;
+  credit.interestRepaid = BIG_INT_ZERO;
+  credit.drawnRate = 0;
+  credit.facilityRate = 0;
+  credit.queue = NOT_IN_QUEUE.toI32(); // TODO figure out how to make null/undefined with type system
+  credit.save();
 
   const eventId = getEventId(event.block.number, event.logIndex);
-  let loanEvent = new ClosePositionEvent(eventId);
-  loanEvent.positionId = position.id;
-  loanEvent.block = event.block.number;
-  loanEvent.timestamp = event.block.timestamp;
-  loanEvent.save();
+  let creditEvent = new ClosePositionEvent(eventId);
+  creditEvent.id = credit.id;
+  creditEvent.block = event.block.number;
+    creditEvent.contract = event.address.toHexString();
+  creditEvent.timestamp = event.block.timestamp;
+  creditEvent.save();
 }
 
 
 export function handleWithdrawProfit(event: WithdrawProfit): void {
-  let position = DebtPosition.load(event.params.positionId.toHexString())!;
-  position.interestAccrued = position.interestAccrued.minus(event.params.amount);
-  position.save();
+  log.warning("calling handleWithdrawProfit addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  let credit = Credit.load(event.params.id.toHexString())!;
+  credit.interestAccrued = credit.interestAccrued.minus(event.params.amount);
+  credit.save();
 
   const eventId = getEventId(event.block.number, event.logIndex);
-  let loanEvent = new WithdrawProfitEvent(eventId);
-  loanEvent.positionId = position.id;
-  loanEvent.block = event.block.number;
-  loanEvent.timestamp = event.block.timestamp;
-  loanEvent.amount = event.params.amount;
-  loanEvent.value = getValue(
-    LineOfCredit.load(position.contract)!.oracle as Address,
-    Token.load(position.token)!,
+  let creditEvent = new WithdrawProfitEvent(eventId);
+  creditEvent.id = credit.id;
+  creditEvent.block = event.block.number;
+    creditEvent.contract = event.address.toHexString();
+  creditEvent.timestamp = event.block.timestamp;
+  creditEvent.amount = event.params.amount;
+  creditEvent.value = getValueForPosition(
+    credit.contract,
+    credit.token,
     event.params.amount,
     event.block.number
-  );
-  loanEvent.save();
+  )[0];
+  creditEvent.save();
 }
 
 export function handleWithdrawDeposit(event: WithdrawDeposit): void {
-  let position = DebtPosition.load(event.params.positionId.toHexString())!;
-  position.deposit = position.deposit.minus(event.params.amount);
-  position.save();
+  log.warning("calling handleWithdrawDeposit addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  let credit = Credit.load(event.params.id.toHexString())!;
+  credit.deposit = credit.deposit.minus(event.params.amount);
+  credit.save();
 
   const eventId = getEventId(event.block.number, event.logIndex);
-  let loanEvent = new WithdrawDepositEvent(eventId);
-  loanEvent.positionId = position.id;
-  loanEvent.block = event.block.number;
-  loanEvent.timestamp = event.block.timestamp;
-  loanEvent.amount = event.params.amount;
-  loanEvent.value = getValue(
-    LineOfCredit.load(position.contract)!.oracle as Address,
-    Token.load(position.token)!,
+  let creditEvent = new WithdrawDepositEvent(eventId);
+  creditEvent.id = credit.id;
+  creditEvent.block = event.block.number;
+    creditEvent.contract = event.address.toHexString();
+  creditEvent.timestamp = event.block.timestamp;
+  creditEvent.amount = event.params.amount;
+  creditEvent.value = getValueForPosition(
+    credit.contract,
+    credit.token,
     event.params.amount,
     event.block.number
-  );
-  loanEvent.save();
+  )[0];
+  creditEvent.save();
 }
 
 export function handleBorrow(event: Borrow): void {
-  let position = DebtPosition.load(event.params.positionId.toHexString())!;
-  position.principal = position.principal.plus(event.params.amount);
-  position.principalUsd = position.principalUsd.plus(new BigDecimal(event.params.value));
-  position.queue = getQueueIndex(position.contract, position.id);
+  log.warning("calling handleBorrow addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  let credit = Credit.load(event.params.id.toHexString())!;
+  credit.principal = credit.principal.plus(event.params.amount);
+  const data = getValueForPosition(
+    event.address.toHexString(),
+    credit.token,
+    event.params.amount,
+    event.block.number
+  );
+  credit.principalUsd =  new BigDecimal(credit.principal).times(data[1]);
+  credit.queue = getQueueIndex(credit.contract, credit.id);
 
-  position.save();
+  credit.save();
   
-  // TODO if Escrow update value/cratio
-  updateTokenPrice(
-    new BigDecimal(event.params.value.div(event.params.amount)),
-    event.block.number,
-    position.token,
-    new Token("")
-  )
+  
+  updateCollateralValue(event.address);
 
   const eventId = getEventId(event.block.number, event.logIndex);
-  let loanEvent = new BorrowEvent(eventId);
-  loanEvent.positionId = position.id;
-  loanEvent.block = event.block.number;
-  loanEvent.timestamp = event.block.timestamp;
-  loanEvent.save();
+  let creditEvent = new BorrowEvent(eventId);
+  creditEvent.id = credit.id;
+  creditEvent.block = event.block.number;
+    creditEvent.contract = event.address.toHexString();
+  creditEvent.timestamp = event.block.timestamp;
+  creditEvent.amount = event.params.amount;
+  creditEvent.value = data[0];
+  creditEvent.save();
 }
 
 
 export function handleInterestAccrued(event: InterestAccrued): void {
-  let position = DebtPosition.load(event.params.positionId.toHexString())!;
-  position.interestAccrued = position.interestAccrued.plus(event.params.amount);
-  position.interestUsd = position.interestUsd.plus(new BigDecimal(event.params.value));
-  position.save();
+  log.warning("calling handleInterestAccrued addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  let credit = Credit.load(event.params.id.toHexString())!;
+  const data = getValueForPosition(
+    event.address.toHexString(),
+    credit.token,
+    event.params.amount,
+    event.block.number
+  );
+  credit.interestAccrued = credit.interestAccrued.plus(event.params.amount);
+  credit.interestUsd = new BigDecimal(credit.interestAccrued).times(data[1]);
+  credit.save();
 
-  // TODO if Escrow update value/cratio
+  
+  updateCollateralValue(event.address);
 
   const eventId = getEventId(event.block.number, event.logIndex);
-  let loanEvent = new InterestAccruedEvent(eventId);
-  loanEvent.positionId = position.id;
-  loanEvent.block = event.block.number;
-  loanEvent.timestamp = event.block.timestamp;
-  loanEvent.amount = event.params.amount;
-  loanEvent.value = new BigDecimal(event.params.value);
-  updateTokenPrice(
-    new BigDecimal(event.params.value.div(event.params.amount)),
-    event.block.number,
-    position.token,
-    new Token("")
-  )
-  loanEvent.save();
+  let creditEvent = new InterestAccruedEvent(eventId);
+  creditEvent.id = credit.id;
+  creditEvent.block = event.block.number;
+    creditEvent.contract = event.address.toHexString();
+  creditEvent.timestamp = event.block.timestamp;
+  creditEvent.amount = event.params.amount;
+  creditEvent.value = data[0];
+  creditEvent.save();
 }
 
 
 export function handleRepayInterest(event: RepayInterest): void {
-  let position = DebtPosition.load(event.params.positionId.toHexString())!;
-  position.interestAccrued = position.interestAccrued.minus(event.params.amount);
-  position.interestUsd = position.interestUsd.minus(new BigDecimal(event.params.value));
+  log.warning("calling handleRepayInterest addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  let credit = Credit.load(event.params.id.toHexString())!;
+  credit.interestAccrued = credit.interestAccrued.minus(event.params.amount);
+  const data = getValueForPosition(
+    event.address.toHexString(),
+    credit.token,
+    event.params.amount,
+    event.block.number
+  );
+  credit.interestUsd = new BigDecimal(credit.interestAccrued).times(data[1]);
 
-  position.totalInterestEarned = position.totalInterestEarned.plus(event.params.amount);
-  position.interestRepaid = position.interestRepaid.plus(event.params.amount);
+  credit.totalInterestEarned = credit.totalInterestEarned.plus(event.params.amount);
+  credit.interestRepaid = credit.interestRepaid.plus(event.params.amount);
   
-  position.save();
+  credit.save();
 
   const eventId = getEventId(event.block.number, event.logIndex);
-  let loanEvent = new RepayInterestEvent(eventId);
-  loanEvent.positionId = position.id;
-  loanEvent.block = event.block.number;
-  loanEvent.timestamp = event.block.timestamp;
-  loanEvent.amount = event.params.amount;
-  loanEvent.value = new BigDecimal(event.params.value);
-  loanEvent.save();
-  // TODO if Escrow update value/cratio
-
-  updateTokenPrice(
-    new BigDecimal(event.params.value.div(event.params.amount)),
-    event.block.number,
-    position.token,
-    new Token("")
-  );
+  let creditEvent = new RepayInterestEvent(eventId);
+  creditEvent.id = credit.id;
+  creditEvent.block = event.block.number;
+    creditEvent.contract = event.address.toHexString();
+  creditEvent.timestamp = event.block.timestamp;
+  creditEvent.amount = event.params.amount;
+  creditEvent.value = data[0];
+  creditEvent.save();
   
+  updateCollateralValue(event.address);
 }
 
 export function handleRepayPrincipal(event: RepayPrincipal): void {
-  let position = DebtPosition.load(event.params.positionId.toHexString())!;
-  position.principal = position.principal.minus(event.params.amount);
-  position.principalUsd = position.principalUsd.minus(new BigDecimal(event.params.value));
+  log.warning("calling handleRepayPrincipal addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  let credit = Credit.load(event.params.id.toHexString())!;
+  credit.principal = credit.principal.minus(event.params.amount);
+  const data = getValueForPosition(
+    event.address.toHexString(),
+    credit.token,
+    event.params.amount,
+    event.block.number
+  );
+  credit.principalUsd = new BigDecimal(credit.principal).times(data[1]);
 
-  if(position.principal.equals(BIG_INT_ZERO)) position.queue = NOT_IN_QUEUE.toI32();
+  if(credit.principal.equals(BIG_INT_ZERO)) credit.queue = NOT_IN_QUEUE.toI32();
 
-  position.save();
-  // TODO if Escrow update value/cratio
+  credit.save();
+  
+  updateCollateralValue(event.address);
 
   const eventId = getEventId(event.block.number, event.logIndex);
-  let loanEvent = new RepayPrincipalEvent(eventId);
-  loanEvent.positionId = position.id;
-  loanEvent.block = event.block.number;
-  loanEvent.timestamp = event.block.timestamp;
-  loanEvent.amount = event.params.amount;
-  loanEvent.value = new BigDecimal(event.params.value);
-  loanEvent.save();
-  
-  updateTokenPrice(
-    new BigDecimal(event.params.value.div(event.params.amount)),
-    event.block.number,
-    position.token,
-    new Token("")
-  );
-
+  let creditEvent = new RepayPrincipalEvent(eventId);
+  creditEvent.id = credit.id;
+  creditEvent.block = event.block.number;
+    creditEvent.contract = event.address.toHexString();
+  creditEvent.timestamp = event.block.timestamp;
+  creditEvent.amount = event.params.amount;
+  creditEvent.value = data[0];
+  creditEvent.save();
 }
 
-// Not sure whart to do here. UpdateLoanStatus already has it as Liquidatable
-export function handleDefault(event: Default): void {}
+export function handleDefault(event: Default): void {
+  log.warning("calling handleDefault addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  // TODO: loop over all current credits and generate default events
+  let line = LineOfCredit.load(event.address.toHexString())!;
+  line.status = STATUS_DEFAULT;
+  line.save();
+  for(let i = 0; i < line.lines.length; i ++) {
+    let c = new Credit(line.lines[i]);
+    let id = getEventId(event.block.number, event.logIndex);
+    let creditEvent = new DefaultEvent(id);
+    creditEvent.credit = c.id;
+    creditEvent.block = event.block.number;
+    creditEvent.contract = event.address.toHexString();
+    creditEvent.timestamp = event.block.timestamp;
+    creditEvent.amount = c.principal.plus(c.interestAccrued);
+    creditEvent.value = getValueForPosition(
+      line.oracle.toHexString(),
+      c.token,
+      creditEvent.amount,
+      creditEvent.block
+    )[0];
+    creditEvent.save();
+  }
+}
 
 
 export function handleLiquidate(event: Liquidate): void {
-  let position = DebtPosition.load(event.params.positionId.toHexString())!;
-  position.principal = position.principal.minus(event.params.amount);
-  const value = getValue(
-    SecuredLoan.bind(Address.fromString(position.contract)).oracle(),
+  log.warning("calling handleLiquidate addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  let credit = Credit.load(event.params.positionId.toHexString())!;
+  credit.principal = credit.principal.minus(event.params.amount);
+  const data = getValue(
+    SecuredLine.bind(Address.fromString(credit.contract)).oracle(),
     getOrCreateToken(event.params.token.toString()),
     event.params.amount,
     event.block.number
   );
-  position.principalUsd = position.principalUsd.minus(value);
+  credit.principalUsd = credit.principalUsd.times(data[1]);
 
-  if(position.principal.equals(BIG_INT_ZERO)) position.queue = NOT_IN_QUEUE.toI32();
+  if(credit.principal.equals(BIG_INT_ZERO)) credit.queue = NOT_IN_QUEUE.toI32();
 
-  position.save();
+  credit.save();
 
   const eventId = getEventId(event.block.number, event.logIndex);
-  let loanEvent = new LiquidateEvent(eventId);
-  loanEvent.positionId = position.id;
-  loanEvent.block = event.block.number;
-  loanEvent.timestamp = event.block.timestamp;
-  loanEvent.amount = event.params.amount;
-  loanEvent.value = value;
-  loanEvent.save();
-  
-  updateTokenPrice(
-    value.div(new BigDecimal(event.params.amount)),
-    event.block.number,
-    position.token,
-    new Token("")
-  );
-
+  let creditEvent = new LiquidateEvent(eventId);
+  creditEvent.id = credit.id;
+  creditEvent.block = event.block.number;
+    creditEvent.contract = event.address.toHexString();
+  creditEvent.timestamp = event.block.timestamp;
+  creditEvent.amount = event.params.amount;
+  creditEvent.value = data[0];
+  creditEvent.save();
 }
 
 
-export function handleUpdateRates(event: UpdateRates): void {
-  let position = new DebtPosition(event.params.positionId.toHexString());
-  position.drawnRate = event.params.drawnRate.toI32();
-  position.facilityRate = event.params.facilityRate.toI32();
-  position.save();
+export function handleSetRates(event: SetRates): void {
+  log.warning("calling handleSetRates addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  let credit = new Credit(event.params.id.toHexString());
+  credit.drawnRate = event.params.drawnRate.toI32();
+  credit.facilityRate = event.params.facilityRate.toI32();
+  credit.save();
 
   const eventId = getEventId(event.block.number, event.logIndex);
-  let loanEvent = new UpdateRatesEvent(eventId);
-  loanEvent.positionId = position.id;
-  loanEvent.block = event.block.number;
-  loanEvent.timestamp = event.block.timestamp;
-  loanEvent.drawnRate = event.params.drawnRate.toI32();
-  loanEvent.facilityRate = event.params.facilityRate.toI32();
-  loanEvent.save();
+  let creditEvent = new SetRatesEvent(eventId);
+  creditEvent.id = credit.id;
+  creditEvent.block = event.block.number;
+    creditEvent.contract = event.address.toHexString();
+  creditEvent.timestamp = event.block.timestamp;
+  creditEvent.drawnRate = event.params.drawnRate.toI32();
+  creditEvent.facilityRate = event.params.facilityRate.toI32();
+  creditEvent.save();
 }
 
 export function handleTradeRevenue(event: TradeSpigotRevenue): void {
-  // event emitted by Loan but code store in Spigot for organization
+  log.warning("calling handleTradeRevenue addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  // event emitted by Line but code stored in Spigot for organization
   _handleTradeRevenue(event);
 }
