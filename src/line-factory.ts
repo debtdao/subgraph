@@ -77,7 +77,7 @@ export function handleDeploySpigot(event: DeployedSpigot): void {
   deployEvent.block = event.block.number;
   deployEvent.timestamp = event.block.timestamp;
   deployEvent.address = addr;
-  deployEvent.deployer = event.transaction.from;
+  deployEvent.deployer = event.transaction.from; // line factory or EOA
 
   deployEvent.owner = event.params.owner;
   deployEvent.operator = event.params.operator;
@@ -106,7 +106,7 @@ export function handleDeployEscrow(event: DeployedEscrow): void {
   deployEvent.block = event.block.number;
   deployEvent.timestamp = event.block.timestamp;
   deployEvent.address = addr;
-  deployEvent.deployer = event.transaction.from;
+  deployEvent.deployer = event.transaction.from; // line factory or EOA
   deployEvent.minCRatio = event.params.minCRatio;
   deployEvent.save();
 }

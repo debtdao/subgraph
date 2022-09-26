@@ -475,8 +475,8 @@ type DeploySecuredLineEvent implements DeployEvent & LineEvent @entity {
   address: Bytes!
 
   # LineEvent conformity
-  line: LineOfCredit # same as address. Surfaces event in line logs
-  credit: Credit! # always 0
+  line: LineOfCredit! # same as address. Surfaces event in line logs
+  credit: Credit!     # always 0
 
   # event params
   escrow: Escrow!

@@ -7,6 +7,29 @@ dataSources:
     network: goerli
     source:
       abi: LineFactory
+      address: "0x6c416F84970F37398cD130b9b16991174d4AcaF4"
+      startBlock: 7423109
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/line-factory.ts
+      entities:
+        - DeploySecuredLineEvent
+      abis:
+        - name: LineFactory
+          file: ./abis/LineFactory.json
+      eventHandlers:
+        - event: DeployedSecuredLine(indexed address,indexed address,indexed
+            address,address)
+          handler: handleDeploySecuredLine
+  - name: ModuleFactory
+    kind: ethereum/contract
+    network: goerli
+    source:
+      abi: ModuleFactory
+      address: "0x6c416F84970F37398cD130b9b16991174d4AcaF4"
+      startBlock: 7423109
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -14,18 +37,15 @@ dataSources:
       file: ./src/line-factory.ts
       entities:
         - DeploySpigotEvent
-        - DeployEscrowEvent
         - DeploySecuredLineEvent
       abis:
-        - name: LineFactory
-          file: ./abis/LineFactory.json
+        - name: ModuleFactory
+          file: ./abis/ModuleFactory.json
       eventHandlers:
         - event: DeployedSpigot(indexed address,indexed address,indexed address,address)
           handler: handleDeploySpigot
         - event: DeployedEscrow(indexed address,indexed uint32,indexed address,address)
           handler: handleDeployEscrow
-        - event: DeployedSecuredLine(indexed address,indexed address,indexed address,address)
-          handler: handleDeploySecuredLine
 templates:
   - name: SecuredLine
     kind: ethereum/contract
