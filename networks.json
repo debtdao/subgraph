@@ -1,8 +1,12 @@
 {
   "goerli": {
     "LineFactory": {
-      "address": "0x6c416F84970F37398cD130b9b16991174d4AcaF4",
-      "startBlock": 7423109
+      "address": "0x43158693DBA386562F0581CD48E68dF027a5A877",
+      "startBlock": 7666923 
+    },
+    "ModuleFactory":{
+      "address": "0x4ef32Fb722106dD55b57213E8cd56035Df216954",
+      "startBlock": 7666910
     }
   }
 }

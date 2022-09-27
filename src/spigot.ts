@@ -20,7 +20,7 @@ import {
 import {
   SecuredLine,
   TradeSpigotRevenue,
-} from "../generated/LineOfCredit/SecuredLine"
+} from "../generated/templates/SecuredLine/SecuredLine"
 
 import {
   Token,

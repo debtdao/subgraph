@@ -24,7 +24,7 @@ import {
   WithdrawDeposit,
   TradeSpigotRevenue,
   SetRates,
-} from "../generated/LineOfCredit/SecuredLine"
+} from "../generated/templates/SecuredLine/SecuredLine"
 
 import { Spigot as SpigotContract } from "../generated/templates/Spigot/Spigot"
 import { Escrow as EscrowContract } from "../generated/templates/Escrow/Escrow"

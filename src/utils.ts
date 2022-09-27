@@ -20,13 +20,13 @@ import {
 
 import {
   SecuredLine,
-} from "../generated/LineOfCredit/SecuredLine"
+} from "../generated/templates/SecuredLine/SecuredLine"
 
 import {
   Escrow as EscrowContract,
 } from "../generated/templates/Escrow/Escrow"
 
-import { Oracle } from "../generated/LineOfCredit/Oracle"
+import { Oracle } from "../generated/templates/SecuredLine/Oracle"
 import { _ERC20 } from "../generated/templates/Spigot/_ERC20";
 import { readValue } from "./prices/common/utils";
 import { BIGDECIMAL_1E18 } from "./prices/common/constants";
