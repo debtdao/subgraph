@@ -39,7 +39,6 @@ export function handleDeploySecuredLine(event: DeployedSecuredLine): void {
   SecuredLineTemplate.create(event.params.deployedAt);
 
   // dont need  to create LoC entity bc created in line's own deploy event
-
   const eventId = getEventId(event.block.number, event.logIndex);
   const deployEvent = new DeploySecuredLineEvent(eventId);
   deployEvent.factory = event.address;

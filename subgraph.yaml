@@ -7,6 +7,8 @@ dataSources:
     network: goerli
     source:
       abi: LineFactory
+      address: "0x43158693DBA386562F0581CD48E68dF027a5A877"
+      startBlock: 7666923
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -18,13 +20,16 @@ dataSources:
         - name: LineFactory
           file: ./abis/LineFactory.json
       eventHandlers:
-        - event: DeployedSecuredLine(indexed address,indexed address,indexed address,address,uint8)
+        - event: DeployedSecuredLine(indexed address,indexed address,indexed
+            address,address,uint8)
           handler: handleDeploySecuredLine
   - name: ModuleFactory
     kind: ethereum/contract
     network: goerli
     source:
       abi: ModuleFactory
+      address: "0x4ef32Fb722106dD55b57213E8cd56035Df216954"
+      startBlock: 7666910
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -162,7 +167,7 @@ templates:
         - event: UpdateOperator(indexed address)
           handler: handleUpdateOperator
         - event: UpdateWhitelistFunction(indexed bytes4,indexed bool)
-          handler: handleWhitelistFunc
+          handler: handleWhitelistFunction
         - event: UpdateOwnerSplit(indexed address,indexed uint8)
           handler: handleUpdateOwnerSplit
   - name: Escrow

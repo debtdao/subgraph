@@ -43,8 +43,8 @@ type LineOfCredit @entity {
   arbiter: Bytes!
 
   # `lines` not guaranteed to return in order of repayment queue like smart contract
-  lines: [Credit!]! @derivedFrom(field: "line")
-  events: [LineEvent!]!  @derivedFrom(field: "line")
+  lines: [Credit!] @derivedFrom(field: "line")
+  events: [LineEvent!]  @derivedFrom(field: "line")
 }
 
 type Credit @entity {
@@ -108,20 +108,20 @@ interface LineEvent {
 
 type UpdateStatusEvent implements LineEvent @entity {
   id: ID! # block-logIndex
-  credit: Credit!  # the first line in payment queue at time of status update
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
+  credit: Credit!  # the first line in payment queue at time of status update
 
   status: Int!
 }
 
 type AddCreditEvent implements LineEvent @entity {
   id: ID! # block-logIndex
-  credit: Credit!
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
+  credit: Credit!
 
   amount: BigInt!
   value: BigDecimal!
@@ -131,18 +131,18 @@ type AddCreditEvent implements LineEvent @entity {
 
 type ClosePositionEvent implements LineEvent @entity {
   id: ID! # block-logIndex
-  credit: Credit!
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
+  credit: Credit!
 }
 
 type WithdrawProfitEvent implements LineEvent @entity {
   id: ID! # block-logIndex
-  credit: Credit!
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
+  credit: Credit!
 
   amount: BigInt!
   value: BigDecimal!
@@ -150,10 +150,10 @@ type WithdrawProfitEvent implements LineEvent @entity {
 
 type WithdrawDepositEvent implements LineEvent @entity {
   id: ID! # block-logIndex
-  credit: Credit!
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
+  credit: Credit!
 
   amount: BigInt!
   value: BigDecimal!
@@ -161,10 +161,10 @@ type WithdrawDepositEvent implements LineEvent @entity {
 
 type BorrowEvent implements LineEvent @entity {
   id: ID! # block-logIndex
-  credit: Credit!
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
+  credit: Credit!
 
   amount: BigInt!
   value: BigDecimal!
@@ -172,10 +172,10 @@ type BorrowEvent implements LineEvent @entity {
 
 type InterestAccruedEvent implements LineEvent @entity {
   id: ID! # block-logIndex
-  credit: Credit!
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
+  credit: Credit!
 
   amount: BigInt!
   value: BigDecimal!
@@ -183,10 +183,10 @@ type InterestAccruedEvent implements LineEvent @entity {
 
 type RepayInterestEvent implements LineEvent @entity {
   id: ID! # block-logIndex
-  credit: Credit!
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
+  credit: Credit!
 
   amount: BigInt!
   value: BigDecimal!
@@ -194,10 +194,10 @@ type RepayInterestEvent implements LineEvent @entity {
 
 type RepayPrincipalEvent implements LineEvent @entity {
   id: ID! # block-logIndex
-  credit: Credit!
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
+  credit: Credit!
 
   amount: BigInt!
   value: BigDecimal!
@@ -206,10 +206,10 @@ type RepayPrincipalEvent implements LineEvent @entity {
 
 type LiquidateEvent implements LineEvent @entity {
   id: ID! # block-logIndex
-  credit: Credit!
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
+  credit: Credit!
 
   amount: BigInt!
   value: BigDecimal! # not necessarily the amount received from executingliquidation 
@@ -219,10 +219,10 @@ type LiquidateEvent implements LineEvent @entity {
 
 type DefaultEvent implements LineEvent @entity {
   id: ID! # block-logIndex
-  credit: Credit!
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
+  credit: Credit!
 
   amount: BigInt!
   value: BigDecimal!
@@ -230,10 +230,10 @@ type DefaultEvent implements LineEvent @entity {
 
 type SetRatesEvent implements LineEvent @entity {
   id: ID! # block-logIndex
-  credit: Credit!
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
+  credit: Credit!
 
   drawnRate: Int!    # bps
   facilityRate: Int! # bps
@@ -294,7 +294,7 @@ type UpdateTreasuryEvent implements SpigotControllerEvent @entity {
   newTreasury: Bytes!
 }
 
-type WhitelistFunctionEvent implements SpigotControllerEvent @entity {
+type UpdateWhitelistFunctionEvent implements SpigotControllerEvent @entity {
   id: ID! # block-logIndex
   controller: SpigotController!
   block: BigInt!

@@ -10,6 +10,9 @@ import {
   ClaimEscrow,
   UpdateOwnerSplit,
   UpdateWhitelistFunction,
+  UpdateOwner,
+  UpdateTreasury,
+  UpdateOperator,
 } from "../generated/templates/Spigot/Spigot"
   
 import {
@@ -22,13 +25,16 @@ import {
   Spigot,
   SpigotController,
 
-  WhitelistFunctionEvent,
   AddSpigotEvent,
   RemoveSpigotEvent,
   ClaimRevenueEvent,
   ClaimEscrowEvent,
   TradeRevenueEvent,
   UpdateOwnerSplitEvent,
+  UpdateOwnerEvent,
+  UpdateTreasuryEvent,
+  UpdateOperatorEvent,
+  UpdateWhitelistFunctionEvent,
 } from "../generated/schema"
 import {
   STATUSES,
@@ -207,4 +213,83 @@ export function handleTradeRevenue(event: TradeSpigotRevenue): void {
   spigotEvent.save();
 
 
+}
+
+
+export function handleUpdateOwner(event: UpdateOwner): void {
+  // load entity to use current owner
+  let spigot = SpigotController.load(event.address.toHexString())!;
+
+  
+  const eventId = getEventId(event.block.number, event.logIndex);
+  let spigotEvent = new UpdateOwnerEvent(eventId);
+
+  spigotEvent.oldOwner = spigot.owner;
+  spigotEvent.newOwner = event.params.newOwner;
+  spigotEvent.controller = event.address.toHexString();
+  spigotEvent.block = event.block.number;
+  spigotEvent.timestamp = event.block.timestamp;
+  spigotEvent.save();
+
+  // update spigot after so we can use old owner for event data
+  spigot.owner = event.params.newOwner;
+  spigot.save();
+}
+
+export function handleUpdateTreasury(event: UpdateTreasury): void {
+  // load entity to use current Treasury
+  let spigot = SpigotController.load(event.address.toHexString())!;
+
+  
+  const eventId = getEventId(event.block.number, event.logIndex);
+  let spigotEvent = new UpdateTreasuryEvent(eventId);
+
+  spigotEvent.oldTreasury = spigot.treasury;
+  spigotEvent.newTreasury = event.params.newTreasury;
+  spigotEvent.controller = event.address.toHexString();
+  spigotEvent.block = event.block.number;
+  spigotEvent.timestamp = event.block.timestamp;
+  spigotEvent.save();
+
+  // update spigot after so we can use old Treasury for event data
+  spigot.treasury = event.params.newTreasury;
+  spigot.save();
+}
+
+
+export function handleUpdateOperator(event: UpdateOperator): void {
+  // load entity to use current Operator
+  let spigot = SpigotController.load(event.address.toHexString())!;
+
+  
+  const eventId = getEventId(event.block.number, event.logIndex);
+  let spigotEvent = new UpdateOperatorEvent(eventId);
+
+  spigotEvent.oldOperator = spigot.operator;
+  spigotEvent.newOperator = event.params.newOperator;
+  spigotEvent.controller = event.address.toHexString();
+  spigotEvent.block = event.block.number;
+  spigotEvent.timestamp = event.block.timestamp;
+  spigotEvent.save();
+
+  // update spigot after so we can use old Operator for event data
+  spigot.operator = event.params.newOperator;
+  spigot.save();
+}
+
+
+export function handleUpdateWhitelistFunction(event: UpdateWhitelistFunction): void {
+  // load entity to use current Operator
+  let spigot = SpigotController.load(event.address.toHexString())!;
+
+  
+  const eventId = getEventId(event.block.number, event.logIndex);
+  let spigotEvent = new UpdateWhitelistFunctionEvent(eventId);
+
+  spigotEvent.func = event.params.func;
+  spigotEvent.whitelisted = event.params.allowed;
+  spigotEvent.controller = event.address.toHexString();
+  spigotEvent.block = event.block.number;
+  spigotEvent.timestamp = event.block.timestamp;
+  spigotEvent.save();
 }

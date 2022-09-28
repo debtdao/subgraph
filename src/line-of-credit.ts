@@ -1,9 +1,6 @@
 import {
   log,
-
   Address,
-  Bytes,
-  BigInt,
   BigDecimal,
 } from "@graphprotocol/graph-ts"
 
@@ -26,24 +23,13 @@ import {
   SetRates,
 } from "../generated/templates/SecuredLine/SecuredLine"
 
-import { Spigot as SpigotContract } from "../generated/templates/Spigot/Spigot"
-import { Escrow as EscrowContract } from "../generated/templates/Escrow/Escrow"
 import {
-  Spigot as SpigotTemplate,
-  Escrow as EscrowTemplate,
-} from "../generated/templates"
-import { getUsdPrice, getUsdPricePerToken } from "./prices"
-
-import {
+  // main entity types
   LineOfCredit,
   Credit,
   Borrower,
-  Token,
-  Lender,
-  Spigot,
   SpigotController,
   Escrow,
-
   // graph schema events
   AddCreditEvent,
   BorrowEvent,
@@ -56,8 +42,6 @@ import {
   UpdateStatusEvent,
   WithdrawProfitEvent,
   WithdrawDepositEvent,
-  RemoveSpigotEvent,
-  TradeRevenueEvent,  
   SetRatesEvent,
 } from "../generated/schema"
 
@@ -65,8 +49,6 @@ import {
   STATUSES,
   NOT_IN_QUEUE,
   BIG_INT_ZERO,
-  BIG_DECIMAL_ZERO,
-  ZERO_ADDRESS,
   BYTES32_ZERO_STR,
   STATUS_DEFAULT,
 
@@ -74,7 +56,6 @@ import {
   getQueueIndex,
   getEventId,
   getOrCreateToken,
-  updateTokenPrice,
   getValueForPosition,
   updateCollateralValue,
 } from "./utils";
@@ -82,10 +63,12 @@ import {
 import { handleTradeRevenue as _handleTradeRevenue } from "./spigot"
 
 export function handleDeployLine(event: DeployLine): void {
-  log.warning("calling handleDeployLine addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   const line = new LineOfCredit(event.address.toHexString());
   const borrower = new Borrower(event.params.borrower.toHexString());
+  borrower.save(); // ensure entity persists
   const LoC = SecuredLine.bind(event.address);
+
+  log.warning("new Line addy {}, borrower {}", [event.address.toHexString(), borrower.id]);
 
   line.borrower = borrower.id;
   line.type = "Crypto Credit Account";
@@ -93,10 +76,8 @@ export function handleDeployLine(event: DeployLine): void {
   line.arbiter = event.params.arbiter;
   line.start = event.block.timestamp.toI32();
   line.end = LoC.deadline().toI32();
-  line.save();
-  line.lines = [];
-  line.events = [];
   line.status = STATUSES.get(0); // LoC is UNINITIALIZED on deployment
+  line.defaultSplit = LoC.defaultRevenueSplit();
   
   // Add SecuredLine modules
   const spigotAddr = LoC.spigot();
@@ -113,10 +94,15 @@ export function handleDeployLine(event: DeployLine): void {
   escrow.line = line.id;
   escrow.save();
 
+  // save line last incase we need to add more data from modules in the future
+  line.save();
 }
 
 export function handleUpdateStatus(event: UpdateStatus): void {
-  log.warning("calling handleUpdateStatus addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  log.warning(
+    "calling handleUpdateStatus addy {}, block {}, status {}",
+    [event.address.toHexString(), event.block.number.toString(), event.params.status.toString()]
+  );
   if(STATUSES.has(event.params.status.toI32())) { // ensure its a known status with human label
     
     let credit = new LineOfCredit(event.address.toHexString());
@@ -127,8 +113,10 @@ export function handleUpdateStatus(event: UpdateStatus): void {
     let creditEvent = new UpdateStatusEvent(eventId);
     creditEvent.id = credit.id;
     creditEvent.block = event.block.number;
+    creditEvent.timestamp = event.block.timestamp;
+
     creditEvent.line = event.address.toHexString();
-    creditEvent.credit = credit.lines[0] || BYTES32_ZERO_STR;
+    creditEvent.credit = credit.lines ? credit.lines![0] : BYTES32_ZERO_STR;
     creditEvent.status = event.params.status.toI32();
 
     creditEvent.save();
@@ -169,6 +157,7 @@ export function handleAddCredit(event: AddCredit): void {
   let creditEvent = new AddCreditEvent(eventId);
   creditEvent.block = event.block.number;
   creditEvent.line = event.address.toHexString();
+  creditEvent.credit = event.params.positionId.toHexString();
   creditEvent.timestamp = event.block.timestamp;
   creditEvent.amount = event.params.deposit;
   creditEvent.value = getValue(
@@ -198,6 +187,7 @@ export function handleCloseCreditPosition(event: CloseCreditPosition): void {
   let creditEvent = new ClosePositionEvent(eventId);
   creditEvent.id = credit.id;
   creditEvent.block = event.block.number;
+  creditEvent.credit = event.params.id.toHexString();
   creditEvent.line = event.address.toHexString();
   creditEvent.timestamp = event.block.timestamp;
   creditEvent.save();
@@ -215,6 +205,7 @@ export function handleWithdrawProfit(event: WithdrawProfit): void {
   creditEvent.id = credit.id;
   creditEvent.block = event.block.number;
   creditEvent.line = event.address.toHexString();
+  creditEvent.credit = event.params.id.toHexString();
   creditEvent.timestamp = event.block.timestamp;
   creditEvent.amount = event.params.amount;
   creditEvent.value = getValueForPosition(
@@ -237,6 +228,7 @@ export function handleWithdrawDeposit(event: WithdrawDeposit): void {
   creditEvent.id = credit.id;
   creditEvent.block = event.block.number;
   creditEvent.line = event.address.toHexString();
+  creditEvent.credit = event.params.id.toHexString();
   creditEvent.timestamp = event.block.timestamp;
   creditEvent.amount = event.params.amount;
   creditEvent.value = getValueForPosition(
@@ -271,6 +263,7 @@ export function handleBorrow(event: Borrow): void {
   creditEvent.id = credit.id;
   creditEvent.block = event.block.number;
   creditEvent.line = event.address.toHexString();
+  creditEvent.credit = event.params.id.toHexString();
   creditEvent.timestamp = event.block.timestamp;
   creditEvent.amount = event.params.amount;
   creditEvent.value = data[0];
@@ -298,6 +291,7 @@ export function handleInterestAccrued(event: InterestAccrued): void {
   let creditEvent = new InterestAccruedEvent(eventId);
   creditEvent.id = credit.id;
   creditEvent.block = event.block.number;
+  creditEvent.credit = event.params.id.toHexString();
   creditEvent.line = event.address.toHexString();
   creditEvent.timestamp = event.block.timestamp;
   creditEvent.amount = event.params.amount;
@@ -328,6 +322,7 @@ export function handleRepayInterest(event: RepayInterest): void {
   creditEvent.id = credit.id;
   creditEvent.block = event.block.number;
   creditEvent.line = event.address.toHexString();
+  creditEvent.credit = event.params.id.toHexString();
   creditEvent.timestamp = event.block.timestamp;
   creditEvent.amount = event.params.amount;
   creditEvent.value = data[0];
@@ -358,6 +353,7 @@ export function handleRepayPrincipal(event: RepayPrincipal): void {
   let creditEvent = new RepayPrincipalEvent(eventId);
   creditEvent.id = credit.id;
   creditEvent.block = event.block.number;
+  creditEvent.credit = event.params.id.toHexString();
   creditEvent.line = event.address.toHexString();
   creditEvent.timestamp = event.block.timestamp;
   creditEvent.amount = event.params.amount;
@@ -371,8 +367,10 @@ export function handleDefault(event: Default): void {
   let line = LineOfCredit.load(event.address.toHexString())!;
   line.status = STATUS_DEFAULT;
   line.save();
-  for(let i = 0; i < line.lines.length; i ++) {
-    let c = new Credit(line.lines[i]);
+  
+  // must be lines if default event is emitted
+  for(let i = 0; i < line.lines!.length; i ++) {
+    let c = new Credit(line.lines![i]);
     let id = getEventId(event.block.number, event.logIndex);
     let creditEvent = new DefaultEvent(id);
     creditEvent.credit = c.id;
@@ -411,6 +409,7 @@ export function handleLiquidate(event: Liquidate): void {
   creditEvent.id = credit.id;
   creditEvent.block = event.block.number;
   creditEvent.line = event.address.toHexString();
+  creditEvent.credit = credit.id;
   creditEvent.timestamp = event.block.timestamp;
   creditEvent.amount = event.params.amount;
   creditEvent.value = data[0];
@@ -430,6 +429,7 @@ export function handleSetRates(event: SetRates): void {
   creditEvent.id = credit.id;
   creditEvent.block = event.block.number;
   creditEvent.line = event.address.toHexString();
+  creditEvent.credit = event.params.id.toHexString();
   creditEvent.timestamp = event.block.timestamp;
   creditEvent.drawnRate = event.params.drawnRate.toI32();
   creditEvent.facilityRate = event.params.facilityRate.toI32();

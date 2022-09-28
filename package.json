@@ -3,8 +3,8 @@
   "license": "UNLICENSED",
   "scripts": {
     "prebuild": "graph codegen",
-    "build": "graph build",
-    "predeploy-test": "yarn run build --network goerli --network-file ./networks.json",
+    "build": "graph build --network ",
+    "predeploy-test": "yarn run build goerli --network-file ./networks.json",
     "deploy-test": "graph deploy --product hosted-service kibagateaux/dd-test",
     "deploy": "graph deploy --node https://api.thegraph.com/deploy/ kibagateaux/dd-test",
     "create-local": "graph create --node http://localhost:8020/ kibagateaux/dd-test",
