@@ -93,37 +93,33 @@ export function handleDeployLine(event: DeployLine): void {
   line.arbiter = event.params.arbiter;
   line.start = event.block.timestamp.toI32();
   line.end = LoC.deadline().toI32();
-  line.dex =  LoC.swapTarget();
+  line.save();
   line.lines = [];
   line.events = [];
   line.status = STATUSES.get(0); // LoC is UNINITIALIZED on deployment
-  line.save();
   
-  // Add modules if present
+  // Add SecuredLine modules
   const spigotAddr = LoC.spigot();
-  if(spigotAddr !== ZERO_ADDRESS) {
-    let spigot = new SpigotController(spigotAddr.toHexString());
-    spigot.line = line.id;
-    // claim spigot
-    spigot.save();
-  }
+  line.dex =  LoC.swapTarget();
+  let spigot = new SpigotController(spigotAddr.toHexString());
+  // claim spigot
+  spigot.line = line.id;
+  spigot.save();
+
   const escrowAddr = LoC.escrow();
 
-  if(escrowAddr !== ZERO_ADDRESS) {
-    let escrow = new Escrow(escrowAddr.toHexString());
-    escrow.line = line.id;
-    // claim escrow
-    escrow.save();
-  }
+  let escrow = new Escrow(escrowAddr.toHexString());
+  // claim escrow
+  escrow.line = line.id;
+  escrow.save();
+
 }
 
 export function handleUpdateStatus(event: UpdateStatus): void {
   log.warning("calling handleUpdateStatus addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   if(STATUSES.has(event.params.status.toI32())) { // ensure its a known status with human label
     
-    let credit = LineOfCredit.load(event.address.toHexString());
-    if(!credit) return; // line doesnt exist yet
-    
+    let credit = new LineOfCredit(event.address.toHexString());
     credit.status = STATUSES.get(event.params.status.toI32());
     credit.save();
 
@@ -131,7 +127,7 @@ export function handleUpdateStatus(event: UpdateStatus): void {
     let creditEvent = new UpdateStatusEvent(eventId);
     creditEvent.id = credit.id;
     creditEvent.block = event.block.number;
-  creditEvent.line = event.address.toHexString();
+    creditEvent.line = event.address.toHexString();
     creditEvent.credit = credit.lines[0] || BYTES32_ZERO_STR;
     creditEvent.status = event.params.status.toI32();
 
@@ -181,6 +177,8 @@ export function handleAddCredit(event: AddCredit): void {
     credit.deposit,
     event.block.number
   )[0];
+  creditEvent.drawnRate = 0; // get set on SetRates
+  creditEvent.facilityRate = 0; // get set on SetRates
   creditEvent.save();
 }
 
@@ -209,7 +207,7 @@ export function handleCloseCreditPosition(event: CloseCreditPosition): void {
 export function handleWithdrawProfit(event: WithdrawProfit): void {
   log.warning("calling handleWithdrawProfit addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   let credit = Credit.load(event.params.id.toHexString())!;
-  credit.interestAccrued = credit.interestAccrued.minus(event.params.amount);
+  credit.interestRepaid = credit.interestRepaid.minus(event.params.amount);
   credit.save();
 
   const eventId = getEventId(event.block.number, event.logIndex);
@@ -379,7 +377,7 @@ export function handleDefault(event: Default): void {
     let creditEvent = new DefaultEvent(id);
     creditEvent.credit = c.id;
     creditEvent.block = event.block.number;
-  creditEvent.line = event.address.toHexString();
+    creditEvent.line = event.address.toHexString();
     creditEvent.timestamp = event.block.timestamp;
     creditEvent.amount = c.principal.plus(c.interestAccrued);
     creditEvent.value = getValueForPosition(
@@ -391,7 +389,6 @@ export function handleDefault(event: Default): void {
     creditEvent.save();
   }
 }
-
 
 export function handleLiquidate(event: Liquidate): void {
   log.warning("calling handleLiquidate addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);

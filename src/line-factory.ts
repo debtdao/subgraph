@@ -45,11 +45,11 @@ export function handleDeploySecuredLine(event: DeployedSecuredLine): void {
   deployEvent.factory = event.address;
   deployEvent.block = event.block.number;
   deployEvent.timestamp = event.block.timestamp;
-  deployEvent.address = event.params.deployedAt;
+  deployEvent.deployedAt = event.params.deployedAt;
   deployEvent.deployer = event.transaction.from;
 
   deployEvent.line = event.params.deployedAt.toHexString();
-  deployEvent.credit = BYTES32_ZERO_STR; // no positions yet but need to add to line log
+  deployEvent.credit = BYTES32_ZERO_STR; // no positions yet but need to add to line's log
   
   deployEvent.escrow = event.params.escrow.toHexString();
   deployEvent.spigot = event.params.spigot.toHexString();
@@ -64,20 +64,22 @@ export function handleDeploySpigot(event: DeployedSpigot): void {
   // create and save entity to use later
   // modules dont have their own deploy event like LoC so need to create here
   const spigot = new SpigotController(addr.toHexString());
-  spigot.owner = event.params.owner;
+  spigot.owner = event.params.owner; // may or may not be a line contract
   spigot.line = null; // LoC will claim module when deployed
   spigot.operator = event.params.operator;
   spigot.treasury = event.params.treasury;
   spigot.startTime = event.block.number;
-  spigot.save()
+  spigot.save();
 
   const eventId = getEventId(event.block.number, event.logIndex);
   const deployEvent = new DeploySpigotEvent(eventId);
   deployEvent.factory = event.address;
   deployEvent.block = event.block.number;
   deployEvent.timestamp = event.block.timestamp;
-  deployEvent.address = addr;
   deployEvent.deployer = event.transaction.from; // line factory or EOA
+  deployEvent.deployedAt = addr;
+
+  deployEvent.controller = addr.toHexString();
 
   deployEvent.owner = event.params.owner;
   deployEvent.operator = event.params.operator;
@@ -95,8 +97,9 @@ export function handleDeployEscrow(event: DeployedEscrow): void {
   const escrow = new Escrow(addr.toHexString());
   escrow.line = null; // LoC will claim module when deployed
   escrow.oracle = event.params.oracle;
-  escrow.cratio = BIG_DECIMAL_ZERO;
+  escrow.owner = event.params.owner;
   escrow.collateralValue = BIG_DECIMAL_ZERO;
+  escrow.cratio = BIG_DECIMAL_ZERO;
   escrow.minCRatio = new BigDecimal(event.params.minCRatio);
   escrow.save();
 
@@ -105,8 +108,8 @@ export function handleDeployEscrow(event: DeployedEscrow): void {
   deployEvent.factory = event.address;
   deployEvent.block = event.block.number;
   deployEvent.timestamp = event.block.timestamp;
-  deployEvent.address = addr;
+  deployEvent.deployedAt = addr;
   deployEvent.deployer = event.transaction.from; // line factory or EOA
-  deployEvent.minCRatio = event.params.minCRatio;
+  deployEvent.minCRatio = new BigDecimal(event.params.minCRatio);
   deployEvent.save();
 }

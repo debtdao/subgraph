@@ -26,6 +26,8 @@ type LineOfCredit @entity {
   end: Int!
   # 
   status: String!
+   # optional. amount of reveue line gets from spigot inflows
+  defaultSplit: Int!
 
   # add global usd/interest value for easy dispaly on frontend cards? (also more accurate historical pricing)
 
@@ -123,8 +125,8 @@ type AddCreditEvent implements LineEvent @entity {
 
   amount: BigInt!
   value: BigDecimal!
-  drawnRate: BigInt!
-  facilityRate: BigInt!
+  drawnRate: Int!
+  facilityRate: Int!
 }
 
 type ClosePositionEvent implements LineEvent @entity {
@@ -386,8 +388,8 @@ type TradeRevenueEvent implements SpigotEvent @entity {
   timestamp: BigInt!
 
   revenueToken: Token!
-  sold: BigInt! # amount of tokens about
-  soldValue: BigDecimal! # usd value to 8 decimals
+  sold: BigInt!           # amount of tokens about
+  soldValue: BigDecimal!  # usd value to 8 decimals
 
   debtToken: Token!
   bought: BigInt!
@@ -462,7 +464,7 @@ interface DeployEvent {
   block: BigInt!
   factory: Bytes!
   deployer: Bytes!
-  address: Bytes!
+  deployedAt: Bytes!
 }
 
 type DeploySecuredLineEvent implements DeployEvent & LineEvent @entity {
@@ -472,7 +474,7 @@ type DeploySecuredLineEvent implements DeployEvent & LineEvent @entity {
   block: BigInt!
   factory: Bytes!
   deployer: Bytes!
-  address: Bytes!
+  deployedAt: Bytes!
 
   # LineEvent conformity
   line: LineOfCredit! # same as address. Surfaces event in line logs
@@ -491,7 +493,7 @@ type DeploySpigotEvent implements DeployEvent & SpigotControllerEvent @entity {
   block: BigInt!
   factory: Bytes!
   deployer: Bytes!
-  address: Bytes!
+  deployedAt: Bytes!
 
   # SpigotControllerEvent conformity
   controller: SpigotController!
@@ -508,8 +510,8 @@ type DeployEscrowEvent implements DeployEvent @entity {
   block: BigInt!
   factory: Bytes!
   deployer: Bytes!
-  address: Bytes!
+  deployedAt: Bytes!
 
   # event params
-  minCRatio: BigInt!
+  minCRatio: BigDecimal!
 }

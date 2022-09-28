@@ -92,7 +92,7 @@ export function getQueueIndex(line: string, id: string): i32 {
 
 export function updateCollateralValue(line: Address): BigDecimal {
   let escrowAddr = readValue<Address>(SecuredLine.bind(line).try_escrow(), ZERO_ADDRESS); 
-  if(escrowAddr !== ZERO_ADDRESS) return BIG_DECIMAL_ZERO;
+  if(escrowAddr === ZERO_ADDRESS) return BIG_DECIMAL_ZERO;
   let valInt = readValue<BigInt>(EscrowContract.bind(escrowAddr).try_getCollateralValue(), BIG_INT_ZERO);
   let value = new BigDecimal(valInt);
   let escrow =  new Escrow(escrowAddr.toHexString())

@@ -44,74 +44,70 @@ export function handleEnableCollateral(event: EnableCollateral): void {
   let escrow = Escrow.load(escrowId)!;
   const depositId = `${escrowId}-${event.params.token}`;
   let deposit = EscrowDeposit.load(depositId);
-  const token = getOrCreateToken(event.params.token.toHexString());
   if(!deposit) {
     deposit = new EscrowDeposit(depositId);
     deposit.escrow = escrow.id;
+    const token = getOrCreateToken(event.params.token.toHexString());
     deposit.token = token.id;
+    deposit.enabled = true;
+    deposit.save();
   }
 
-  deposit.save();
-
   const eventId = getEventId(event.block.number, event.logIndex);
-  let creditEvent = new EnableCollateralEvent(eventId);
-  creditEvent.deposit = depositId;
-  creditEvent.block = event.block.number;
-  creditEvent.timestamp = event.block.timestamp;
-  creditEvent.save();
+  let collateralEvent = new EnableCollateralEvent(eventId);
+  collateralEvent.deposit = depositId;
+  collateralEvent.block = event.block.number;
+  collateralEvent.timestamp = event.block.timestamp;
+  collateralEvent.save();
 }
 
 
 export function handleAddCollateral(event: AddCollateral): void {
   const escrowId = event.address.toHexString();
   const depositId = `${escrowId}-${event.params.token}`;
-  let deposit = EscrowDeposit.load(depositId)!;
+  const deposit = EscrowDeposit.load(depositId)!;
   
   deposit.amount = deposit.amount.plus(event.params.amount);
+  deposit.save();
   
-  let escrow = Escrow.load(escrowId)!;
   const data = getValue(
-    Address.fromBytes(escrow.oracle),
+    Address.fromBytes(Escrow.load(escrowId)!.oracle),
     getOrCreateToken(event.params.token.toHexString()),
     deposit.amount,
     event.block.number
   );
 
-  deposit.save();
-
   const eventId = getEventId(event.block.number, event.logIndex);
-  let creditEvent = new AddCollateralEvent(eventId);
-  creditEvent.deposit = depositId;
-  creditEvent.block = event.block.number;
-  creditEvent.timestamp = event.block.timestamp;
-  creditEvent.amount = deposit.amount;
-  creditEvent.value = data[0];
+  const collateralEvent = new AddCollateralEvent(eventId);
+  collateralEvent.deposit = depositId;
+  collateralEvent.block = event.block.number;
+  collateralEvent.timestamp = event.block.timestamp;
+  collateralEvent.amount = deposit.amount;
+  collateralEvent.value = data[0];
   
-  creditEvent.save();
+  collateralEvent.save();
 }
 
 export function handleRemoveCollateral(event: AddCollateral): void {
   const escrowId = event.address.toHexString();
-  let escrow = Escrow.load(escrowId)!;
   const depositId = `${escrowId}-${event.params.token}`;
-  let deposit = EscrowDeposit.load(depositId)!;
-  const token = getOrCreateToken(event.params.token.toHexString());
+  const deposit = EscrowDeposit.load(depositId)!;
   deposit.amount = deposit.amount.minus(event.params.amount);
+  deposit.save();
+  
   const data = getValue(
-    Address.fromBytes(escrow.oracle),
-    token,
+    Address.fromBytes(Escrow.load(escrowId)!.oracle),
+    getOrCreateToken(event.params.token.toHexString()),
     deposit.amount,
     event.block.number
   );
-
-  deposit.save();
-
+    
   const eventId = getEventId(event.block.number, event.logIndex);
-  let creditEvent = new RemoveCollateralEvent(eventId);
-  creditEvent.deposit = depositId;
-  creditEvent.block = event.block.number;
-  creditEvent.timestamp = event.block.timestamp;
-  creditEvent.amount = deposit.amount;
-  creditEvent.value = data[0];
-  creditEvent.save();
+  let collateralEvent = new RemoveCollateralEvent(eventId);
+  collateralEvent.deposit = depositId;
+  collateralEvent.block = event.block.number;
+  collateralEvent.timestamp = event.block.timestamp;
+  collateralEvent.amount = deposit.amount;
+  collateralEvent.value = data[0];
+  collateralEvent.save();
 }
