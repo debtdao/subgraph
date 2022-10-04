@@ -24,6 +24,7 @@ import {
   Token,
   Spigot,
   SpigotController,
+  SpigotRevenueSummary,
 
   AddSpigotEvent,
   RemoveSpigotEvent,
@@ -42,12 +43,14 @@ import {
   BIG_INT_ZERO,
   BIG_DECIMAL_ZERO,
   ZERO_ADDRESS,
+  BYTES32_ZERO_STR,
 
   getValue,
   getQueueIndex,
   getEventId,
   getOrCreateToken,
   updateTokenPrice,
+  getOrCreateRevenueSummary,
 } from "./utils";
 import { getUsdPrice } from "./prices";
 
@@ -57,11 +60,8 @@ export function handleAddSpigot(event: AddSpigot): void {
   spigot.controller = event.address.toHexString(); // controller must exist already because it emitted event
   spigot.contract = event.params.revenueContract;
   // ensure that token exists
-  const token = getOrCreateToken(event.params.token.toHexString());
-  spigot.token = token.id;
   spigot.active = true;
   spigot.startTime = event.block.timestamp;
-  spigot.totalVolume = BIG_INT_ZERO;
   spigot.totalVolumeUsd = BIG_DECIMAL_ZERO;
   spigot.ownerSplit = event.params.ownerSplit.toI32();
   spigot.save();
@@ -70,7 +70,7 @@ export function handleAddSpigot(event: AddSpigot): void {
   let spigotEvent = new AddSpigotEvent(eventId);
   spigotEvent.spigot = spigot.id;
   spigotEvent.block = spigot.startTime;
-  spigotEvent.revenueToken = token.id;
+  spigotEvent.revenueToken = BYTES32_ZERO_STR;
   spigotEvent.timestamp = event.block.timestamp;
   spigotEvent.save();
 }
@@ -93,15 +93,21 @@ export function handleRemoveSpigot(event: RemoveSpigot): void {
 
 export function handleClaimRevenue(event: ClaimRevenue): void {
   let spigot = Spigot.load(`${event.address}-${event.params.revenueContract}`)!;
-  
-  spigot.escrowed = spigot.escrowed.plus(event.params.escrowed);
-  spigot.totalVolume = spigot.totalVolume.plus(event.params.amount);
+
   // use generic price oracle to accomodate wide range of revenue tokens
   let value = getUsdPrice(event.params.token, new BigDecimal(event.params.amount));
-  spigot.totalVolumeUsd = spigot.totalVolumeUsd.plus(value);
   
+  spigot.escrowed = spigot.escrowed.plus(event.params.escrowed);
+  spigot.totalVolumeUsd = spigot.totalVolumeUsd.plus(value);
   spigot.save();
+
   const token = event.params.token.toHexString();
+  // need to getOrCreate sumary because new tokens can be added anytime arbitrarily
+  let revenueSummary = getOrCreateRevenueSummary(event.address, event.params.token, event.block.timestamp);
+  revenueSummary.totalVolumeUsd = revenueSummary.totalVolumeUsd.plus(value);
+  revenueSummary.totalVolume = revenueSummary.totalVolume.plus(event.params.amount);
+  revenueSummary.save();
+
   // update price in subgraph for revenue token potentially not tracked by oracle
   updateTokenPrice(
     value.div(new BigDecimal(event.params.amount)),
@@ -119,6 +125,7 @@ export function handleClaimRevenue(event: ClaimRevenue): void {
   spigotEvent.escrowed = spigot.escrowed;
   spigotEvent.netIncome = event.params.amount.minus(spigot.escrowed);
   spigotEvent.value = value;
+  
 
   spigotEvent.save();
 }

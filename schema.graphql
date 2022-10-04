@@ -253,8 +253,19 @@ type SpigotController @entity {
   operator: Bytes!
   treasury: Bytes!
 
+  summaries: [SpigotRevenueSummary!] @derivedFrom(field: "controller")
   spigots: [Spigot!] @derivedFrom(field: "controller")
   events: [SpigotControllerEvent!] @derivedFrom(field: "controller")
+}
+
+type SpigotRevenueSummary @entity {
+  id: ID!                       # controller-token
+  controller: SpigotController!
+  token: Token!                 # token revenue is earned in
+  timeOfFirstIncome: BigInt!
+  timeOfLastIncome: BigInt!
+  totalVolume: BigInt!
+  totalVolumeUsd: BigDecimal!
 }
 
 interface SpigotControllerEvent {
@@ -319,7 +330,6 @@ type ClaimEscrowEvent implements SpigotControllerEvent @entity {
 type Spigot @entity {
   id: ID!                       # spigot-revenueContract
   controller: SpigotController!
-  token: Token!                 # token revenue is earned in
   contract: Bytes!              # revenue generating contract
   startTime: BigInt!            # time that spigot started
 
@@ -327,13 +337,10 @@ type Spigot @entity {
   ownerSplit: Int!              # % of tokens escrowed for owner
   escrowed: BigInt!             # current amount of tokens available for owner to claim
 
-  totalVolume: BigInt!          # total amount of tokens earned as revenue
-  totalVolumeUsd: BigDecimal!    # usd value of total token volume
+  totalVolumeUsd: BigDecimal!    # usd value of all tokens total volume
   
   events: [SpigotEvent!] @derivedFrom(field: "spigot")
 }
-
-
 
 interface SpigotEvent {
   id: ID! # block-logIndex
@@ -404,8 +411,9 @@ type Escrow @entity {
   owner: Bytes!
   line: LineOfCredit
   
+  # not accurate in real time. just used for historical snapshots
   collateralValue: BigDecimal!
-  cratio: BigDecimal!
+
   minCRatio: BigDecimal!
 
   deposits: [EscrowDeposit!]! @derivedFrom(field: "escrow")
