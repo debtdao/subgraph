@@ -16,6 +16,7 @@ import {
   Spigot,
   Escrow,
   SpigotController,
+  SpigotRevenueSummary,
 } from "../generated/schema"
 
 import {
@@ -181,9 +182,9 @@ export function getEventId(block: BigInt, logIndex: BigInt): string {
 
 export function getOrCreateSpigot(controller: Address, contract: Address): Spigot {
   const id = `${controller.toHexString()}-${contract.toHexString()}`
-  let spigot = Spigot.load(controller.toHexString()); 
+  let spigot = Spigot.load(id); 
   if(!spigot) {
-    spigot = new Spigot(`${controller}-${contract}`);
+    spigot = new Spigot(id);
   }
 
   return spigot;
@@ -199,6 +200,21 @@ export function getOrCreateLine(contract: Address, type: string = ""): LineOfCre
   }
 
   return line;
+}
+
+export function getOrCreateRevenueSummary(spigotController: Address, token: Address, now: BigInt): SpigotRevenueSummary {
+  const id = spigotController.toHexString();
+  let summary = SpigotRevenueSummary.load(id); 
+  if(!summary) {
+    summary = new SpigotRevenueSummary(id);
+    summary.token = token.toHexString();
+    summary.totalVolume = BIG_INT_ZERO;
+    summary.totalVolumeUsd = BIG_DECIMAL_ZERO;
+    summary.timeOfFirstIncome = now;
+    summary.timeOfLastIncome = now;
+  }
+
+  return summary;
 }
 
 

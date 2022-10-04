@@ -404,6 +404,8 @@ export function handleLiquidate(event: Liquidate): void {
 
   credit.save();
 
+  updateCollateralValue(event.address);
+
   const eventId = getEventId(event.block.number, event.logIndex);
   let creditEvent = new LiquidateEvent(eventId);
   creditEvent.id = credit.id;

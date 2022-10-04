@@ -22,6 +22,7 @@ import {
   Escrow as EscrowTemplate,
   SecuredLine as SecuredLineTemplate,
 } from "../generated/templates"
+import { BIGINT_ZERO } from "./prices/common/constants";
 
 import {
   getEventId,
@@ -97,8 +98,6 @@ export function handleDeployEscrow(event: DeployedEscrow): void {
   escrow.line = null; // LoC will claim module when deployed
   escrow.oracle = event.params.oracle;
   escrow.owner = event.params.owner;
-  escrow.collateralValue = BIG_DECIMAL_ZERO;
-  escrow.cratio = BIG_DECIMAL_ZERO;
   escrow.minCRatio = new BigDecimal(event.params.minCRatio);
   escrow.save();
 
