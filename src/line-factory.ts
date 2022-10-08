@@ -30,6 +30,7 @@ import {
   getOrCreateSpigot,
 
   LINE_TYPE_SECURED,
+  BIG_INT_ZERO,
   BIG_DECIMAL_ZERO,
   BYTES32_ZERO_STR,
 } from "./utils";
@@ -49,7 +50,6 @@ export function handleDeploySecuredLine(event: DeployedSecuredLine): void {
   deployEvent.deployer = event.transaction.from;
 
   deployEvent.line = event.params.deployedAt.toHexString();
-  deployEvent.credit = BYTES32_ZERO_STR; // no positions yet but need to add to line's log
   
   deployEvent.escrow = event.params.escrow.toHexString();
   deployEvent.spigot = event.params.spigot.toHexString();

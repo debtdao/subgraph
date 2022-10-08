@@ -17,6 +17,7 @@ import {
   Escrow,
   SpigotController,
   SpigotRevenueSummary,
+  Credit,
 } from "../generated/schema"
 
 import {

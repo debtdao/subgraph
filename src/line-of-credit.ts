@@ -58,6 +58,7 @@ import {
   getOrCreateToken,
   getValueForPosition,
   updateCollateralValue,
+  BIG_DECIMAL_ZERO,
 } from "./utils";
 
 import { handleTradeRevenue as _handleTradeRevenue } from "./spigot"
@@ -116,7 +117,6 @@ export function handleUpdateStatus(event: UpdateStatus): void {
     creditEvent.timestamp = event.block.timestamp;
 
     creditEvent.line = event.address.toHexString();
-    creditEvent.credit = credit.lines ? credit.lines![0] : BYTES32_ZERO_STR;
     creditEvent.status = event.params.status.toI32();
 
     creditEvent.save();
@@ -148,8 +148,8 @@ export function handleAddCredit(event: AddCredit): void {
   credit.totalInterestEarned = BIG_INT_ZERO;
   
   // rates properly set on UpdateInterestRate event
-  credit.drawnRate = 0; // get set on SetRates
-  credit.facilityRate = 0; // get set on SetRates
+  credit.dRate = 0; // get set on SetRates
+  credit.fRate = 0; // get set on SetRates
   credit.queue = NOT_IN_QUEUE.toI32();
   credit.save();
 
@@ -166,8 +166,8 @@ export function handleAddCredit(event: AddCredit): void {
     credit.deposit,
     event.block.number
   )[0];
-  creditEvent.drawnRate = 0; // get set on SetRates
-  creditEvent.facilityRate = 0; // get set on SetRates
+  creditEvent.dRate = 0; // get set on SetRates
+  creditEvent.fRate = 0; // get set on SetRates
   creditEvent.save();
 }
 
@@ -178,8 +178,8 @@ export function handleCloseCreditPosition(event: CloseCreditPosition): void {
   credit.deposit = BIG_INT_ZERO;
   credit.interestAccrued = BIG_INT_ZERO;
   credit.interestRepaid = BIG_INT_ZERO;
-  credit.drawnRate = 0;
-  credit.facilityRate = 0;
+  credit.dRate = 0;
+  credit.fRate = 0;
   credit.queue = NOT_IN_QUEUE.toI32(); // TODO figure out how to make null/undefined with type system
   credit.save();
 
@@ -190,9 +190,12 @@ export function handleCloseCreditPosition(event: CloseCreditPosition): void {
   creditEvent.credit = event.params.id.toHexString();
   creditEvent.line = event.address.toHexString();
   creditEvent.timestamp = event.block.timestamp;
+    // compatability
+  creditEvent.amount = BIG_INT_ZERO;
+  creditEvent.value = BIG_DECIMAL_ZERO;
+
   creditEvent.save();
 }
-
 
 export function handleWithdrawProfit(event: WithdrawProfit): void {
   log.warning("calling handleWithdrawProfit addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
@@ -422,8 +425,8 @@ export function handleLiquidate(event: Liquidate): void {
 export function handleSetRates(event: SetRates): void {
   log.warning("calling handleSetRates addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   let credit = new Credit(event.params.id.toHexString());
-  credit.drawnRate = event.params.drawnRate.toI32();
-  credit.facilityRate = event.params.facilityRate.toI32();
+  credit.dRate = event.params.dRate.toI32();
+  credit.fRate = event.params.fRate.toI32();
   credit.save();
 
   const eventId = getEventId(event.block.number, event.logIndex);
@@ -433,8 +436,12 @@ export function handleSetRates(event: SetRates): void {
   creditEvent.line = event.address.toHexString();
   creditEvent.credit = event.params.id.toHexString();
   creditEvent.timestamp = event.block.timestamp;
-  creditEvent.drawnRate = event.params.drawnRate.toI32();
-  creditEvent.facilityRate = event.params.facilityRate.toI32();
+  creditEvent.dRate = event.params.dRate.toI32();
+  creditEvent.fRate = event.params.fRate.toI32();
+    // compatability
+  creditEvent.amount = BIG_INT_ZERO;
+  creditEvent.value = BIG_DECIMAL_ZERO;
+
   creditEvent.save();
 }
 

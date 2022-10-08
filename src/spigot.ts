@@ -56,7 +56,7 @@ import { getUsdPrice } from "./prices";
 
 
 export function handleAddSpigot(event: AddSpigot): void {
-  let spigot = new Spigot(`${event.address.toHexString()}-${event.params.revenueContract}`);
+  let spigot = new Spigot(`${event.address.toHexString()}-${event.params.revenueContract.toHexString()}`);
   spigot.controller = event.address.toHexString(); // controller must exist already because it emitted event
   spigot.contract = event.params.revenueContract;
   // ensure that token exists
@@ -76,7 +76,7 @@ export function handleAddSpigot(event: AddSpigot): void {
 }
 
 export function handleRemoveSpigot(event: RemoveSpigot): void {
-  let spigot = new Spigot(`${event.address}-${event.params.revenueContract}`);
+  let spigot = new Spigot(`${event.address.toHexString()}-${event.params.revenueContract.toHexString()}`);
   spigot.active = false;
 
   spigot.save();
@@ -92,7 +92,7 @@ export function handleRemoveSpigot(event: RemoveSpigot): void {
 
 
 export function handleClaimRevenue(event: ClaimRevenue): void {
-  let spigot = Spigot.load(`${event.address}-${event.params.revenueContract}`)!;
+  let spigot = Spigot.load(`${event.address.toHexString()}-${event.params.revenueContract.toHexString()}`)!;
 
   // use generic price oracle to accomodate wide range of revenue tokens
   let value = getUsdPrice(event.params.token, new BigDecimal(event.params.amount));
@@ -119,10 +119,12 @@ export function handleClaimRevenue(event: ClaimRevenue): void {
   
   const eventId = getEventId(event.block.number, event.logIndex);
   let spigotEvent = new ClaimRevenueEvent(eventId);
-  spigotEvent.spigot = `${event.address}-${event.params.revenueContract}`;
+  spigotEvent.spigot = `${event.address.toHexString()}-${event.params.revenueContract.toHexString()}`;
+  spigotEvent.controller = event.address.toHexString();
   spigotEvent.block = event.block.number;
   spigotEvent.timestamp = event.block.timestamp;
   spigotEvent.revenueToken = token; // already exists from AddSpigot
+  spigotEvent.amount = event.params.amount;
   spigotEvent.escrowed = spigot.escrowed;
   spigotEvent.netIncome = event.params.amount.minus(spigot.escrowed);
   spigotEvent.value = value;
@@ -132,7 +134,7 @@ export function handleClaimRevenue(event: ClaimRevenue): void {
 }
 
 export function handleUpdateOwnerSplit(event: UpdateOwnerSplit): void {
-  let spigot = new Spigot(`${event.address}-${event.params.revenueContract}`);
+  let spigot = new Spigot(`${event.address.toHexString()}-${event.params.revenueContract.toHexString()}`);
   spigot.ownerSplit = event.params.split;
 
   spigot.save();
@@ -140,7 +142,7 @@ export function handleUpdateOwnerSplit(event: UpdateOwnerSplit): void {
   const eventId = getEventId(event.block.number, event.logIndex);
   let spigotEvent = new UpdateOwnerSplitEvent(eventId);
 
-  spigotEvent.spigot = `${event.address}-${event.params.revenueContract}`;
+  spigotEvent.spigot = `${event.address.toHexString()}-${event.params.revenueContract.toHexString()}`;
   spigotEvent.block = event.block.number;
   spigotEvent.timestamp = event.block.timestamp;
   
@@ -218,6 +220,10 @@ export function handleTradeRevenue(event: TradeSpigotRevenue): void {
   );
   spigotEvent.boughtValue = data[0];
   
+
+  spigotEvent.amount = spigotEvent.bought;
+  spigotEvent.value= spigotEvent.boughtValue;
+
   spigotEvent.save();
 
 

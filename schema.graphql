@@ -44,7 +44,7 @@ type LineOfCredit @entity {
 
   # `lines` not guaranteed to return in order of repayment queue like smart contract
   lines: [Credit!] @derivedFrom(field: "line")
-  events: [LineEvent!]  @derivedFrom(field: "line")
+  events: [LineEventWithValue!]  @derivedFrom(field: "line")
 }
 
 type Credit @entity {
@@ -97,6 +97,13 @@ type Borrower @entity {
 #   bottower: Bytes!
 # }
 
+interface EventWithValue {
+  id: ID!                 # block-logIndex
+  block: BigInt!
+  timestamp: BigInt!
+  amount: BigInt!
+  value: BigDecimal!
+}
 
 interface LineEvent {
   id: ID!                 # block-logIndex
@@ -106,17 +113,26 @@ interface LineEvent {
   credit: Credit!
 }
 
-type UpdateStatusEvent implements LineEvent @entity {
+interface LineEventWithValue implements LineEvent & EventWithValue {
+  id: ID!                 # block-logIndex
+  block: BigInt!
+  timestamp: BigInt!
+  line: LineOfCredit! # could get from Credit but this makes it easier to traverse
+  credit: Credit!
+  amount: BigInt!
+  value: BigDecimal!
+}
+
+type UpdateStatusEvent @entity {
   id: ID! # block-logIndex
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
-  credit: Credit!  # the first line in payment queue at time of status update
 
   status: Int!
 }
 
-type AddCreditEvent implements LineEvent @entity {
+type AddCreditEvent implements LineEventWithValue @entity {
   id: ID! # block-logIndex
   block: BigInt!
   timestamp: BigInt!
@@ -129,15 +145,19 @@ type AddCreditEvent implements LineEvent @entity {
   fRate: Int!
 }
 
-type ClosePositionEvent implements LineEvent @entity {
+type ClosePositionEvent implements LineEventWithValue @entity {
   id: ID! # block-logIndex
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
   credit: Credit!
+
+  # always 0, needed for compatability
+  amount: BigInt!
+  value: BigDecimal!
 }
 
-type WithdrawProfitEvent implements LineEvent @entity {
+type WithdrawProfitEvent implements LineEventWithValue @entity {
   id: ID! # block-logIndex
   block: BigInt!
   timestamp: BigInt!
@@ -148,7 +168,7 @@ type WithdrawProfitEvent implements LineEvent @entity {
   value: BigDecimal!
 }
 
-type WithdrawDepositEvent implements LineEvent @entity {
+type WithdrawDepositEvent implements LineEventWithValue @entity {
   id: ID! # block-logIndex
   block: BigInt!
   timestamp: BigInt!
@@ -159,7 +179,7 @@ type WithdrawDepositEvent implements LineEvent @entity {
   value: BigDecimal!
 }
 
-type BorrowEvent implements LineEvent @entity {
+type BorrowEvent implements LineEventWithValue @entity {
   id: ID! # block-logIndex
   block: BigInt!
   timestamp: BigInt!
@@ -170,7 +190,7 @@ type BorrowEvent implements LineEvent @entity {
   value: BigDecimal!
 }
 
-type InterestAccruedEvent implements LineEvent @entity {
+type InterestAccruedEvent implements LineEventWithValue @entity {
   id: ID! # block-logIndex
   block: BigInt!
   timestamp: BigInt!
@@ -181,7 +201,7 @@ type InterestAccruedEvent implements LineEvent @entity {
   value: BigDecimal!
 }
 
-type RepayInterestEvent implements LineEvent @entity {
+type RepayInterestEvent implements LineEventWithValue @entity {
   id: ID! # block-logIndex
   block: BigInt!
   timestamp: BigInt!
@@ -192,7 +212,7 @@ type RepayInterestEvent implements LineEvent @entity {
   value: BigDecimal!
 }
 
-type RepayPrincipalEvent implements LineEvent @entity {
+type RepayPrincipalEvent implements LineEventWithValue @entity {
   id: ID! # block-logIndex
   block: BigInt!
   timestamp: BigInt!
@@ -204,7 +224,7 @@ type RepayPrincipalEvent implements LineEvent @entity {
 }
 
 
-type LiquidateEvent implements LineEvent @entity {
+type LiquidateEvent implements LineEventWithValue @entity {
   id: ID! # block-logIndex
   block: BigInt!
   timestamp: BigInt!
@@ -214,10 +234,9 @@ type LiquidateEvent implements LineEvent @entity {
   amount: BigInt!
   value: BigDecimal! # not necessarily the amount received from executingliquidation 
   liquidator: Bytes!  # contract or arbiter responsible for executing liquidations
-
 }
 
-type DefaultEvent implements LineEvent @entity {
+type DefaultEvent implements LineEventWithValue @entity {
   id: ID! # block-logIndex
   block: BigInt!
   timestamp: BigInt!
@@ -228,15 +247,19 @@ type DefaultEvent implements LineEvent @entity {
   value: BigDecimal!
 }
 
-type SetRatesEvent implements LineEvent @entity {
+type SetRatesEvent implements LineEventWithValue @entity {
   id: ID! # block-logIndex
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
   credit: Credit!
 
-  dRate: Int!    # bps
+  dRate: Int! # bps
   fRate: Int! # bps
+
+  # always 0, needed for compatability
+  amount: BigInt!
+  value: BigDecimal!
 }
 
 
@@ -315,7 +338,7 @@ type UpdateWhitelistFunctionEvent implements SpigotControllerEvent @entity {
   whitelisted: Boolean!
 }
 
-type ClaimEscrowEvent implements SpigotControllerEvent @entity {
+type ClaimEscrowEvent implements SpigotControllerEvent & EventWithValue @entity {
   id: ID! # block-logIndex
   controller: SpigotController!
   block: BigInt!
@@ -375,20 +398,22 @@ type RemoveSpigotEvent implements SpigotEvent @entity {
   timestamp: BigInt!
 }
 
-type ClaimRevenueEvent implements SpigotEvent @entity {
+type ClaimRevenueEvent implements SpigotEvent & EventWithValue @entity {
   id: ID! # block-logIndex
   spigot: Spigot!
+  controller: SpigotController!
   block: BigInt!
   timestamp: BigInt!
 
   revenueToken: Token!
+  amount: BigInt!
   escrowed: BigInt! 
   netIncome: BigInt! # amount of tokens sent to Treasury after Line cut escrowed
   value: BigDecimal!
 }
 
 # @dev only tracks revenue. does not track actual line repayment
-type TradeRevenueEvent implements SpigotEvent @entity {
+type TradeRevenueEvent implements SpigotEvent & EventWithValue @entity {
   id: ID! # block-logIndex
   spigot: Spigot!
   block: BigInt!
@@ -401,6 +426,9 @@ type TradeRevenueEvent implements SpigotEvent @entity {
   debtToken: Token!
   bought: BigInt!
   boughtValue: BigDecimal! # usd value to 8 decimals
+
+  amount: BigInt!
+  value: BigDecimal!
 }
 
 # Escrow
@@ -442,7 +470,7 @@ type EnableCollateralEvent implements EscrowEvent @entity {
   timestamp: BigInt!
 }
 
-type AddCollateralEvent implements EscrowEvent @entity {
+type AddCollateralEvent implements EscrowEvent & EventWithValue @entity {
   id: ID! # block-logIndex
   deposit: EscrowDeposit!
   block: BigInt!
@@ -452,7 +480,7 @@ type AddCollateralEvent implements EscrowEvent @entity {
   value: BigDecimal!
 }
 
-type RemoveCollateralEvent implements EscrowEvent @entity {
+type RemoveCollateralEvent implements EscrowEvent & EventWithValue @entity {
   id: ID! # block-logIndex
   deposit: EscrowDeposit!
   block: BigInt!
@@ -475,7 +503,7 @@ interface DeployEvent {
   deployedAt: Bytes!
 }
 
-type DeploySecuredLineEvent implements DeployEvent & LineEvent @entity {
+type DeploySecuredLineEvent implements DeployEvent @entity {
   #DeployEvent
   id: ID!
   timestamp: BigInt!
@@ -484,9 +512,8 @@ type DeploySecuredLineEvent implements DeployEvent & LineEvent @entity {
   deployer: Bytes!
   deployedAt: Bytes!
 
-  # LineEvent conformity
+  # LineEventWithValue conformity
   line: LineOfCredit! # same as address. Surfaces event in line logs
-  credit: Credit!     # always 0
 
   # event params
   escrow: Escrow!
