@@ -68,9 +68,9 @@ type Credit @entity {
   
 
   # interest in bps charged on principal
-  drawnRate: Int!
+  dRate: Int!
   # interest in bps charged on deposit less principal
-  facilityRate: Int!
+  fRate: Int!
 }
 
 type Lender @entity {
@@ -125,8 +125,8 @@ type AddCreditEvent implements LineEvent @entity {
 
   amount: BigInt!
   value: BigDecimal!
-  drawnRate: Int!
-  facilityRate: Int!
+  dRate: Int!
+  fRate: Int!
 }
 
 type ClosePositionEvent implements LineEvent @entity {
@@ -235,8 +235,8 @@ type SetRatesEvent implements LineEvent @entity {
   line: LineOfCredit!
   credit: Credit!
 
-  drawnRate: Int!    # bps
-  facilityRate: Int! # bps
+  dRate: Int!    # bps
+  fRate: Int! # bps
 }
 
 
