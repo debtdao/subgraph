@@ -106,6 +106,7 @@ export function handleClaimRevenue(event: ClaimRevenue): void {
   let revenueSummary = getOrCreateRevenueSummary(event.address, event.params.token, event.block.timestamp);
   revenueSummary.totalVolumeUsd = revenueSummary.totalVolumeUsd.plus(value);
   revenueSummary.totalVolume = revenueSummary.totalVolume.plus(event.params.amount);
+  revenueSummary.timeOfLastIncome = event.block.timestamp;
   revenueSummary.save();
 
   // update price in subgraph for revenue token potentially not tracked by oracle

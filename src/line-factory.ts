@@ -99,6 +99,7 @@ export function handleDeployEscrow(event: DeployedEscrow): void {
   escrow.oracle = event.params.oracle;
   escrow.owner = event.params.owner;
   escrow.minCRatio = new BigDecimal(event.params.minCRatio);
+  escrow.collateralValue = BIG_DECIMAL_ZERO;
   escrow.save();
 
   const eventId = getEventId(event.block.number, event.logIndex);
