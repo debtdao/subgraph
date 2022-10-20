@@ -42,12 +42,15 @@ import {
 export function handleEnableCollateral(event: EnableCollateral): void {
   const escrowId = event.address.toHexString();
   let escrow = Escrow.load(escrowId)!;
-  const depositId = `${escrowId}-${event.params.token}`;
+  const tokenId = event.params.token.toHexString();
+  const depositId = `${escrowId}-${tokenId}`;
   let deposit = EscrowDeposit.load(depositId);
+
   if(!deposit) {
     deposit = new EscrowDeposit(depositId);
     deposit.escrow = escrow.id;
-    const token = getOrCreateToken(event.params.token.toHexString());
+    deposit.amount = BIG_INT_ZERO;
+    const token = getOrCreateToken(tokenId);
     deposit.token = token.id;
     deposit.enabled = true;
     deposit.save();
@@ -64,7 +67,8 @@ export function handleEnableCollateral(event: EnableCollateral): void {
 
 export function handleAddCollateral(event: AddCollateral): void {
   const escrowId = event.address.toHexString();
-  const depositId = `${escrowId}-${event.params.token}`;
+  const tokenId = event.params.token.toHexString();
+  const depositId = `${escrowId}-${tokenId}`;
   const deposit = EscrowDeposit.load(depositId)!;
   
   deposit.amount = deposit.amount.plus(event.params.amount);
@@ -72,7 +76,7 @@ export function handleAddCollateral(event: AddCollateral): void {
   
   const data = getValue(
     Address.fromBytes(Escrow.load(escrowId)!.oracle),
-    getOrCreateToken(event.params.token.toHexString()),
+    getOrCreateToken(tokenId),
     deposit.amount,
     event.block.number
   );
@@ -90,14 +94,15 @@ export function handleAddCollateral(event: AddCollateral): void {
 
 export function handleRemoveCollateral(event: AddCollateral): void {
   const escrowId = event.address.toHexString();
-  const depositId = `${escrowId}-${event.params.token}`;
+  const tokenId = event.params.token.toHexString();
+  const depositId = `${escrowId}-${tokenId}`;
   const deposit = EscrowDeposit.load(depositId)!;
   deposit.amount = deposit.amount.minus(event.params.amount);
   deposit.save();
   
   const data = getValue(
     Address.fromBytes(Escrow.load(escrowId)!.oracle),
-    getOrCreateToken(event.params.token.toHexString()),
+    getOrCreateToken(tokenId),
     deposit.amount,
     event.block.number
   );

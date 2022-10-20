@@ -29,7 +29,6 @@ import {
   getOrCreateLine,
   getOrCreateSpigot,
 
-  LINE_TYPE_SECURED,
   BIG_INT_ZERO,
   BIG_DECIMAL_ZERO,
   BYTES32_ZERO_STR,

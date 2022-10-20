@@ -29,7 +29,7 @@ import {
 } from "../generated/templates/Escrow/Escrow"
 
 import { Oracle } from "../generated/templates/SecuredLine/Oracle"
-import { _ERC20 } from "../generated/templates/Spigot/_ERC20";
+import { ERC20 } from "../generated/templates/Spigot/ERC20";
 import { readValue } from "./prices/common/utils";
 import { BIGDECIMAL_1E18 } from "./prices/common/constants";
 
@@ -40,10 +40,6 @@ export const NOT_IN_QUEUE = new BigInt(42069); // Can't set undefined so # to re
 export const ZERO_ADDRESS_STR = "0x0000000000000000000000000000000000000000";
 export const ZERO_ADDRESS = Address.fromString(ZERO_ADDRESS_STR);
 export const BYTES32_ZERO_STR = "0x00000000000000000000000000000000000000000000000000000000000000";
-
-// Line types
-export const LINE_TYPE_SECURED = "secured";
-
 
 // Line statuses
 export const STATUS_UNINITIALIZED = "UNINITIALIZED";
@@ -158,7 +154,7 @@ export function updateTokenPrice(
 export function getOrCreateToken(address: string): Token {
   let token = Token.load(address);
   if(token) return token;
-  const erc = _ERC20.bind(Address.fromString(address));
+  const erc = ERC20.bind(Address.fromString(address));
   token = new Token(address);
 
   // get token metadata

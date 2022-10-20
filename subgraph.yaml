@@ -63,6 +63,7 @@ templates:
         - DebtContract
         - Escrow
         - Spigot
+        - SpigotController
         - AddCreditEvent
         - BorrowEvent
         - ClosePositionEvent
@@ -80,6 +81,10 @@ templates:
           file: ./abis/SecuredLine.json
         - name: Oracle
           file: ./abis/Oracle.json
+        - name: Spigot
+          file: ./abis/Spigot.json
+        - name: ERC20
+          file: ./abis/Prices/ERC20.json
       eventHandlers:
         - event: AddCredit(indexed address,indexed address,indexed uint256,bytes32)
           handler: handleAddCredit
@@ -125,7 +130,7 @@ templates:
       abis:
         - name: Spigot
           file: ./abis/Spigot.json
-        - name: _ERC20
+        - name: ERC20
           file: ./abis/Prices/ERC20.json
         - name: CurveRegistry
           file: ./abis/Prices/Curve/Registry.json
@@ -185,6 +190,8 @@ templates:
       abis:
         - name: Escrow
           file: ./abis/Escrow.json
+        - name: ERC20
+          file: ./abis/Prices/ERC20.json
       eventHandlers:
         - event: EnableCollateral(indexed address)
           handler: handleEnableCollateral
