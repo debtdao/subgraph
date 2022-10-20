@@ -88,12 +88,16 @@ templates:
       eventHandlers:
         - event: AddCredit(indexed address,indexed address,indexed uint256,bytes32)
           handler: handleAddCredit
+        - event: IncreaseCredit(indexed bytes32,indexed uint256)
+          handler: handleAddCredit
         - event: Borrow(indexed bytes32,indexed uint256)
           handler: handleBorrow
         - event: CloseCreditPosition(indexed bytes32)
           handler: handleCloseCredit
         - event: Default(indexed bytes32)
           handler: handleDefault
+        - event: MutualConsentRegistered(bytes32)
+          handler: handleMutualConsentRegistered
         - event: DeployLine(indexed address,indexed address,indexed address)
           handler: handleDeployLine
         - event: InterestAccrued(indexed bytes32,indexed uint256)

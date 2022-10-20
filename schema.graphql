@@ -145,6 +145,18 @@ type AddCreditEvent implements LineEventWithValue @entity {
   fRate: Int!
 }
 
+type IncreaseCreditEvent implements LineEventWithValue @entity {
+  id: ID! # block-logIndex
+  block: BigInt!
+  timestamp: BigInt!
+  line: LineOfCredit!
+  credit: Credit!
+
+  # always 0, needed for compatability
+  amount: BigInt!
+  value: BigDecimal!
+}
+
 type ClosePositionEvent implements LineEventWithValue @entity {
   id: ID! # block-logIndex
   block: BigInt!

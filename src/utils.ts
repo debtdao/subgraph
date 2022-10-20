@@ -8,6 +8,7 @@ import {
   BigDecimal,
   BigInt,
   ByteArray,
+  Entity,
 } from "@graphprotocol/graph-ts";
 
 import {
@@ -18,6 +19,11 @@ import {
   SpigotController,
   SpigotRevenueSummary,
   Credit,
+  
+  AddCreditEvent,
+  IncreaseCreditEvent,
+  SetRatesEvent,
+  AddSpigotEvent,
 } from "../generated/schema"
 
 import {
@@ -62,8 +68,6 @@ STATUSES.set(1, STATUS_ACTIVE);
 STATUSES.set(2, STATUS_LIQUIDATABLE);
 STATUSES.set(3, STATUS_REPAID);
 STATUSES.set(4, STATUS_INSOLVENT);
-
-
 
 // apparently undefined/null doesnt exist so use empty strings for null (including Entity IDs)
 function isNullString(thing: string = ""): bool {

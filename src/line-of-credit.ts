@@ -19,6 +19,7 @@ import {
   UpdateStatus,
   WithdrawProfit,
   WithdrawDeposit,
+  MutualConsentRegistered,
   TradeSpigotRevenue,
   SetRates,
 } from "../generated/templates/SecuredLine/SecuredLine"
@@ -62,6 +63,7 @@ import {
 } from "./utils";
 
 import { handleTradeRevenue as _handleTradeRevenue } from "./spigot"
+import { handleMutualConsentEvents } from "./mutual-consent";
 
 export function handleDeployLine(event: DeployLine): void {
   const line = new LineOfCredit(event.address.toHexString());
@@ -449,4 +451,9 @@ export function handleTradeRevenue(event: TradeSpigotRevenue): void {
   log.warning("calling handleTradeRevenue addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   // event emitted by Line but code stored in Spigot for organization
   _handleTradeRevenue(event);
+}
+
+
+export function handleMutualConsentRegistered(event: MutualConsentRegistered): void {
+  // handleMutualConsentEvents(event);
 }
