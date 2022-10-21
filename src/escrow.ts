@@ -113,6 +113,6 @@ export function handleRemoveCollateral(event: AddCollateral): void {
   collateralEvent.block = event.block.number;
   collateralEvent.timestamp = event.block.timestamp;
   collateralEvent.amount = deposit.amount;
-  collateralEvent.value = data[0];
+  // collateralEvent.value = data[0];
   collateralEvent.save();
 }

@@ -198,7 +198,7 @@ export function handleTradeRevenue(event: TradeSpigotRevenue): void {
   // can also derive from debt token price oracle
   // const revenueTokenValue = spigotEvent.sold
   //   .times(BigInt.fromString(data[1].toString()))
-  //   .div(spigotEvent.bought);
+    // .div(spigotEvent.bought);
   let token = event.params.revenueToken.toHexString();
   // update price in subgraph for revenue token potentially not tracked by oracle
   updateTokenPrice(

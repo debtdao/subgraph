@@ -130,6 +130,8 @@ templates:
       abis:
         - name: Spigot
           file: ./abis/Spigot.json
+        - name: Oracle
+          file: ./abis/Oracle.json
         - name: ERC20
           file: ./abis/Prices/ERC20.json
         - name: CurveRegistry
@@ -190,6 +192,8 @@ templates:
       abis:
         - name: Escrow
           file: ./abis/Escrow.json
+        - name: Oracle
+          file: ./abis/Oracle.json
         - name: ERC20
           file: ./abis/Prices/ERC20.json
       eventHandlers:

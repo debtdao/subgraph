@@ -1,0 +1,4 @@
+[submodule "graph-node"]
+	path = graph-node
+	url = https://github.com/graphprotocol/graph-node.git
+	branch = master
