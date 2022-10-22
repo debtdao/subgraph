@@ -101,9 +101,12 @@ export function getValue(
   amount: BigInt,
   block: BigInt
 ): BigDecimal[] {
+  // use this one
+  // const price = getUsdPrice(Address.fromString(token.id), new BigDecimal(amount));
+  // const value = price.times(new BigDecimal(amount));
+  
+  // not this one
   // const prc = Oracle.bind(oracle).getLatestAnswer(Address.fromString(token.id));
-  const price = getUsdPrice(Address.fromString(token.id), new BigDecimal(amount));
-  const value = price.times(new BigDecimal(amount));
   // const price: BigInt = prc.lt(BIG_INT_ZERO) ? BIG_INT_ZERO : prc;
   // const decimals = BigInt.fromI32(token.decimals);
   // const value = new BigDecimal(amount.times(price).div(decimals));
@@ -111,9 +114,10 @@ export function getValue(
 
 
   // update metadata on token so we can search historical prices in subgraph
-  updateTokenPrice(price, block, "", token);
+  // updateTokenPrice(price, block, "", token);
 
-  return [value, price];
+  // return [value, price];
+  return [BIG_DECIMAL_ZERO, BIG_DECIMAL_ZERO];
 }
 
 /**
@@ -146,14 +150,14 @@ export function updateTokenPrice(
 ): void {
   log.warning("update price tkn/addr - {}, {}", [token.id, address]);
 
-  if(isNullToken(token)) {
-    if(isNullString(address)) return;
-    else token = getOrCreateToken(address);
-  }
-  token.lastPriceBlockNumber = block;
-  token.lastPriceUSD = price;
-  token.save()
-  return;
+  // if(isNullToken(token)) {
+  //   if(isNullString(address)) return;
+  //   else token = getOrCreateToken(address);
+  // }
+  // token.lastPriceBlockNumber = block;
+  // token.lastPriceUSD = price;
+  // token.save()
+  // return;
 }
 
 export function getOrCreateToken(address: string): Token {
