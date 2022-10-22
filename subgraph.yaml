@@ -113,7 +113,7 @@ templates:
         - event: TradeSpigotRevenue(indexed address,uint256,indexed address,indexed
             uint256)
           handler: handleTradeRevenue
-        - event: Liquidate(indexed bytes32,indexed uint256,indexed address)
+        - event: Liquidate(indexed bytes32,indexed uint256,indexed address,address)
           handler: handleLiquidate
   - name: Spigot
     kind: ethereum/contract
@@ -159,7 +159,7 @@ templates:
         - name: CalculationsSushiSwap
           file: ./abis/Prices/Calculations/SushiSwap.json
       eventHandlers:
-        - event: AddSpigot(indexed address,address,uint256)
+        - event: AddSpigot(indexed address,uint256)
           handler: handleAddSpigot
         - event: ClaimEscrow(indexed address,indexed uint256,address)
           handler: handleClaimEscrow
