@@ -39,6 +39,8 @@ import { ERC20 } from "../generated/templates/Spigot/ERC20";
 import { readValue } from "./prices/common/utils";
 import { BIGDECIMAL_1E18 } from "./prices/common/constants";
 
+import { getUsdPrice } from "./prices";
+
 export const BIG_INT_ZERO = new BigInt(0);
 export const BIG_INT_ONE = new BigInt(1);
 export const BIG_DECIMAL_ZERO = new BigDecimal(BIG_INT_ZERO);
@@ -103,16 +105,23 @@ export function getValue(
   amount: BigInt,
   block: BigInt
 ): BigDecimal[] {
-  const prc = Oracle.bind(oracle).getLatestAnswer(Address.fromString(token.id));
-  const price: BigInt = prc.lt(BIG_INT_ZERO) ? BIG_INT_ZERO : prc;
-  const decimals = BigInt.fromI32(token.decimals);
-  const value = new BigDecimal(amount.times(price).div(decimals));
+  // use this one
+  // const price = getUsdPrice(Address.fromString(token.id), new BigDecimal(amount));
+  // const value = price.times(new BigDecimal(amount));
   
-  const priceBD = new BigDecimal(price);
-  // update metadata on token so we can search historical prices in subgraph
-  updateTokenPrice(priceBD, block, "", token);
+  // not this one
+  // const prc = Oracle.bind(oracle).getLatestAnswer(Address.fromString(token.id));
+  // const price: BigInt = prc.lt(BIG_INT_ZERO) ? BIG_INT_ZERO : prc;
+  // const decimals = BigInt.fromI32(token.decimals);
+  // const value = new BigDecimal(amount.times(price).div(decimals));
 
-  return [value, priceBD];
+
+
+  // update metadata on token so we can search historical prices in subgraph
+  // updateTokenPrice(price, block, "", token);
+
+  // return [value, price];
+  return [BIG_DECIMAL_ZERO, BIG_DECIMAL_ZERO];
 }
 
 /**
@@ -145,14 +154,14 @@ export function updateTokenPrice(
 ): void {
   log.warning("update price tkn/addr - {}, {}", [token.id, address]);
 
-  if(isNullToken(token)) {
-    if(isNullString(address)) return;
-    else token = getOrCreateToken(address);
-  }
-  token.lastPriceBlockNumber = block;
-  token.lastPriceUSD = price;
-  token.save()
-  return;
+  // if(isNullToken(token)) {
+  //   if(isNullString(address)) return;
+  //   else token = getOrCreateToken(address);
+  // }
+  // token.lastPriceBlockNumber = block;
+  // token.lastPriceUSD = price;
+  // token.save()
+  // return;
 }
 
 export function getOrCreateToken(address: string): Token {

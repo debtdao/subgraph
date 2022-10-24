@@ -1,310 +1,3056 @@
-[
-  {
-    "inputs": [
+{
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint32",
+          "name": "_minimumCollateralRatio",
+          "type": "uint32"
+        },
+        {
+          "internalType": "address",
+          "name": "_oracle",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_line",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_borrower",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "CallerAccessDenied",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidCollateral",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NotLiquidatable",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "UnderCollateralized",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "AddCollateral",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        }
+      ],
+      "name": "EnableCollateral",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "RemoveCollateral",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        }
+      ],
+      "name": "addCollateral",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "borrower",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        }
+      ],
+      "name": "enableCollateral",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getCollateralRatio",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getCollateralValue",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "isLiquidatable",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "line",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        }
+      ],
+      "name": "liquidate",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "minimumCollateralRatio",
+      "outputs": [
+        {
+          "internalType": "uint32",
+          "name": "",
+          "type": "uint32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "oracle",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        }
+      ],
+      "name": "releaseCollateral",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_line",
+          "type": "address"
+        }
+      ],
+      "name": "updateLine",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x60e060405234801561001057600080fd5b50604051610a95380380610a9583398101604081905261002f91610085565b63ffffffff939093166080526001600160a01b0391821660a052600080546001600160a01b0319169183169190911790551660c0526100e4565b80516001600160a01b038116811461008057600080fd5b919050565b6000806000806080858703121561009b57600080fd5b845163ffffffff811681146100af57600080fd5b93506100bd60208601610069565b92506100cb60408601610069565b91506100d960608601610069565b905092959194509250565b60805160a05160c051610943610152600039600081816101a20152610418015260008181610156015281816103540152818161044001528181610538015281816106680152818161071e01526107e90152600081816101d60152818161046d015261056401526109436000f3fe6080604052600436106100a75760003560e01c80639f1837ce116100645780639f1837ce146101c4578063a2c5925f1461020d578063b56b83531461022d578063c047e5631461024b578063cadac47914610260578063cd377c531461027357600080fd5b8063060336ec146100ac57806311be0de5146100e1578063250bc38414610101578063578c65e41461012f5780637dc0d1d0146101445780637df1f1b914610190575b600080fd5b3480156100b857600080fd5b506100cc6100c736600461084f565b610288565b60405190151581526020015b60405180910390f35b3480156100ed57600080fd5b506100cc6100fc36600461088b565b610334565b34801561010d57600080fd5b5061012161011c36600461084f565b6103f8565b6040519081526020016100d8565b34801561013b57600080fd5b506100cc610518565b34801561015057600080fd5b506101787f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b0390911681526020016100d8565b34801561019c57600080fd5b506101787f000000000000000000000000000000000000000000000000000000000000000081565b3480156101d057600080fd5b506101f87f000000000000000000000000000000000000000000000000000000000000000081565b60405163ffffffff90911681526020016100d8565b34801561021957600080fd5b506100cc61022836600461088b565b6105fe565b34801561023957600080fd5b506000546001600160a01b0316610178565b34801561025757600080fd5b50610121610648565b61012161026e3660046108a6565b6106fe565b34801561027f57600080fd5b506101216107c9565b60405163ec77178760e01b8152600060048201819052602482018590526001600160a01b038085166044840152831660648301529073__$8daa6fbba8f2011ed51a616355b87438bf$__9063ec7717879060840160206040518083038186803b1580156102f457600080fd5b505af4158015610308573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061032c91906108d2565b949350505050565b604051631377ce7f60e01b81526000600482018190526001600160a01b037f000000000000000000000000000000000000000000000000000000000000000081166024840152831660448301529073__$8daa6fbba8f2011ed51a616355b87438bf$__90631377ce7f906064015b60206040518083038186803b1580156103ba57600080fd5b505af41580156103ce573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906103f291906108d2565b92915050565b604051631a505ed360e11b81526000600482018190526001600160a01b037f0000000000000000000000000000000000000000000000000000000000000000811660248401527f00000000000000000000000000000000000000000000000000000000000000008116604484015263ffffffff7f00000000000000000000000000000000000000000000000000000000000000001660648401526084830186905280851660a4840152831660c48301529073__$8daa6fbba8f2011ed51a616355b87438bf$__906334a0bda69060e40160206040518083038186803b1580156104e057600080fd5b505af41580156104f4573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061032c91906108f4565b604051630e36a96960e31b81526000600482018190526001600160a01b037f000000000000000000000000000000000000000000000000000000000000000016602483015263ffffffff7f00000000000000000000000000000000000000000000000000000000000000001660448301529073__$8daa6fbba8f2011ed51a616355b87438bf$__906371b54b489060640160206040518083038186803b1580156105c157600080fd5b505af41580156105d5573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906105f991906108d2565b905090565b604051630b0cb18160e41b81526000600482018190526001600160a01b03831660248301529073__$8daa6fbba8f2011ed51a616355b87438bf$__9063b0cb1810906044016103a2565b60405163796748bf60e11b81526000600482018190526001600160a01b037f00000000000000000000000000000000000000000000000000000000000000001660248301529073__$8daa6fbba8f2011ed51a616355b87438bf$__9063f2ce917e906044015b60206040518083038186803b1580156106c657600080fd5b505af41580156106da573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906105f991906108f4565b604051633d9e93eb60e21b81526000600482018190526001600160a01b037f00000000000000000000000000000000000000000000000000000000000000008116602484015260448301859052831660648301529073__$8daa6fbba8f2011ed51a616355b87438bf$__9063f67a4fac9060840160206040518083038186803b15801561078a57600080fd5b505af415801561079e573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906107c291906108f4565b9392505050565b60405163788fa08960e01b81526000600482018190526001600160a01b037f00000000000000000000000000000000000000000000000000000000000000001660248301529073__$8daa6fbba8f2011ed51a616355b87438bf$__9063788fa089906044016106ae565b80356001600160a01b038116811461084a57600080fd5b919050565b60008060006060848603121561086457600080fd5b8335925061087460208501610833565b915061088260408501610833565b90509250925092565b60006020828403121561089d57600080fd5b6107c282610833565b600080604083850312156108b957600080fd5b823591506108c960208401610833565b90509250929050565b6000602082840312156108e457600080fd5b815180151581146107c257600080fd5b60006020828403121561090657600080fd5b505191905056fea26469706673582212207df260e65ecb812d9e22bbc78e488d95b652813e4e2f1e295db4b8344de2de7164736f6c63430008090033",
+    "sourceMap": "563:3954:23:-:0;;;985:282;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;1128:48;;;;;;;-1:-1:-1;;;;;1186:16:23;;;;;1212:5;:18;;-1:-1:-1;;;;;;1212:18:23;;;;;;;;;;1240:20;;;563:3954;;14:177:66;93:13;;-1:-1:-1;;;;;135:31:66;;125:42;;115:70;;181:1;178;171:12;115:70;14:177;;;:::o;196:536::-;292:6;300;308;316;369:3;357:9;348:7;344:23;340:33;337:53;;;386:1;383;376:12;337:53;418:9;412:16;468:10;461:5;457:22;450:5;447:33;437:61;;494:1;491;484:12;437:61;517:5;-1:-1:-1;541:49:66;586:2;571:18;;541:49;:::i;:::-;531:59;;609:49;654:2;643:9;639:18;609:49;:::i;:::-;599:59;;677:49;722:2;711:9;707:18;677:49;:::i;:::-;667:59;;196:536;;;;;;;:::o;:::-;563:3954:23;;;;;;;;;;;;;;;;;;",
+    "linkReferences": {
+      "contracts/utils/EscrowLib.sol": {
+        "EscrowLib": [
+          {
+            "start": 1041,
+            "length": 20
+          },
+          {
+            "start": 1238,
+            "length": 20
+          },
+          {
+            "start": 1533,
+            "length": 20
+          },
+          {
+            "start": 1758,
+            "length": 20
+          },
+          {
+            "start": 1912,
+            "length": 20
+          },
+          {
+            "start": 2018,
+            "length": 20
+          },
+          {
+            "start": 2215,
+            "length": 20
+          },
+          {
+            "start": 2403,
+            "length": 20
+          }
+        ]
+      }
+    }
+  },
+  "deployedBytecode": {
+    "object": "0x6080604052600436106100a75760003560e01c80639f1837ce116100645780639f1837ce146101c4578063a2c5925f1461020d578063b56b83531461022d578063c047e5631461024b578063cadac47914610260578063cd377c531461027357600080fd5b8063060336ec146100ac57806311be0de5146100e1578063250bc38414610101578063578c65e41461012f5780637dc0d1d0146101445780637df1f1b914610190575b600080fd5b3480156100b857600080fd5b506100cc6100c736600461084f565b610288565b60405190151581526020015b60405180910390f35b3480156100ed57600080fd5b506100cc6100fc36600461088b565b610334565b34801561010d57600080fd5b5061012161011c36600461084f565b6103f8565b6040519081526020016100d8565b34801561013b57600080fd5b506100cc610518565b34801561015057600080fd5b506101787f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b0390911681526020016100d8565b34801561019c57600080fd5b506101787f000000000000000000000000000000000000000000000000000000000000000081565b3480156101d057600080fd5b506101f87f000000000000000000000000000000000000000000000000000000000000000081565b60405163ffffffff90911681526020016100d8565b34801561021957600080fd5b506100cc61022836600461088b565b6105fe565b34801561023957600080fd5b506000546001600160a01b0316610178565b34801561025757600080fd5b50610121610648565b61012161026e3660046108a6565b6106fe565b34801561027f57600080fd5b506101216107c9565b60405163ec77178760e01b8152600060048201819052602482018590526001600160a01b038085166044840152831660648301529073__$8daa6fbba8f2011ed51a616355b87438bf$__9063ec7717879060840160206040518083038186803b1580156102f457600080fd5b505af4158015610308573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061032c91906108d2565b949350505050565b604051631377ce7f60e01b81526000600482018190526001600160a01b037f000000000000000000000000000000000000000000000000000000000000000081166024840152831660448301529073__$8daa6fbba8f2011ed51a616355b87438bf$__90631377ce7f906064015b60206040518083038186803b1580156103ba57600080fd5b505af41580156103ce573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906103f291906108d2565b92915050565b604051631a505ed360e11b81526000600482018190526001600160a01b037f0000000000000000000000000000000000000000000000000000000000000000811660248401527f00000000000000000000000000000000000000000000000000000000000000008116604484015263ffffffff7f00000000000000000000000000000000000000000000000000000000000000001660648401526084830186905280851660a4840152831660c48301529073__$8daa6fbba8f2011ed51a616355b87438bf$__906334a0bda69060e40160206040518083038186803b1580156104e057600080fd5b505af41580156104f4573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061032c91906108f4565b604051630e36a96960e31b81526000600482018190526001600160a01b037f000000000000000000000000000000000000000000000000000000000000000016602483015263ffffffff7f00000000000000000000000000000000000000000000000000000000000000001660448301529073__$8daa6fbba8f2011ed51a616355b87438bf$__906371b54b489060640160206040518083038186803b1580156105c157600080fd5b505af41580156105d5573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906105f991906108d2565b905090565b604051630b0cb18160e41b81526000600482018190526001600160a01b03831660248301529073__$8daa6fbba8f2011ed51a616355b87438bf$__9063b0cb1810906044016103a2565b60405163796748bf60e11b81526000600482018190526001600160a01b037f00000000000000000000000000000000000000000000000000000000000000001660248301529073__$8daa6fbba8f2011ed51a616355b87438bf$__9063f2ce917e906044015b60206040518083038186803b1580156106c657600080fd5b505af41580156106da573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906105f991906108f4565b604051633d9e93eb60e21b81526000600482018190526001600160a01b037f00000000000000000000000000000000000000000000000000000000000000008116602484015260448301859052831660648301529073__$8daa6fbba8f2011ed51a616355b87438bf$__9063f67a4fac9060840160206040518083038186803b15801561078a57600080fd5b505af415801561079e573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906107c291906108f4565b9392505050565b60405163788fa08960e01b81526000600482018190526001600160a01b037f00000000000000000000000000000000000000000000000000000000000000001660248301529073__$8daa6fbba8f2011ed51a616355b87438bf$__9063788fa089906044016106ae565b80356001600160a01b038116811461084a57600080fd5b919050565b60008060006060848603121561086457600080fd5b8335925061087460208501610833565b915061088260408501610833565b90509250925092565b60006020828403121561089d57600080fd5b6107c282610833565b600080604083850312156108b957600080fd5b823591506108c960208401610833565b90509250929050565b6000602082840312156108e457600080fd5b815180151581146107c257600080fd5b60006020828403121561090657600080fd5b505191905056fea26469706673582212207df260e65ecb812d9e22bbc78e488d95b652813e4e2f1e295db4b8344de2de7164736f6c63430008090033",
+    "sourceMap": "563:3954:23:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;4341:174;;;;;;;;;;-1:-1:-1;4341:174:23;;;;;:::i;:::-;;:::i;:::-;;;690:14:66;;683:22;665:41;;653:2;638:18;4341:174:23;;;;;;;;2575:126;;;;;;;;;;-1:-1:-1;2575:126:23;;;;;:::i;:::-;;:::i;3072:235::-;;;;;;;;;;-1:-1:-1;3072:235:23;;;;;:::i;:::-;;:::i;:::-;;;1054:25:66;;;1042:2;1027:18;3072:235:23;908:177:66;1367:123:23;;;;;;;;;;;;;:::i;876:31::-;;;;;;;;;;;;;;;;;;-1:-1:-1;;;;;1254:32:66;;;1236:51;;1224:2;1209:18;876:31:23;1090:203:66;913:33:23;;;;;;;;;;;;;;;774:46;;;;;;;;;;;;;;;;;;1472:10:66;1460:23;;;1442:42;;1430:2;1415:18;774:46:23;1298:192:66;1496:103:23;;;;;;;;;;-1:-1:-1;1496:103:23;;;;;:::i;:::-;;:::i;1273:88::-;;;;;;;;;;-1:-1:-1;1320:7:23;1344:10;-1:-1:-1;;;;;1344:10:23;1273:88;;3733:113;;;;;;;;;;;;;:::i;2008:175::-;;;;;;:::i;:::-;;:::i;3436:113::-;;;;;;;;;;;;;:::i;4341:174::-;4474:34;;-1:-1:-1;;;4474:34:23;;4451:4;4474:34;;;2024:25:66;;;2065:18;;;2058:34;;;-1:-1:-1;;;;;2166:15:66;;;2146:18;;;2139:43;2218:15;;2198:18;;;2191:43;4451:4:23;4474:15;;;;1996:19:66;;4474:34:23;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;4467:41;4341:174;-1:-1:-1;;;;4341:174:23:o;2575:126::-;2657:37;;-1:-1:-1;;;2657:37:23;;2634:4;2657:37;;;2768:25:66;;;-1:-1:-1;;;;;2680:6:23;2867:15:66;;2847:18;;;2840:43;2919:15;;2899:18;;;2892:43;2634:4:23;2657:22;;;;2741:18:66;;2657:37:23;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;2650:44;2575:126;-1:-1:-1;;2575:126:23:o;3072:235::-;3216:84;;-1:-1:-1;;;3216:84:23;;3190:7;3216:84;;;3299:25:66;;;-1:-1:-1;;;;;3240:8:23;3398:15:66;;3378:18;;;3371:43;3250:6:23;3450:15:66;;3430:18;;;3423:43;3514:10;3258:22:23;3502:23:66;3482:18;;;3475:51;3542:19;;;3535:35;;;3607:15;;;3586:19;;;3579:44;3660:15;;3639:19;;;3632:44;3190:7:23;3216:23;;;;3271:19:66;;3216:84:23;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;1367:123::-;1431:52;;-1:-1:-1;;;1431:52:23;;1410:4;1431:52;;;4116:25:66;;;-1:-1:-1;;;;;1452:6:23;4177:32:66;4157:18;;;4150:60;4258:10;1460:22:23;4246:23:66;4226:18;;;4219:51;1410:4:23;1431:20;;;;4089:18:66;;1431:52:23;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;1424:59;;1367:123;:::o;1496:103::-;1569:23;;-1:-1:-1;;;1569:23:23;;1548:4;1569:23;;;4494:25:66;;;-1:-1:-1;;;;;4555:32:66;;4535:18;;;4528:60;1548:4:23;1569:16;;;;4467:18:66;;1569:23:23;4281:313:66;3733:113:23;3807:32;;-1:-1:-1;;;3807:32:23;;3781:7;3807:32;;;4494:25:66;;;-1:-1:-1;;;;;3832:6:23;4555:32:66;4535:18;;;4528:60;3781:7:23;3807:24;;;;4467:18:66;;3807:32:23;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;2008:175::-;2134:42;;-1:-1:-1;;;2134:42:23;;2104:7;2134:42;;;4869:25:66;;;-1:-1:-1;;;;;2154:6:23;4968:15:66;;4948:18;;;4941:43;5000:18;;;4993:34;;;5063:15;;5043:18;;;5036:43;2104:7:23;2134:19;;;;4841::66;;2134:42:23;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;2127:49;2008:175;-1:-1:-1;;;2008:175:23:o;3436:113::-;3510:32;;-1:-1:-1;;;3510:32:23;;3484:7;3510:32;;;4494:25:66;;;-1:-1:-1;;;;;3535:6:23;4555:32:66;4535:18;;;4528:60;3484:7:23;3510:24;;;;4467:18:66;;3510:32:23;4281:313:66;14:173;82:20;;-1:-1:-1;;;;;131:31:66;;121:42;;111:70;;177:1;174;167:12;111:70;14:173;;;:::o;192:328::-;269:6;277;285;338:2;326:9;317:7;313:23;309:32;306:52;;;354:1;351;344:12;306:52;390:9;377:23;367:33;;419:38;453:2;442:9;438:18;419:38;:::i;:::-;409:48;;476:38;510:2;499:9;495:18;476:38;:::i;:::-;466:48;;192:328;;;;;:::o;717:186::-;776:6;829:2;817:9;808:7;804:23;800:32;797:52;;;845:1;842;835:12;797:52;868:29;887:9;868:29;:::i;1495:254::-;1563:6;1571;1624:2;1612:9;1603:7;1599:23;1595:32;1592:52;;;1640:1;1637;1630:12;1592:52;1676:9;1663:23;1653:33;;1705:38;1739:2;1728:9;1724:18;1705:38;:::i;:::-;1695:48;;1495:254;;;;;:::o;2245:277::-;2312:6;2365:2;2353:9;2344:7;2340:23;2336:32;2333:52;;;2381:1;2378;2371:12;2333:52;2413:9;2407:16;2466:5;2459:13;2452:21;2445:5;2442:32;2432:60;;2488:1;2485;2478:12;3687:184;3757:6;3810:2;3798:9;3789:7;3785:23;3781:32;3778:52;;;3826:1;3823;3816:12;3778:52;-1:-1:-1;3849:16:66;;3687:184;-1:-1:-1;3687:184:66:o",
+    "linkReferences": {
+      "contracts/utils/EscrowLib.sol": {
+        "EscrowLib": [
+          {
+            "start": 703,
+            "length": 20
+          },
+          {
+            "start": 900,
+            "length": 20
+          },
+          {
+            "start": 1195,
+            "length": 20
+          },
+          {
+            "start": 1420,
+            "length": 20
+          },
+          {
+            "start": 1574,
+            "length": 20
+          },
+          {
+            "start": 1680,
+            "length": 20
+          },
+          {
+            "start": 1877,
+            "length": 20
+          },
+          {
+            "start": 2065,
+            "length": 20
+          }
+        ]
+      }
+    },
+    "immutableReferences": {
+      "4020": [
+        {
+          "start": 470,
+          "length": 32
+        },
+        {
+          "start": 1133,
+          "length": 32
+        },
+        {
+          "start": 1380,
+          "length": 32
+        }
+      ],
+      "4022": [
+        {
+          "start": 342,
+          "length": 32
+        },
+        {
+          "start": 852,
+          "length": 32
+        },
+        {
+          "start": 1088,
+          "length": 32
+        },
+        {
+          "start": 1336,
+          "length": 32
+        },
+        {
+          "start": 1640,
+          "length": 32
+        },
+        {
+          "start": 1822,
+          "length": 32
+        },
+        {
+          "start": 2025,
+          "length": 32
+        }
+      ],
+      "4024": [
+        {
+          "start": 418,
+          "length": 32
+        },
+        {
+          "start": 1048,
+          "length": 32
+        }
+      ]
+    }
+  },
+  "methodIdentifiers": {
+    "addCollateral(uint256,address)": "cadac479",
+    "borrower()": "7df1f1b9",
+    "enableCollateral(address)": "11be0de5",
+    "getCollateralRatio()": "cd377c53",
+    "getCollateralValue()": "c047e563",
+    "isLiquidatable()": "578c65e4",
+    "line()": "b56b8353",
+    "liquidate(uint256,address,address)": "060336ec",
+    "minimumCollateralRatio()": "9f1837ce",
+    "oracle()": "7dc0d1d0",
+    "releaseCollateral(uint256,address,address)": "250bc384",
+    "updateLine(address)": "a2c5925f"
+  },
+  "userdoc": {
+    "version": 1,
+    "kind": "user",
+    "methods": {
+      "addCollateral(uint256,address)": {
+        "notice": "add collateral to your position"
+      },
+      "enableCollateral(address)": {
+        "notice": "- allows  the lines arbiter to  enable thdeposits of an asset        - gives  better risk segmentation forlenders"
+      },
+      "getCollateralRatio()": {
+        "notice": "calculates the cratio"
+      },
+      "getCollateralValue()": {
+        "notice": "calculates the collateral value in USD to 8 decimals"
+      },
+      "liquidate(uint256,address,address)": {
+        "notice": "liquidates borrowers collateral by token and amount         line can liquidate at anytime based off other covenants besides cratio"
+      },
+      "releaseCollateral(uint256,address,address)": {
+        "notice": "remove collateral from your position. Must remain above min collateral ratio"
+      }
+    }
+  },
+  "devdoc": {
+    "version": 1,
+    "kind": "dev",
+    "methods": {
+      "addCollateral(uint256,address)": {
+        "details": "updates cratiorequires that the token deposited can be valued by the escrow's oracle & the depositor has approved this contract- callable by anyone",
+        "params": {
+          "amount": "- the amount of collateral to add",
+          "token": "- the token address of the deposited token"
+        },
+        "returns": {
+          "_0": "- the updated cratio"
+        }
+      },
+      "enableCollateral(address)": {
+        "details": "- whitelisting protects against malicious 4626 tokens and DoS attacks       - only need to allow once. Can not disable collateral once enabled.",
+        "params": {
+          "token": "- the token to all borrow to deposit as collateral"
+        }
+      },
+      "getCollateralRatio()": {
+        "details": "callable by anyone",
+        "returns": {
+          "_0": "- the calculated cratio"
+        }
+      },
+      "getCollateralValue()": {
+        "details": "callable by anyone",
+        "returns": {
+          "_0": "- the calculated collateral value to 8 decimals"
+        }
+      },
+      "liquidate(uint256,address,address)": {
+        "details": "requires that the cratio is at or below the liquidation thresholdcallable by `line`",
+        "params": {
+          "amount": "- the amount of tokens to liquidate",
+          "to": "- the address to receive the funds",
+          "token": "- the address of the token to draw funds from"
+        },
+        "returns": {
+          "_0": "- true if successful"
+        }
+      },
+      "releaseCollateral(uint256,address,address)": {
+        "details": "callable by `borrower`updates cratio",
+        "params": {
+          "amount": "- the amount of collateral to release",
+          "to": "- who should receive the funds",
+          "token": "- the token address to withdraw"
+        },
+        "returns": {
+          "_0": "- the updated cratio"
+        }
+      }
+    }
+  },
+  "ast": {
+    "absolutePath": "contracts/modules/escrow/Escrow.sol",
+    "id": 4194,
+    "exportedSymbols": {
+      "CreditLib": [
+        23086
+      ],
+      "Denominations": [
+        26030
+      ],
+      "Escrow": [
+        4193
+      ],
+      "EscrowLib": [
+        23970
+      ],
+      "EscrowState": [
+        23254
+      ],
+      "IERC20": [
+        50295
+      ],
+      "IEscrow": [
+        115
+      ],
+      "ILineOfCredit": [
+        507
+      ],
+      "IOracle": [
+        566
+      ],
+      "LineLib": [
+        24423
+      ],
+      "SafeERC20": [
+        50637
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "0:4518:23",
+    "nodes": [
       {
-        "internalType": "uint32",
-        "name": "_minimumCollateralRatio",
-        "type": "uint32"
+        "id": 3989,
+        "nodeType": "PragmaDirective",
+        "src": "0:22:23",
+        "literals": [
+          "solidity",
+          "0.8",
+          ".9"
+        ]
       },
       {
-        "internalType": "address",
-        "name": "_oracle",
-        "type": "address"
+        "id": 3991,
+        "nodeType": "ImportDirective",
+        "src": "24:60:23",
+        "absolutePath": "lib/chainlink/contracts/src/v0.8/Denominations.sol",
+        "file": "chainlink/Denominations.sol",
+        "nameLocation": "-1:-1:-1",
+        "scope": 4194,
+        "sourceUnit": 26031,
+        "symbolAliases": [
+          {
+            "foreign": {
+              "id": 3990,
+              "name": "Denominations",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "src": "33:13:23",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          }
+        ],
+        "unitAlias": ""
       },
       {
-        "internalType": "address",
-        "name": "_line",
-        "type": "address"
+        "id": 3993,
+        "nodeType": "ImportDirective",
+        "src": "85:61:23",
+        "absolutePath": "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol",
+        "file": "openzeppelin/token/ERC20/IERC20.sol",
+        "nameLocation": "-1:-1:-1",
+        "scope": 4194,
+        "sourceUnit": 50296,
+        "symbolAliases": [
+          {
+            "foreign": {
+              "id": 3992,
+              "name": "IERC20",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "src": "94:6:23",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          }
+        ],
+        "unitAlias": ""
       },
       {
-        "internalType": "address",
-        "name": "_borrower",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
-    "inputs": [],
-    "name": "CallerAccessDenied",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "InvalidCollateral",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "NotLiquidatable",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "UnderCollateralized",
-    "type": "error"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
+        "id": 3995,
+        "nodeType": "ImportDirective",
+        "src": "147:72:23",
+        "absolutePath": "lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol",
+        "file": "openzeppelin/token/ERC20/utils/SafeERC20.sol",
+        "nameLocation": "-1:-1:-1",
+        "scope": 4194,
+        "sourceUnit": 50638,
+        "symbolAliases": [
+          {
+            "foreign": {
+              "id": 3994,
+              "name": "SafeERC20",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "src": "155:9:23",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          }
+        ],
+        "unitAlias": ""
       },
       {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "AddCollateral",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
-      }
-    ],
-    "name": "EnableCollateral",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
+        "id": 3997,
+        "nodeType": "ImportDirective",
+        "src": "220:53:23",
+        "absolutePath": "contracts/interfaces/IEscrow.sol",
+        "file": "../../interfaces/IEscrow.sol",
+        "nameLocation": "-1:-1:-1",
+        "scope": 4194,
+        "sourceUnit": 116,
+        "symbolAliases": [
+          {
+            "foreign": {
+              "id": 3996,
+              "name": "IEscrow",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "src": "228:7:23",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          }
+        ],
+        "unitAlias": ""
       },
       {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "RemoveCollateral",
-    "type": "event"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
+        "id": 3999,
+        "nodeType": "ImportDirective",
+        "src": "274:53:23",
+        "absolutePath": "contracts/interfaces/IOracle.sol",
+        "file": "../../interfaces/IOracle.sol",
+        "nameLocation": "-1:-1:-1",
+        "scope": 4194,
+        "sourceUnit": 567,
+        "symbolAliases": [
+          {
+            "foreign": {
+              "id": 3998,
+              "name": "IOracle",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "src": "282:7:23",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          }
+        ],
+        "unitAlias": ""
       },
       {
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
-      }
-    ],
-    "name": "addCollateral",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "borrower",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
-      }
-    ],
-    "name": "enableCollateral",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getCollateralRatio",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getCollateralValue",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "isLiquidatable",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "line",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
+        "id": 4001,
+        "nodeType": "ImportDirective",
+        "src": "328:65:23",
+        "absolutePath": "contracts/interfaces/ILineOfCredit.sol",
+        "file": "../../interfaces/ILineOfCredit.sol",
+        "nameLocation": "-1:-1:-1",
+        "scope": 4194,
+        "sourceUnit": 508,
+        "symbolAliases": [
+          {
+            "foreign": {
+              "id": 4000,
+              "name": "ILineOfCredit",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "src": "336:13:23",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          }
+        ],
+        "unitAlias": ""
       },
       {
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
+        "id": 4003,
+        "nodeType": "ImportDirective",
+        "src": "394:52:23",
+        "absolutePath": "contracts/utils/CreditLib.sol",
+        "file": "../../utils/CreditLib.sol",
+        "nameLocation": "-1:-1:-1",
+        "scope": 4194,
+        "sourceUnit": 23087,
+        "symbolAliases": [
+          {
+            "foreign": {
+              "id": 4002,
+              "name": "CreditLib",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "src": "402:9:23",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          }
+        ],
+        "unitAlias": ""
       },
       {
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
-      }
-    ],
-    "name": "liquidate",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "minimumCollateralRatio",
-    "outputs": [
-      {
-        "internalType": "uint32",
-        "name": "",
-        "type": "uint32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "oracle",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
+        "id": 4005,
+        "nodeType": "ImportDirective",
+        "src": "447:48:23",
+        "absolutePath": "contracts/utils/LineLib.sol",
+        "file": "../../utils/LineLib.sol",
+        "nameLocation": "-1:-1:-1",
+        "scope": 4194,
+        "sourceUnit": 24424,
+        "symbolAliases": [
+          {
+            "foreign": {
+              "id": 4004,
+              "name": "LineLib",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "src": "455:7:23",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          }
+        ],
+        "unitAlias": ""
       },
       {
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
+        "id": 4008,
+        "nodeType": "ImportDirective",
+        "src": "496:65:23",
+        "absolutePath": "contracts/utils/EscrowLib.sol",
+        "file": "../../utils/EscrowLib.sol",
+        "nameLocation": "-1:-1:-1",
+        "scope": 4194,
+        "sourceUnit": 23971,
+        "symbolAliases": [
+          {
+            "foreign": {
+              "id": 4006,
+              "name": "EscrowState",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "src": "504:11:23",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          },
+          {
+            "foreign": {
+              "id": 4007,
+              "name": "EscrowLib",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "src": "517:9:23",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          }
+        ],
+        "unitAlias": ""
       },
       {
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
+        "id": 4193,
+        "nodeType": "ContractDefinition",
+        "src": "563:3954:23",
+        "nodes": [
+          {
+            "id": 4014,
+            "nodeType": "UsingForDirective",
+            "src": "596:27:23",
+            "libraryName": {
+              "id": 4011,
+              "name": "SafeERC20",
+              "nodeType": "IdentifierPath",
+              "referencedDeclaration": 50637,
+              "src": "602:9:23"
+            },
+            "typeName": {
+              "id": 4013,
+              "nodeType": "UserDefinedTypeName",
+              "pathNode": {
+                "id": 4012,
+                "name": "IERC20",
+                "nodeType": "IdentifierPath",
+                "referencedDeclaration": 50295,
+                "src": "616:6:23"
+              },
+              "referencedDeclaration": 50295,
+              "src": "616:6:23",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_IERC20_$50295",
+                "typeString": "contract IERC20"
+              }
+            }
+          },
+          {
+            "id": 4018,
+            "nodeType": "UsingForDirective",
+            "src": "628:32:23",
+            "libraryName": {
+              "id": 4015,
+              "name": "EscrowLib",
+              "nodeType": "IdentifierPath",
+              "referencedDeclaration": 23970,
+              "src": "634:9:23"
+            },
+            "typeName": {
+              "id": 4017,
+              "nodeType": "UserDefinedTypeName",
+              "pathNode": {
+                "id": 4016,
+                "name": "EscrowState",
+                "nodeType": "IdentifierPath",
+                "referencedDeclaration": 23254,
+                "src": "648:11:23"
+              },
+              "referencedDeclaration": 23254,
+              "src": "648:11:23",
+              "typeDescriptions": {
+                "typeIdentifier": "t_struct$_EscrowState_$23254_storage_ptr",
+                "typeString": "struct EscrowState"
+              }
+            }
+          },
+          {
+            "id": 4020,
+            "nodeType": "VariableDeclaration",
+            "src": "774:46:23",
+            "baseFunctions": [
+              54
+            ],
+            "constant": false,
+            "functionSelector": "9f1837ce",
+            "mutability": "immutable",
+            "name": "minimumCollateralRatio",
+            "nameLocation": "798:22:23",
+            "scope": 4193,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint32",
+              "typeString": "uint32"
+            },
+            "typeName": {
+              "id": 4019,
+              "name": "uint32",
+              "nodeType": "ElementaryTypeName",
+              "src": "774:6:23",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint32",
+                "typeString": "uint32"
+              }
+            },
+            "visibility": "public"
+          },
+          {
+            "id": 4022,
+            "nodeType": "VariableDeclaration",
+            "src": "876:31:23",
+            "baseFunctions": [
+              44
+            ],
+            "constant": false,
+            "functionSelector": "7dc0d1d0",
+            "mutability": "immutable",
+            "name": "oracle",
+            "nameLocation": "901:6:23",
+            "scope": 4193,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_address",
+              "typeString": "address"
+            },
+            "typeName": {
+              "id": 4021,
+              "name": "address",
+              "nodeType": "ElementaryTypeName",
+              "src": "876:7:23",
+              "stateMutability": "nonpayable",
+              "typeDescriptions": {
+                "typeIdentifier": "t_address",
+                "typeString": "address"
+              }
+            },
+            "visibility": "public"
+          },
+          {
+            "id": 4024,
+            "nodeType": "VariableDeclaration",
+            "src": "913:33:23",
+            "baseFunctions": [
+              49
+            ],
+            "constant": false,
+            "functionSelector": "7df1f1b9",
+            "mutability": "immutable",
+            "name": "borrower",
+            "nameLocation": "938:8:23",
+            "scope": 4193,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_address",
+              "typeString": "address"
+            },
+            "typeName": {
+              "id": 4023,
+              "name": "address",
+              "nodeType": "ElementaryTypeName",
+              "src": "913:7:23",
+              "stateMutability": "nonpayable",
+              "typeDescriptions": {
+                "typeIdentifier": "t_address",
+                "typeString": "address"
+              }
+            },
+            "visibility": "public"
+          },
+          {
+            "id": 4027,
+            "nodeType": "VariableDeclaration",
+            "src": "953:25:23",
+            "constant": false,
+            "mutability": "mutable",
+            "name": "state",
+            "nameLocation": "973:5:23",
+            "scope": 4193,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_struct$_EscrowState_$23254_storage",
+              "typeString": "struct EscrowState"
+            },
+            "typeName": {
+              "id": 4026,
+              "nodeType": "UserDefinedTypeName",
+              "pathNode": {
+                "id": 4025,
+                "name": "EscrowState",
+                "nodeType": "IdentifierPath",
+                "referencedDeclaration": 23254,
+                "src": "953:11:23"
+              },
+              "referencedDeclaration": 23254,
+              "src": "953:11:23",
+              "typeDescriptions": {
+                "typeIdentifier": "t_struct$_EscrowState_$23254_storage_ptr",
+                "typeString": "struct EscrowState"
+              }
+            },
+            "visibility": "private"
+          },
+          {
+            "id": 4057,
+            "nodeType": "FunctionDefinition",
+            "src": "985:282:23",
+            "body": {
+              "id": 4056,
+              "nodeType": "Block",
+              "src": "1118:149:23",
+              "statements": [
+                {
+                  "expression": {
+                    "id": 4040,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "id": 4038,
+                      "name": "minimumCollateralRatio",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 4020,
+                      "src": "1128:22:23",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint32",
+                        "typeString": "uint32"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "id": 4039,
+                      "name": "_minimumCollateralRatio",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 4029,
+                      "src": "1153:23:23",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint32",
+                        "typeString": "uint32"
+                      }
+                    },
+                    "src": "1128:48:23",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint32",
+                      "typeString": "uint32"
+                    }
+                  },
+                  "id": 4041,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1128:48:23"
+                },
+                {
+                  "expression": {
+                    "id": 4044,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "id": 4042,
+                      "name": "oracle",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 4022,
+                      "src": "1186:6:23",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_address",
+                        "typeString": "address"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "id": 4043,
+                      "name": "_oracle",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 4031,
+                      "src": "1195:7:23",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_address",
+                        "typeString": "address"
+                      }
+                    },
+                    "src": "1186:16:23",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "id": 4045,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1186:16:23"
+                },
+                {
+                  "expression": {
+                    "id": 4050,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "expression": {
+                        "id": 4046,
+                        "name": "state",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4027,
+                        "src": "1212:5:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_EscrowState_$23254_storage",
+                          "typeString": "struct EscrowState storage ref"
+                        }
+                      },
+                      "id": 4048,
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": true,
+                      "memberName": "line",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 23239,
+                      "src": "1212:10:23",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_address",
+                        "typeString": "address"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "id": 4049,
+                      "name": "_line",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 4033,
+                      "src": "1225:5:23",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_address",
+                        "typeString": "address"
+                      }
+                    },
+                    "src": "1212:18:23",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "id": 4051,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1212:18:23"
+                },
+                {
+                  "expression": {
+                    "id": 4054,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "id": 4052,
+                      "name": "borrower",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 4024,
+                      "src": "1240:8:23",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_address",
+                        "typeString": "address"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "id": 4053,
+                      "name": "_borrower",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 4035,
+                      "src": "1251:9:23",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_address",
+                        "typeString": "address"
+                      }
+                    },
+                    "src": "1240:20:23",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "id": 4055,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1240:20:23"
+                }
+              ]
+            },
+            "implemented": true,
+            "kind": "constructor",
+            "modifiers": [],
+            "name": "",
+            "nameLocation": "-1:-1:-1",
+            "parameters": {
+              "id": 4036,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4029,
+                  "mutability": "mutable",
+                  "name": "_minimumCollateralRatio",
+                  "nameLocation": "1013:23:23",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4057,
+                  "src": "1006:30:23",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint32",
+                    "typeString": "uint32"
+                  },
+                  "typeName": {
+                    "id": 4028,
+                    "name": "uint32",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1006:6:23",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint32",
+                      "typeString": "uint32"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 4031,
+                  "mutability": "mutable",
+                  "name": "_oracle",
+                  "nameLocation": "1054:7:23",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4057,
+                  "src": "1046:15:23",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 4030,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1046:7:23",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 4033,
+                  "mutability": "mutable",
+                  "name": "_line",
+                  "nameLocation": "1079:5:23",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4057,
+                  "src": "1071:13:23",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 4032,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1071:7:23",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 4035,
+                  "mutability": "mutable",
+                  "name": "_borrower",
+                  "nameLocation": "1102:9:23",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4057,
+                  "src": "1094:17:23",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 4034,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1094:7:23",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "996:121:23"
+            },
+            "returnParameters": {
+              "id": 4037,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1118:0:23"
+            },
+            "scope": 4193,
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "public"
+          },
+          {
+            "id": 4067,
+            "nodeType": "FunctionDefinition",
+            "src": "1273:88:23",
+            "body": {
+              "id": 4066,
+              "nodeType": "Block",
+              "src": "1329:32:23",
+              "statements": [
+                {
+                  "expression": {
+                    "expression": {
+                      "id": 4063,
+                      "name": "state",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 4027,
+                      "src": "1344:5:23",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_struct$_EscrowState_$23254_storage",
+                        "typeString": "struct EscrowState storage ref"
+                      }
+                    },
+                    "id": 4064,
+                    "isConstant": false,
+                    "isLValue": true,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "memberName": "line",
+                    "nodeType": "MemberAccess",
+                    "referencedDeclaration": 23239,
+                    "src": "1344:10:23",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "functionReturnParameters": 4062,
+                  "id": 4065,
+                  "nodeType": "Return",
+                  "src": "1337:17:23"
+                }
+              ]
+            },
+            "baseFunctions": [
+              39
+            ],
+            "functionSelector": "b56b8353",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "line",
+            "nameLocation": "1282:4:23",
+            "overrides": {
+              "id": 4059,
+              "nodeType": "OverrideSpecifier",
+              "overrides": [],
+              "src": "1303:8:23"
+            },
+            "parameters": {
+              "id": 4058,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1286:2:23"
+            },
+            "returnParameters": {
+              "id": 4062,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4061,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4067,
+                  "src": "1320:7:23",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 4060,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1320:7:23",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1319:9:23"
+            },
+            "scope": 4193,
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 4079,
+            "nodeType": "FunctionDefinition",
+            "src": "1367:123:23",
+            "body": {
+              "id": 4078,
+              "nodeType": "Block",
+              "src": "1416:74:23",
+              "statements": [
+                {
+                  "expression": {
+                    "arguments": [
+                      {
+                        "id": 4074,
+                        "name": "oracle",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4022,
+                        "src": "1452:6:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      },
+                      {
+                        "id": 4075,
+                        "name": "minimumCollateralRatio",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4020,
+                        "src": "1460:22:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint32",
+                          "typeString": "uint32"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        {
+                          "typeIdentifier": "t_uint32",
+                          "typeString": "uint32"
+                        }
+                      ],
+                      "expression": {
+                        "id": 4072,
+                        "name": "state",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4027,
+                        "src": "1431:5:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_EscrowState_$23254_storage",
+                          "typeString": "struct EscrowState storage ref"
+                        }
+                      },
+                      "id": 4073,
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "isLiquidatable",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 23281,
+                      "src": "1431:20:23",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_delegatecall_nonpayable$_t_struct$_EscrowState_$23254_storage_ptr_$_t_address_$_t_uint256_$returns$_t_bool_$bound_to$_t_struct$_EscrowState_$23254_storage_ptr_$",
+                        "typeString": "function (struct EscrowState storage pointer,address,uint256) returns (bool)"
+                      }
+                    },
+                    "id": 4076,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1431:52:23",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "functionReturnParameters": 4071,
+                  "id": 4077,
+                  "nodeType": "Return",
+                  "src": "1424:59:23"
+                }
+              ]
+            },
+            "baseFunctions": [
+              59
+            ],
+            "functionSelector": "578c65e4",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "isLiquidatable",
+            "nameLocation": "1376:14:23",
+            "parameters": {
+              "id": 4068,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1390:2:23"
+            },
+            "returnParameters": {
+              "id": 4071,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4070,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4079,
+                  "src": "1410:4:23",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 4069,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1410:4:23",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1409:6:23"
+            },
+            "scope": 4193,
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 4092,
+            "nodeType": "FunctionDefinition",
+            "src": "1496:103:23",
+            "body": {
+              "id": 4091,
+              "nodeType": "Block",
+              "src": "1554:45:23",
+              "statements": [
+                {
+                  "expression": {
+                    "arguments": [
+                      {
+                        "id": 4088,
+                        "name": "_line",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4081,
+                        "src": "1586:5:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      ],
+                      "expression": {
+                        "id": 4086,
+                        "name": "state",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4027,
+                        "src": "1569:5:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_EscrowState_$23254_storage",
+                          "typeString": "struct EscrowState storage ref"
+                        }
+                      },
+                      "id": 4087,
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "updateLine",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 23308,
+                      "src": "1569:16:23",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_delegatecall_nonpayable$_t_struct$_EscrowState_$23254_storage_ptr_$_t_address_$returns$_t_bool_$bound_to$_t_struct$_EscrowState_$23254_storage_ptr_$",
+                        "typeString": "function (struct EscrowState storage pointer,address) returns (bool)"
+                      }
+                    },
+                    "id": 4089,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1569:23:23",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "functionReturnParameters": 4085,
+                  "id": 4090,
+                  "nodeType": "Return",
+                  "src": "1562:30:23"
+                }
+              ]
+            },
+            "baseFunctions": [
+              66
+            ],
+            "functionSelector": "a2c5925f",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "updateLine",
+            "nameLocation": "1505:10:23",
+            "parameters": {
+              "id": 4082,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4081,
+                  "mutability": "mutable",
+                  "name": "_line",
+                  "nameLocation": "1524:5:23",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4092,
+                  "src": "1516:13:23",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 4080,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1516:7:23",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1515:15:23"
+            },
+            "returnParameters": {
+              "id": 4085,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4084,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4092,
+                  "src": "1548:4:23",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 4083,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1548:4:23",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1547:6:23"
+            },
+            "scope": 4193,
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 4110,
+            "nodeType": "FunctionDefinition",
+            "src": "2008:175:23",
+            "body": {
+              "id": 4109,
+              "nodeType": "Block",
+              "src": "2117:66:23",
+              "statements": [
+                {
+                  "expression": {
+                    "arguments": [
+                      {
+                        "id": 4104,
+                        "name": "oracle",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4022,
+                        "src": "2154:6:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      },
+                      {
+                        "id": 4105,
+                        "name": "amount",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4095,
+                        "src": "2162:6:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      {
+                        "id": 4106,
+                        "name": "token",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4097,
+                        "src": "2170:5:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      ],
+                      "expression": {
+                        "id": 4102,
+                        "name": "state",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4027,
+                        "src": "2134:5:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_EscrowState_$23254_storage",
+                          "typeString": "struct EscrowState storage ref"
+                        }
+                      },
+                      "id": 4103,
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "addCollateral",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 23549,
+                      "src": "2134:19:23",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_delegatecall_nonpayable$_t_struct$_EscrowState_$23254_storage_ptr_$_t_address_$_t_uint256_$_t_address_$returns$_t_uint256_$bound_to$_t_struct$_EscrowState_$23254_storage_ptr_$",
+                        "typeString": "function (struct EscrowState storage pointer,address,uint256,address) returns (uint256)"
+                      }
+                    },
+                    "id": 4107,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "2134:42:23",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "functionReturnParameters": 4101,
+                  "id": 4108,
+                  "nodeType": "Return",
+                  "src": "2127:49:23"
+                }
+              ]
+            },
+            "baseFunctions": [
+              92
+            ],
+            "documentation": {
+              "id": 4093,
+              "nodeType": "StructuredDocumentation",
+              "src": "1605:398:23",
+              "text": " @notice add collateral to your position\n @dev updates cratio\n @dev requires that the token deposited can be valued by the escrow's oracle & the depositor has approved this contract\n @dev - callable by anyone\n @param amount - the amount of collateral to add\n @param token - the token address of the deposited token\n @return - the updated cratio"
+            },
+            "functionSelector": "cadac479",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "addCollateral",
+            "nameLocation": "2017:13:23",
+            "parameters": {
+              "id": 4098,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4095,
+                  "mutability": "mutable",
+                  "name": "amount",
+                  "nameLocation": "2039:6:23",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4110,
+                  "src": "2031:14:23",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 4094,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "2031:7:23",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 4097,
+                  "mutability": "mutable",
+                  "name": "token",
+                  "nameLocation": "2055:5:23",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4110,
+                  "src": "2047:13:23",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 4096,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "2047:7:23",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "2030:31:23"
+            },
+            "returnParameters": {
+              "id": 4101,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4100,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4110,
+                  "src": "2104:7:23",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 4099,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "2104:7:23",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "2103:9:23"
+            },
+            "scope": 4193,
+            "stateMutability": "payable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 4125,
+            "nodeType": "FunctionDefinition",
+            "src": "2575:126:23",
+            "body": {
+              "id": 4124,
+              "nodeType": "Block",
+              "src": "2640:61:23",
+              "statements": [
+                {
+                  "expression": {
+                    "arguments": [
+                      {
+                        "id": 4120,
+                        "name": "oracle",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4022,
+                        "src": "2680:6:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      },
+                      {
+                        "id": 4121,
+                        "name": "token",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4113,
+                        "src": "2688:5:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      ],
+                      "expression": {
+                        "id": 4118,
+                        "name": "state",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4027,
+                        "src": "2657:5:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_EscrowState_$23254_storage",
+                          "typeString": "struct EscrowState storage ref"
+                        }
+                      },
+                      "id": 4119,
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "enableCollateral",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 23747,
+                      "src": "2657:22:23",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_delegatecall_nonpayable$_t_struct$_EscrowState_$23254_storage_ptr_$_t_address_$_t_address_$returns$_t_bool_$bound_to$_t_struct$_EscrowState_$23254_storage_ptr_$",
+                        "typeString": "function (struct EscrowState storage pointer,address,address) returns (bool)"
+                      }
+                    },
+                    "id": 4122,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "2657:37:23",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "functionReturnParameters": 4117,
+                  "id": 4123,
+                  "nodeType": "Return",
+                  "src": "2650:44:23"
+                }
+              ]
+            },
+            "baseFunctions": [
+              83
+            ],
+            "documentation": {
+              "id": 4111,
+              "nodeType": "StructuredDocumentation",
+              "src": "2189:381:23",
+              "text": " @notice - allows  the lines arbiter to  enable thdeposits of an asset\n        - gives  better risk segmentation forlenders\n @dev - whitelisting protects against malicious 4626 tokens and DoS attacks\n       - only need to allow once. Can not disable collateral once enabled.\n @param token - the token to all borrow to deposit as collateral"
+            },
+            "functionSelector": "11be0de5",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "enableCollateral",
+            "nameLocation": "2584:16:23",
+            "parameters": {
+              "id": 4114,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4113,
+                  "mutability": "mutable",
+                  "name": "token",
+                  "nameLocation": "2609:5:23",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4125,
+                  "src": "2601:13:23",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 4112,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "2601:7:23",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "2600:15:23"
+            },
+            "returnParameters": {
+              "id": 4117,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4116,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4125,
+                  "src": "2634:4:23",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 4115,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "2634:4:23",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "2633:6:23"
+            },
+            "scope": 4193,
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 4148,
+            "nodeType": "FunctionDefinition",
+            "src": "3072:235:23",
+            "body": {
+              "id": 4147,
+              "nodeType": "Block",
+              "src": "3199:108:23",
+              "statements": [
+                {
+                  "expression": {
+                    "arguments": [
+                      {
+                        "id": 4139,
+                        "name": "borrower",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4024,
+                        "src": "3240:8:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      },
+                      {
+                        "id": 4140,
+                        "name": "oracle",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4022,
+                        "src": "3250:6:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      },
+                      {
+                        "id": 4141,
+                        "name": "minimumCollateralRatio",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4020,
+                        "src": "3258:22:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint32",
+                          "typeString": "uint32"
+                        }
+                      },
+                      {
+                        "id": 4142,
+                        "name": "amount",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4128,
+                        "src": "3282:6:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      {
+                        "id": 4143,
+                        "name": "token",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4130,
+                        "src": "3290:5:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      },
+                      {
+                        "id": 4144,
+                        "name": "to",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4132,
+                        "src": "3297:2:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        {
+                          "typeIdentifier": "t_uint32",
+                          "typeString": "uint32"
+                        },
+                        {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      ],
+                      "expression": {
+                        "id": 4137,
+                        "name": "state",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4027,
+                        "src": "3216:5:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_EscrowState_$23254_storage",
+                          "typeString": "struct EscrowState storage ref"
+                        }
+                      },
+                      "id": 4138,
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "releaseCollateral",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 23845,
+                      "src": "3216:23:23",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_delegatecall_nonpayable$_t_struct$_EscrowState_$23254_storage_ptr_$_t_address_$_t_address_$_t_uint256_$_t_uint256_$_t_address_$_t_address_$returns$_t_uint256_$bound_to$_t_struct$_EscrowState_$23254_storage_ptr_$",
+                        "typeString": "function (struct EscrowState storage pointer,address,address,uint256,uint256,address,address) returns (uint256)"
+                      }
+                    },
+                    "id": 4145,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "3216:84:23",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "functionReturnParameters": 4136,
+                  "id": 4146,
+                  "nodeType": "Return",
+                  "src": "3209:91:23"
+                }
+              ]
+            },
+            "baseFunctions": [
+              103
+            ],
+            "documentation": {
+              "id": 4126,
+              "nodeType": "StructuredDocumentation",
+              "src": "2707:360:23",
+              "text": " @notice remove collateral from your position. Must remain above min collateral ratio\n @dev callable by `borrower`\n @dev updates cratio\n @param amount - the amount of collateral to release\n @param token - the token address to withdraw\n @param to - who should receive the funds\n @return - the updated cratio"
+            },
+            "functionSelector": "250bc384",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "releaseCollateral",
+            "nameLocation": "3081:17:23",
+            "parameters": {
+              "id": 4133,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4128,
+                  "mutability": "mutable",
+                  "name": "amount",
+                  "nameLocation": "3116:6:23",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4148,
+                  "src": "3108:14:23",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 4127,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3108:7:23",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 4130,
+                  "mutability": "mutable",
+                  "name": "token",
+                  "nameLocation": "3140:5:23",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4148,
+                  "src": "3132:13:23",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 4129,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3132:7:23",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 4132,
+                  "mutability": "mutable",
+                  "name": "to",
+                  "nameLocation": "3163:2:23",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4148,
+                  "src": "3155:10:23",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 4131,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3155:7:23",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "3098:73:23"
+            },
+            "returnParameters": {
+              "id": 4136,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4135,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4148,
+                  "src": "3190:7:23",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 4134,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3190:7:23",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "3189:9:23"
+            },
+            "scope": 4193,
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 4160,
+            "nodeType": "FunctionDefinition",
+            "src": "3436:113:23",
+            "body": {
+              "id": 4159,
+              "nodeType": "Block",
+              "src": "3493:56:23",
+              "statements": [
+                {
+                  "expression": {
+                    "arguments": [
+                      {
+                        "id": 4156,
+                        "name": "oracle",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4022,
+                        "src": "3535:6:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      ],
+                      "expression": {
+                        "id": 4154,
+                        "name": "state",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4027,
+                        "src": "3510:5:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_EscrowState_$23254_storage",
+                          "typeString": "struct EscrowState storage ref"
+                        }
+                      },
+                      "id": 4155,
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "getCollateralRatio",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 23861,
+                      "src": "3510:24:23",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_delegatecall_nonpayable$_t_struct$_EscrowState_$23254_storage_ptr_$_t_address_$returns$_t_uint256_$bound_to$_t_struct$_EscrowState_$23254_storage_ptr_$",
+                        "typeString": "function (struct EscrowState storage pointer,address) returns (uint256)"
+                      }
+                    },
+                    "id": 4157,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "3510:32:23",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "functionReturnParameters": 4153,
+                  "id": 4158,
+                  "nodeType": "Return",
+                  "src": "3503:39:23"
+                }
+              ]
+            },
+            "baseFunctions": [
+              71
+            ],
+            "documentation": {
+              "id": 4149,
+              "nodeType": "StructuredDocumentation",
+              "src": "3313:118:23",
+              "text": " @notice calculates the cratio\n @dev callable by anyone\n @return - the calculated cratio"
+            },
+            "functionSelector": "cd377c53",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getCollateralRatio",
+            "nameLocation": "3445:18:23",
+            "parameters": {
+              "id": 4150,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "3463:2:23"
+            },
+            "returnParameters": {
+              "id": 4153,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4152,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4160,
+                  "src": "3484:7:23",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 4151,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3484:7:23",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "3483:9:23"
+            },
+            "scope": 4193,
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 4172,
+            "nodeType": "FunctionDefinition",
+            "src": "3733:113:23",
+            "body": {
+              "id": 4171,
+              "nodeType": "Block",
+              "src": "3790:56:23",
+              "statements": [
+                {
+                  "expression": {
+                    "arguments": [
+                      {
+                        "id": 4168,
+                        "name": "oracle",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4022,
+                        "src": "3832:6:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      ],
+                      "expression": {
+                        "id": 4166,
+                        "name": "state",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4027,
+                        "src": "3807:5:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_EscrowState_$23254_storage",
+                          "typeString": "struct EscrowState storage ref"
+                        }
+                      },
+                      "id": 4167,
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "getCollateralValue",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 23877,
+                      "src": "3807:24:23",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_delegatecall_nonpayable$_t_struct$_EscrowState_$23254_storage_ptr_$_t_address_$returns$_t_uint256_$bound_to$_t_struct$_EscrowState_$23254_storage_ptr_$",
+                        "typeString": "function (struct EscrowState storage pointer,address) returns (uint256)"
+                      }
+                    },
+                    "id": 4169,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "3807:32:23",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "functionReturnParameters": 4165,
+                  "id": 4170,
+                  "nodeType": "Return",
+                  "src": "3800:39:23"
+                }
+              ]
+            },
+            "baseFunctions": [
+              76
+            ],
+            "documentation": {
+              "id": 4161,
+              "nodeType": "StructuredDocumentation",
+              "src": "3555:173:23",
+              "text": " @notice calculates the collateral value in USD to 8 decimals\n @dev callable by anyone\n @return - the calculated collateral value to 8 decimals"
+            },
+            "functionSelector": "c047e563",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getCollateralValue",
+            "nameLocation": "3742:18:23",
+            "parameters": {
+              "id": 4162,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "3760:2:23"
+            },
+            "returnParameters": {
+              "id": 4165,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4164,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4172,
+                  "src": "3781:7:23",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 4163,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3781:7:23",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "3780:9:23"
+            },
+            "scope": 4193,
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 4192,
+            "nodeType": "FunctionDefinition",
+            "src": "4341:174:23",
+            "body": {
+              "id": 4191,
+              "nodeType": "Block",
+              "src": "4457:58:23",
+              "statements": [
+                {
+                  "expression": {
+                    "arguments": [
+                      {
+                        "id": 4186,
+                        "name": "amount",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4175,
+                        "src": "4490:6:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      {
+                        "id": 4187,
+                        "name": "token",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4177,
+                        "src": "4498:5:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      },
+                      {
+                        "id": 4188,
+                        "name": "to",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4179,
+                        "src": "4505:2:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      ],
+                      "expression": {
+                        "id": 4184,
+                        "name": "state",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 4027,
+                        "src": "4474:5:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_EscrowState_$23254_storage",
+                          "typeString": "struct EscrowState storage ref"
+                        }
+                      },
+                      "id": 4185,
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "liquidate",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 23939,
+                      "src": "4474:15:23",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_delegatecall_nonpayable$_t_struct$_EscrowState_$23254_storage_ptr_$_t_uint256_$_t_address_$_t_address_$returns$_t_bool_$bound_to$_t_struct$_EscrowState_$23254_storage_ptr_$",
+                        "typeString": "function (struct EscrowState storage pointer,uint256,address,address) returns (bool)"
+                      }
+                    },
+                    "id": 4189,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "4474:34:23",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "functionReturnParameters": 4183,
+                  "id": 4190,
+                  "nodeType": "Return",
+                  "src": "4467:41:23"
+                }
+              ]
+            },
+            "baseFunctions": [
+              114
+            ],
+            "documentation": {
+              "id": 4173,
+              "nodeType": "StructuredDocumentation",
+              "src": "3852:484:23",
+              "text": " @notice liquidates borrowers collateral by token and amount\n         line can liquidate at anytime based off other covenants besides cratio\n @dev requires that the cratio is at or below the liquidation threshold\n @dev callable by `line`\n @param amount - the amount of tokens to liquidate\n @param token - the address of the token to draw funds from\n @param to - the address to receive the funds\n @return - true if successful"
+            },
+            "functionSelector": "060336ec",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "liquidate",
+            "nameLocation": "4350:9:23",
+            "parameters": {
+              "id": 4180,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4175,
+                  "mutability": "mutable",
+                  "name": "amount",
+                  "nameLocation": "4377:6:23",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4192,
+                  "src": "4369:14:23",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 4174,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "4369:7:23",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 4177,
+                  "mutability": "mutable",
+                  "name": "token",
+                  "nameLocation": "4401:5:23",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4192,
+                  "src": "4393:13:23",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 4176,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "4393:7:23",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 4179,
+                  "mutability": "mutable",
+                  "name": "to",
+                  "nameLocation": "4424:2:23",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4192,
+                  "src": "4416:10:23",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 4178,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "4416:7:23",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "4359:73:23"
+            },
+            "returnParameters": {
+              "id": 4183,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4182,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4192,
+                  "src": "4451:4:23",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 4181,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "4451:4:23",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "4450:6:23"
+            },
+            "scope": 4193,
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "abstract": false,
+        "baseContracts": [
+          {
+            "baseName": {
+              "id": 4009,
+              "name": "IEscrow",
+              "nodeType": "IdentifierPath",
+              "referencedDeclaration": 115,
+              "src": "582:7:23"
+            },
+            "id": 4010,
+            "nodeType": "InheritanceSpecifier",
+            "src": "582:7:23"
+          }
+        ],
+        "canonicalName": "Escrow",
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "fullyImplemented": true,
+        "linearizedBaseContracts": [
+          4193,
+          115
+        ],
+        "name": "Escrow",
+        "nameLocation": "572:6:23",
+        "scope": 4194,
+        "usedErrors": [
+          28,
+          30,
+          32,
+          34
+        ]
       }
-    ],
-    "name": "releaseCollateral",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    ]
   },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_line",
-        "type": "address"
-      }
-    ],
-    "name": "updateLine",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
-]
+  "id": 23
+}

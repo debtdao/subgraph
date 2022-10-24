@@ -59,18 +59,20 @@ type Credit @entity {
   
   deposit: BigInt!
   principal: BigInt!
+  # current amount of outstanding interest owed but not repaid by borrower
   interestAccrued: BigInt!
+  # current amount of accrued interest payments repaid and waiting for lender to claim
   interestRepaid: BigInt!
-  totalInterestEarned: BigInt! # lifetime gross revenue of lender on position
-  # TODO remove usd vals, use Token price to calculate. Suffers same stale data issues as contracts
-  principalUsd: BigDecimal!
-  interestUsd: BigDecimal!
-  
-
+  # lifetime gross revenue of lender on position
+  totalInterestEarned: BigInt!
   # interest in bps charged on principal
   dRate: Int!
   # interest in bps charged on deposit less principal
   fRate: Int!
+
+  # TODO remove usd vals, use Token price to calculate. Suffers same stale data issues as contracts
+  principalUsd: BigDecimal!
+  interestUsd: BigDecimal!
 }
 
 type Lender @entity {
@@ -410,7 +412,7 @@ type RemoveSpigotEvent implements SpigotEvent @entity {
   timestamp: BigInt!
 }
 
-type ClaimRevenueEvent implements SpigotEvent & EventWithValue @entity {
+type ClaimRevenueEvent implements SpigotEvent & SpigotControllerEvent & EventWithValue@entity {
   id: ID! # block-logIndex
   spigot: Spigot!
   controller: SpigotController!
@@ -473,6 +475,7 @@ interface EscrowEvent {
   deposit: EscrowDeposit!
   block: BigInt!
   timestamp: BigInt!
+  escrow: Escrow!
 }
 
 type EnableCollateralEvent implements EscrowEvent @entity {
@@ -480,6 +483,7 @@ type EnableCollateralEvent implements EscrowEvent @entity {
   deposit: EscrowDeposit!
   block: BigInt!
   timestamp: BigInt!
+  escrow: Escrow!
 }
 
 type AddCollateralEvent implements EscrowEvent & EventWithValue @entity {
@@ -490,6 +494,7 @@ type AddCollateralEvent implements EscrowEvent & EventWithValue @entity {
   
   amount: BigInt!
   value: BigDecimal!
+  escrow: Escrow!
 }
 
 type RemoveCollateralEvent implements EscrowEvent & EventWithValue @entity {
@@ -500,6 +505,7 @@ type RemoveCollateralEvent implements EscrowEvent & EventWithValue @entity {
 
   amount: BigInt!
   value: BigDecimal!
+  escrow: Escrow!
 }
 
 # LiquidateEvent handled in LineOfCredit because more data available

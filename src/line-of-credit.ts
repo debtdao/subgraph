@@ -132,7 +132,8 @@ export function handleAddCredit(event: AddCredit): void {
   log.warning("calling handleAddCredit addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   const line = LineOfCredit.load(event.address.toHexString())!;
   const token = getOrCreateToken(event.params.token.toHexString());
-  const id = event.params.positionId.toHexString();
+  const id = event.params.id.toHexString();
+
   let credit = Credit.load(id);
   if(credit) {
     // same lender/token already participated on line but it was closed, then reopened
@@ -140,26 +141,31 @@ export function handleAddCredit(event: AddCredit): void {
   } else {
     credit = new Credit(id);
   }
+
   credit.token = token.id;
   credit.line = line.id;
+  credit.borrower = line.borrower;
   credit.lender = event.params.lender.toHexString();
-  credit.deposit = event.params.deposit;
+  credit.queue = NOT_IN_QUEUE.toI32();
   
+  credit.deposit = event.params.deposit;
   credit.principal = BIG_INT_ZERO;
+  
   credit.interestAccrued = BIG_INT_ZERO;
+  credit.interestRepaid = BIG_INT_ZERO;
   credit.totalInterestEarned = BIG_INT_ZERO;
   
   // rates properly set on UpdateInterestRate event
   credit.dRate = 0; // get set on SetRates
   credit.fRate = 0; // get set on SetRates
-  credit.queue = NOT_IN_QUEUE.toI32();
+
   credit.save();
 
   const eventId = getEventId(event.block.number, event.logIndex);
   let creditEvent = new AddCreditEvent(eventId);
   creditEvent.block = event.block.number;
   creditEvent.line = event.address.toHexString();
-  creditEvent.credit = event.params.positionId.toHexString();
+  creditEvent.credit = event.params.id.toHexString();
   creditEvent.timestamp = event.block.timestamp;
   creditEvent.amount = event.params.deposit;
   creditEvent.value = getValue(
@@ -395,7 +401,7 @@ export function handleDefault(event: Default): void {
 
 export function handleLiquidate(event: Liquidate): void {
   log.warning("calling handleLiquidate addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
-  let credit = Credit.load(event.params.positionId.toHexString())!;
+  let credit = Credit.load(event.params.id.toHexString())!;
   credit.principal = credit.principal.minus(event.params.amount);
   const data = getValue(
     SecuredLine.bind(Address.fromString(credit.line)).oracle(),
