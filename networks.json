@@ -4,6 +4,10 @@
       "address": "0x43158693DBA386562F0581CD48E68dF027a5A877",
       "startBlock": 7666923 
     },
+    "CreditLib": {
+      "address": "0x09a8d8eD61D117A3C550345BcA19bf0B8237B27e",
+      "startBlock": 7666923 
+    },
     "ModuleFactory":{
       "address": "0x4ef32Fb722106dD55b57213E8cd56035Df216954",
       "startBlock": 7666910

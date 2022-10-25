@@ -36,7 +36,7 @@ import {
   getEventId,
   getOrCreateToken,
   updateTokenPrice,
-} from "./utils";
+} from "./utils/utils";
 
 
 export function handleEnableCollateral(event: EnableCollateral): void {

@@ -13,6 +13,7 @@ import {
   Default,
   DeployLine,
   InterestAccrued,
+  IncreaseCredit,
   Liquidate,
   RepayInterest,
   RepayPrincipal,
@@ -33,6 +34,7 @@ import {
   Escrow,
   // graph schema events
   AddCreditEvent,
+  IncreaseCreditEvent,
   BorrowEvent,
   ClosePositionEvent,
   DefaultEvent,
@@ -53,6 +55,7 @@ import {
   BYTES32_ZERO_STR,
   STATUS_DEFAULT,
 
+  getNullCredit,
   getValue,
   getQueueIndex,
   getEventId,
@@ -60,10 +63,12 @@ import {
   getValueForPosition,
   updateCollateralValue,
   BIG_DECIMAL_ZERO,
-} from "./utils";
+  POSITION_STATUS_OPENED,
+  POSITION_STATUS_CLOSED,
+} from "./utils/utils";
 
 import { handleTradeRevenue as _handleTradeRevenue } from "./spigot"
-import { handleMutualConsentEvents } from "./mutual-consent";
+import { handleMutualConsentEvents } from "./utils/mutual-consent";
 
 export function handleDeployLine(event: DeployLine): void {
   const line = new LineOfCredit(event.address.toHexString());
@@ -119,6 +124,7 @@ export function handleUpdateStatus(event: UpdateStatus): void {
     creditEvent.timestamp = event.block.timestamp;
 
     creditEvent.line = event.address.toHexString();
+    creditEvent.credit = getNullCredit();
     creditEvent.status = event.params.status.toI32();
 
     creditEvent.save();
@@ -147,6 +153,7 @@ export function handleAddCredit(event: AddCredit): void {
   credit.borrower = line.borrower;
   credit.lender = event.params.lender.toHexString();
   credit.queue = NOT_IN_QUEUE.toI32();
+  credit.status = POSITION_STATUS_OPENED;
   
   credit.deposit = event.params.deposit;
   credit.principal = BIG_INT_ZERO;
@@ -179,10 +186,31 @@ export function handleAddCredit(event: AddCredit): void {
   creditEvent.save();
 }
 
+export function handleIncreaseCredit(event: IncreaseCredit): void {
+  log.warning("calling handleIncreaseCredit addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  const id = event.params.id.toHexString();
+
+  let credit = Credit.load(id)!; // must have credit position from AddCredit
+
+  credit.deposit = event.params.deposit.plus(credit.deposit);
+  credit.save();
+
+  const eventId = getEventId(event.block.number, event.logIndex);
+  let creditEvent = new IncreaseCreditEvent(eventId);
+  creditEvent.block = event.block.number;
+  creditEvent.line = event.address.toHexString();
+  creditEvent.credit = event.params.id.toHexString();
+  creditEvent.timestamp = event.block.timestamp;
+  creditEvent.amount = event.params.deposit;
+  creditEvent.value = BIG_DECIMAL_ZERO;
+  creditEvent.save();
+}
+
 export function handleCloseCreditPosition(event: CloseCreditPosition): void {
   log.warning("calling handleCloseCreditPosition addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   let credit = Credit.load(event.params.id.toHexString())!;
   credit.principal = BIG_INT_ZERO;
+  credit.status = POSITION_STATUS_CLOSED;
   credit.deposit = BIG_INT_ZERO;
   credit.interestAccrued = BIG_INT_ZERO;
   credit.interestRepaid = BIG_INT_ZERO;
@@ -461,5 +489,5 @@ export function handleTradeRevenue(event: TradeSpigotRevenue): void {
 
 
 export function handleMutualConsentRegistered(event: MutualConsentRegistered): void {
-  // handleMutualConsentEvents(event);
+  handleMutualConsentEvents(event);
 }

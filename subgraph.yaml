@@ -59,6 +59,7 @@ templates:
       file: ./src/line-of-credit.ts
       entities:
         - Borrower
+        - Credit
         - Lender
         - DebtContract
         - Escrow
@@ -70,6 +71,7 @@ templates:
         - DefaultEvent
         - DeployLineEvent
         - InterestAccruedEvent
+        - IncreaseCreditEvent
         - LiquidateEvent
         - MutualUpgradeRegistered
         - RepayInterestEvent
@@ -85,11 +87,13 @@ templates:
           file: ./abis/Spigot.json
         - name: ERC20
           file: ./abis/Prices/ERC20.json
+        - name: CreditLib
+          file: ./abis/CreditLib.json
       eventHandlers:
         - event: AddCredit(indexed address,indexed address,indexed uint256,bytes32)
           handler: handleAddCredit
         - event: IncreaseCredit(indexed bytes32,indexed uint256)
-          handler: handleAddCredit
+          handler: handleIncreaseCredit
         - event: Borrow(indexed bytes32,indexed uint256)
           handler: handleBorrow
         - event: CloseCreditPosition(indexed bytes32)

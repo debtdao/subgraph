@@ -19,7 +19,7 @@ type Token @entity {
 type LineOfCredit @entity {
   id: ID!
   # LoC, Bullet, etc.
-  type: String!
+  type: String
   # when line was deployed
   start: Int!
   # when ttl expires
@@ -51,8 +51,13 @@ type Credit @entity {
   id: ID!       # keccak(line,lender,token)
   line: LineOfCredit!
   token: Token!
+  # if position is proposed, accepted, or closed.
+  status: String
+
+  # used to easily find positions by stakeholder
   lender: Lender!
   borrower: Borrower!
+
   # 0 indexed position in repayment queue
   # only has value if drawndown
   queue: Int
@@ -73,6 +78,8 @@ type Credit @entity {
   # TODO remove usd vals, use Token price to calculate. Suffers same stale data issues as contracts
   principalUsd: BigDecimal!
   interestUsd: BigDecimal!
+
+  events: [LineEventWithValue!]  @derivedFrom(field: "credit")
 }
 
 type Lender @entity {
@@ -125,14 +132,27 @@ interface LineEventWithValue implements LineEvent & EventWithValue {
   value: BigDecimal!
 }
 
-type UpdateStatusEvent @entity {
+type UpdateStatusEvent implements LineEvent @entity {
   id: ID! # block-logIndex
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
+  credit: Credit!
 
   status: Int!
 }
+
+type ProposeTermsEvent implements LineEvent @entity {
+  id: ID! # block-logIndex
+  block: BigInt!
+  timestamp: BigInt!
+  line: LineOfCredit!
+  credit: Credit!
+
+  funcSignature: String! # hexcode e.g. 0x12345678
+  params: [Bytes!]  # all proposed terms 
+}
+
 
 type AddCreditEvent implements LineEventWithValue @entity {
   id: ID! # block-logIndex

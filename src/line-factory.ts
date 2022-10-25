@@ -22,17 +22,12 @@ import {
   Escrow as EscrowTemplate,
   SecuredLine as SecuredLineTemplate,
 } from "../generated/templates"
-import { BIGINT_ZERO } from "./prices/common/constants";
 
 import {
   getEventId,
-  getOrCreateLine,
-  getOrCreateSpigot,
 
-  BIG_INT_ZERO,
   BIG_DECIMAL_ZERO,
-  BYTES32_ZERO_STR,
-} from "./utils";
+} from "./utils/utils";
 
 
 export function handleDeploySecuredLine(event: DeployedSecuredLine): void {

@@ -51,8 +51,8 @@ import {
   getOrCreateToken,
   updateTokenPrice,
   getOrCreateRevenueSummary,
-} from "./utils";
-import { getUsdPrice } from "./prices";
+} from "./utils/utils";
+import { getUsdPrice } from "./utils/prices";
 
 
 export function handleAddSpigot(event: AddSpigot): void {
