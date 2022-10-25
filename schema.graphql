@@ -29,11 +29,6 @@ type LineOfCredit @entity {
    # optional. amount of reveue line gets from spigot inflows
   defaultSplit: Int!
 
-  # add global usd/interest value for easy dispaly on frontend cards? (also more accurate historical pricing)
-
-  # modules
-  escrow: Escrow @derivedFrom(field: "line")
-  spigot: SpigotController @derivedFrom(field: "line")
   # 0x exchange address we trade against
   dex: Bytes!
 
@@ -42,12 +37,16 @@ type LineOfCredit @entity {
   oracle: Bytes!
   arbiter: Bytes!
 
+  # modules
+  escrow: Escrow @derivedFrom(field: "line")
+  spigot: SpigotController @derivedFrom(field: "line")
+
   # `lines` not guaranteed to return in order of repayment queue like smart contract
-  lines: [Credit!] @derivedFrom(field: "line")
+  positions: [Position!] @derivedFrom(field: "line")
   events: [LineEventWithValue!]  @derivedFrom(field: "line")
 }
 
-type Credit @entity {
+type Position @entity {
   id: ID!       # keccak(line,lender,token)
   line: LineOfCredit!
   token: Token!
@@ -79,18 +78,18 @@ type Credit @entity {
   principalUsd: BigDecimal!
   interestUsd: BigDecimal!
 
-  events: [LineEventWithValue!]  @derivedFrom(field: "credit")
+  events: [LineEventWithValue!]  @derivedFrom(field: "position")
 }
 
 type Lender @entity {
   id: ID!
-  credits: [Credit!] @derivedFrom(field: "lender")
+  positions: [Position!] @derivedFrom(field: "lender")
 }
 
 type Borrower @entity {
   id: ID!
-  debts: [LineOfCredit!] @derivedFrom(field: "borrower") # all contracts
-  lines: [Credit!] @derivedFrom(field: "borrower") # all lines on all contracts
+  lines: [LineOfCredit!] @derivedFrom(field: "borrower") # all contracts
+  positions: [Position!] @derivedFrom(field: "borrower") # all πositions on all contracts
 }
 
 #  Line EVENTS 
@@ -118,16 +117,16 @@ interface LineEvent {
   id: ID!                 # block-logIndex
   block: BigInt!
   timestamp: BigInt!
-  line: LineOfCredit! # could get from Credit but this makes it easier to traverse
-  credit: Credit!
+  line: LineOfCredit! # could get from Position but this makes it easier to traverse
+  position: Position!
 }
 
 interface LineEventWithValue implements LineEvent & EventWithValue {
   id: ID!                 # block-logIndex
   block: BigInt!
   timestamp: BigInt!
-  line: LineOfCredit! # could get from Credit but this makes it easier to traverse
-  credit: Credit!
+  line: LineOfCredit! # could get from Position but this makes it easier to traverse
+  position: Position!
   amount: BigInt!
   value: BigDecimal!
 }
@@ -137,7 +136,7 @@ type UpdateStatusEvent implements LineEvent @entity {
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
-  credit: Credit!
+  position: Position!
 
   status: Int!
 }
@@ -147,7 +146,7 @@ type ProposeTermsEvent implements LineEvent @entity {
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
-  credit: Credit!
+  position: Position!
 
   funcSignature: String! # hexcode e.g. 0x12345678
   params: [Bytes!]  # all proposed terms 
@@ -159,7 +158,7 @@ type AddCreditEvent implements LineEventWithValue @entity {
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
-  credit: Credit!
+  position: Position!
 
   amount: BigInt!
   value: BigDecimal!
@@ -172,7 +171,7 @@ type IncreaseCreditEvent implements LineEventWithValue @entity {
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
-  credit: Credit!
+  position: Position!
 
   # always 0, needed for compatability
   amount: BigInt!
@@ -184,7 +183,7 @@ type ClosePositionEvent implements LineEventWithValue @entity {
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
-  credit: Credit!
+  position: Position!
 
   # always 0, needed for compatability
   amount: BigInt!
@@ -196,7 +195,7 @@ type WithdrawProfitEvent implements LineEventWithValue @entity {
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
-  credit: Credit!
+  position: Position!
 
   amount: BigInt!
   value: BigDecimal!
@@ -207,7 +206,7 @@ type WithdrawDepositEvent implements LineEventWithValue @entity {
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
-  credit: Credit!
+  position: Position!
 
   amount: BigInt!
   value: BigDecimal!
@@ -218,7 +217,7 @@ type BorrowEvent implements LineEventWithValue @entity {
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
-  credit: Credit!
+  position: Position!
 
   amount: BigInt!
   value: BigDecimal!
@@ -229,7 +228,7 @@ type InterestAccruedEvent implements LineEventWithValue @entity {
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
-  credit: Credit!
+  position: Position!
 
   amount: BigInt!
   value: BigDecimal!
@@ -240,7 +239,7 @@ type RepayInterestEvent implements LineEventWithValue @entity {
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
-  credit: Credit!
+  position: Position!
 
   amount: BigInt!
   value: BigDecimal!
@@ -251,7 +250,7 @@ type RepayPrincipalEvent implements LineEventWithValue @entity {
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
-  credit: Credit!
+  position: Position!
 
   amount: BigInt!
   value: BigDecimal!
@@ -263,7 +262,7 @@ type LiquidateEvent implements LineEventWithValue @entity {
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
-  credit: Credit!
+  position: Position!
 
   amount: BigInt!
   value: BigDecimal! # not necessarily the amount received from executingliquidation 
@@ -275,7 +274,7 @@ type DefaultEvent implements LineEventWithValue @entity {
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
-  credit: Credit!
+  position: Position!
 
   amount: BigInt!
   value: BigDecimal!
@@ -286,7 +285,7 @@ type SetRatesEvent implements LineEventWithValue @entity {
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
-  credit: Credit!
+  position: Position!
 
   dRate: Int! # bps
   fRate: Int! # bps

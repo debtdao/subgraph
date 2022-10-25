@@ -16,9 +16,11 @@ import {
   Token,
   Spigot,
   Escrow,
+  Borrower,
+  Lender,
   SpigotController,
   SpigotRevenueSummary,
-  Credit,
+  Position,
   
   AddCreditEvent,
   IncreaseCreditEvent,
@@ -218,28 +220,34 @@ export function getNullToken(): string {
   return token.id;
 }
 
-export function getNullCredit(): string {
+export function getNullPosition(): string {
   const id = ZERO_ADDRESS_STR;
-  let credit = Credit.load(id);
-  if(credit) return credit.id;
-  credit = new Credit(id);
-  credit.line = getNullLine();
-  credit.borrower = id;
-  credit.lender = id;
-  credit.token = getNullToken();
-  credit.queue = NOT_IN_QUEUE.toI32(); 
-  credit.deposit = BIG_INT_ZERO;
-  credit.principal = BIG_INT_ZERO;
-  credit.interestAccrued = BIG_INT_ZERO;
-  credit.interestRepaid = BIG_INT_ZERO;
-  credit.totalInterestEarned = BIG_INT_ZERO;
-  credit.principalUsd = BIG_DECIMAL_ZERO;
-  credit.interestUsd = BIG_DECIMAL_ZERO;
-  credit.dRate = 0;
-  credit.fRate = 0;
+  let position =  Position.load(id);
+  if(position) return position.id;
+  
+  position = new Position(id);
+  position.line = getNullLine();
 
-  credit.save();
-  return credit.id;
+  const lender = new Lender(id);
+  lender.save();
+
+  position.borrower = id;
+  position.lender = id;
+
+  position.token = getNullToken();
+  position.queue = NOT_IN_QUEUE.toI32(); 
+  position.deposit = BIG_INT_ZERO;
+  position.principal = BIG_INT_ZERO;
+  position.interestAccrued = BIG_INT_ZERO;
+  position.interestRepaid = BIG_INT_ZERO;
+  position.totalInterestEarned = BIG_INT_ZERO;
+  position.principalUsd = BIG_DECIMAL_ZERO;
+  position.interestUsd = BIG_DECIMAL_ZERO;
+  position.dRate = 0;
+  position.fRate = 0;
+
+  position.save();
+  return position.id;
 }
 
 export function getNullLine(): string {
@@ -247,6 +255,21 @@ export function getNullLine(): string {
   let line = LineOfCredit.load(id); 
   if(!line) {
     line = new LineOfCredit(id);
+
+    const borrower = new Borrower(id);
+    borrower.save();
+
+    line.borrower = id;
+    line.start =  0;
+    line.end =  0;
+    line.status =  STATUS_UNINITIALIZED;
+    line.defaultSplit =  0;
+    line.dex =  Bytes.fromHexString(id);
+    line.borrower =  id;
+    line.oracle =  Bytes.fromHexString(id);
+    line.arbiter =  Bytes.fromHexString(id);
+
+    line.save();
   }
 
   return line.id;

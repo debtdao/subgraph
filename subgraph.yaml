@@ -65,6 +65,7 @@ templates:
         - Escrow
         - Spigot
         - SpigotController
+        - MutualUpgradeRegistered
         - AddCreditEvent
         - BorrowEvent
         - ClosePositionEvent
@@ -72,7 +73,6 @@ templates:
         - IncreaseCreditEvent
         - InterestAccruedEvent
         - LiquidateEvent
-        - MutualUpgradeRegistered
         - SetRatesEvent
         - RepayInterestEvent
         - RepayPrincipalEvent
@@ -91,6 +91,10 @@ templates:
         - name: CreditLib
           file: ./abis/CreditLib.json
       eventHandlers:
+        - event: DeployLine(indexed address,indexed address,indexed address)
+          handler: handleDeployLine
+        - event: UpdateStatus(indexed uint256)
+          handler: handleUpdateStatus
         - event: AddCredit(indexed address,indexed address,indexed uint256,bytes32)
           handler: handleAddCredit
         - event: IncreaseCredit(indexed bytes32,indexed uint256)
@@ -103,16 +107,12 @@ templates:
           handler: handleDefault
         - event: MutualConsentRegistered(bytes32)
           handler: handleMutualConsentRegistered
-        - event: DeployLine(indexed address,indexed address,indexed address)
-          handler: handleDeployLine
         - event: InterestAccrued(indexed bytes32,indexed uint256)
           handler: handleInterestAccrued
         - event: RepayInterest(indexed bytes32,indexed uint256)
           handler: handleRepayInterest
         - event: RepayPrincipal(indexed bytes32,indexed uint256)
           handler: handleRepayPrincipal
-        - event: UpdateStatus(indexed uint256)
-          handler: handleUpdateStatus
         - event: WithdrawDeposit(indexed bytes32,indexed uint256)
           handler: handleWithdrawDeposit
         - event: WithdrawProfit(indexed bytes32,indexed uint256)

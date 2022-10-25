@@ -11,7 +11,7 @@ import { MutualConsentRegistered } from "../../generated/templates/SecuredLine/S
 import {
   Spigot,
   SpigotController,
-  Credit,
+  Position,
   Lender,
   
   AddCreditEvent,
@@ -19,7 +19,6 @@ import {
   SetRatesEvent,
   AddSpigotEvent,
   ProposeTermsEvent,
-  Lender,
 } from '../../generated/schema';
 import { CreditLib } from "../../generated/templates/SecuredLine/CreditLib";
 
@@ -28,7 +27,7 @@ import {
   POSITION_STATUS_PROPOSED,
   BIG_INT_ZERO,
   getEventId,
-  getNullCredit,
+  getNullPosition,
   NOT_IN_QUEUE,
   BIG_DECIMAL_ZERO,
   getNullToken,
@@ -83,11 +82,8 @@ export function handleMutualConsentEvents(event: MutualConsentRegistered): void 
       case ADD_CREDIT_U32:
         const inputs = decodeTxData(event.transaction.input.toHexString(), ADD_CREDIT_ABI);
         if (inputs) {
-          // inputParams = inputs.map<string>((x) => x.toString());
-          // TODO need to switch on x.kind() to parse eth.Value into normal types
-          // then translate into astrings to save as human readable i subgraph
+          handleAddCreditMutualConsent(event, inputs);
         }
-        handleAddCreditMutualConsent(event, inputs);
         break;
       case INCREASE_CREDIT_U32:
         break;
@@ -108,7 +104,7 @@ export function handleMutualConsentEvents(event: MutualConsentRegistered): void 
       proposalEvent.line = event.address.toHexString();
       proposalEvent.funcSignature = functionSig;
       // TODO return creditID from functions to save here
-      proposalEvent.credit = getNullCredit();
+      proposalEvent.position = getNullPosition();
       // proposalEvent.params = inputParams! || [];
 
       proposalEvent.save();
@@ -116,13 +112,6 @@ export function handleMutualConsentEvents(event: MutualConsentRegistered): void 
 }
 
 function computeId(line: Address, lender: Address, token: Address): string {
-  // let tupleArray: Array<ethereum.Value> = [
-  //   ethereum.Value.fromAddress(line),
-  //   ethereum.Value.fromAddress(lender),
-  //   ethereum.Value.fromAddress(token),
-  // ];
-
-
   const data = ethereum.encode(ethereum.Value.fromAddressArray([line, lender, token]))!;
   return data ? crypto.keccak256(data).toHexString() : '0xblahblag';
 }
@@ -132,8 +121,6 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
     log.warning('could not get input params for AddCredit mutual consent proposal', []);
     return;
   }
-  
-  log.warning('add credit inputs ', []);
   
   // breakdown input params tuple into individual values in typescript
   // ADD_CREDIT_ABI = '(uint128,uint128,uint256,address,address)';
@@ -147,10 +134,8 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
 
   log.warning('add credit inputs [1]. {} [2]. {} [3]. {} [4].  {} [5].  {}', args);
 
-  // TODO generate position id from inputParams
-  // might need to bring in CreditLib ABI and use computeId from there
-  // Oracle.bind(oracle).getLatestAnswer(Address.fromString(token.id));
-  let id = '0xblagblaggblag';
+  // generate position id from inputParam data
+  let id = '';
   const computeResult = CreditLib.bind(CREDIT_LIB_GOERLI_ADDRESS).try_computeId(
     event.address,
     Address.fromBytes(Bytes.fromHexString(args[3])),
@@ -160,7 +145,7 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
   if(!computeResult.reverted) {
     id = computeResult.value.toHexString()
   } else {
-    log.warning("computing position ID call failed. inputs {}", [event.transaction.input.toHexString()]);
+    log.warning("computing position ID call to lib failed. inputs {}", [event.transaction.input.toHexString()]);
     id = computeId(
       event.address,
       Address.fromBytes(Bytes.fromHexString(args[3])),
@@ -170,33 +155,20 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
 
   }
   
-  log.warning("compute position id", [id]);
+  log.warning("compute position id {}", [id]);
 
   if(!id) return;
-  // const id = '0xblahblah'
 
-  // credit hasnt been created yet so assume none exists in the db already (some data will be overwritten but not events)
-  let credit = new Credit(id);
-  credit.line = event.address.toHexString();
+  // credit hasnt been created yet so assume none exists in the db already 
+  // some data will be overwritten but not events
+  let credit = new Position(id);
+  credit.line = event.address.toHexString(); // line entity must exist for proposal to happen
   credit.status = POSITION_STATUS_PROPOSED;
-  credit.borrower = ZERO_ADDRESS_STR; // pull from line contract or entity
   
-  // null data since position doesnt exist yet
+  // fill with null data since position doesnt exist yet
+  
+  credit.borrower = ZERO_ADDRESS_STR; // TODO: pull from line contract or entity
   credit.queue = NOT_IN_QUEUE.toI32();
-  
-  // get this data from function params
-
-  // TODO make interest rates BigInts since they can be even though they shouldnt be
-  const dRate = args[0] && args[0].length > 10 ? args[0].slice(0, 4) : '0';
-  const fRate = args[1] && args[1].length > 10 ? args[1].slice(0, 4) : '0';
-  credit.dRate = BigInt.fromString(dRate).toI32();
-  credit.fRate = BigInt.fromString(fRate).toI32();
-  credit.deposit =  BigInt.fromString(args[2]);
-  const lendy = new Lender(args[3]);
-  lendy.save();
-  credit.lender = lendy.id;
-  credit.token = getOrCreateToken(args[4]).id;
-
   credit.principal = BIG_INT_ZERO;
   credit.interestAccrued = BIG_INT_ZERO;
   credit.interestRepaid = BIG_INT_ZERO;
@@ -204,7 +176,19 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
   
   credit.principalUsd = BIG_DECIMAL_ZERO;
   credit.interestUsd = BIG_DECIMAL_ZERO;
+  const dRate = args[0] && args[0].length > 10 ? args[0].slice(0, 4) : '0';
+  const fRate = args[1] && args[1].length > 10 ? args[1].slice(0, 4) : '0';
+  credit.dRate = BigInt.fromString(dRate).toI32();
+  credit.fRate = BigInt.fromString(fRate).toI32();
+
+  credit.deposit =  BigInt.fromString(args[2]);
   
+  const lendy = new Lender(args[3]);
+  lendy.save(); // ensure entity persists
+  credit.lender = lendy.id;
+  credit.token = getOrCreateToken(args[4]).id;
+  
+  log.warning("saving credit to", [id]);
   credit.save();
 }
 
