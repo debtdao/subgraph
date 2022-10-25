@@ -9,6 +9,7 @@ import {
   // ABI events
   AddCredit,
   Borrow,
+
   CloseCreditPosition,
   Default,
   DeployLine,
@@ -30,14 +31,15 @@ import {
   LineOfCredit,
   Credit,
   Borrower,
+  Lender,
   SpigotController,
   Escrow,
   // graph schema events
   AddCreditEvent,
-  IncreaseCreditEvent,
   BorrowEvent,
   ClosePositionEvent,
   DefaultEvent,
+  IncreaseCreditEvent,
   InterestAccruedEvent,
   LiquidateEvent,
   RepayInterestEvent,
@@ -152,6 +154,8 @@ export function handleAddCredit(event: AddCredit): void {
   credit.line = line.id;
   credit.borrower = line.borrower;
   credit.lender = event.params.lender.toHexString();
+  const lendy = new Lender(credit.lender );
+  lendy.save(); // ensure entity persists
   credit.queue = NOT_IN_QUEUE.toI32();
   credit.status = POSITION_STATUS_OPENED;
   

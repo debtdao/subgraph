@@ -59,9 +59,9 @@ templates:
       file: ./src/line-of-credit.ts
       entities:
         - Borrower
-        - Credit
         - Lender
-        - DebtContract
+        - Credit
+        - LineOfCredit
         - Escrow
         - Spigot
         - SpigotController
@@ -69,15 +69,16 @@ templates:
         - BorrowEvent
         - ClosePositionEvent
         - DefaultEvent
-        - DeployLineEvent
-        - InterestAccruedEvent
         - IncreaseCreditEvent
+        - InterestAccruedEvent
         - LiquidateEvent
         - MutualUpgradeRegistered
+        - SetRatesEvent
         - RepayInterestEvent
         - RepayPrincipalEvent
         - UpdateLineStatusEvent
-        - WithdrawEvent
+        - WithdrawProfitEvent
+        - WithdrawDepositEvent
       abis:
         - name: SecuredLine
           file: ./abis/SecuredLine.json

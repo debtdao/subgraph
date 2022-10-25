@@ -12,12 +12,14 @@ import {
   Spigot,
   SpigotController,
   Credit,
+  Lender,
   
   AddCreditEvent,
   IncreaseCreditEvent,
   SetRatesEvent,
   AddSpigotEvent,
   ProposeTermsEvent,
+  Lender,
 } from '../../generated/schema';
 import { CreditLib } from "../../generated/templates/SecuredLine/CreditLib";
 
@@ -158,12 +160,14 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
   if(!computeResult.reverted) {
     id = computeResult.value.toHexString()
   } else {
-    log.warning("computing position ID failed. inputs {}", [event.transaction.input.toHexString()]);
+    log.warning("computing position ID call failed. inputs {}", [event.transaction.input.toHexString()]);
     id = computeId(
       event.address,
       Address.fromBytes(Bytes.fromHexString(args[3])),
       Address.fromBytes(Bytes.fromHexString(args[4]))
     );
+    log.warning("assemblyscript computing position success. ID {}", [id]);
+
   }
   
   log.warning("compute position id", [id]);
@@ -188,7 +192,9 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
   credit.dRate = BigInt.fromString(dRate).toI32();
   credit.fRate = BigInt.fromString(fRate).toI32();
   credit.deposit =  BigInt.fromString(args[2]);
-  credit.lender = args[3];
+  const lendy = new Lender(args[3]);
+  lendy.save();
+  credit.lender = lendy.id;
   credit.token = getOrCreateToken(args[4]).id;
 
   credit.principal = BIG_INT_ZERO;
