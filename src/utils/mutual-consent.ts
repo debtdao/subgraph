@@ -1,0 +1,211 @@
+import {
+  log,
+  crypto,
+  Address,
+  BigInt,
+  ethereum,
+  Bytes,
+} from "@graphprotocol/graph-ts"
+
+import { MutualConsentRegistered } from "../../generated/templates/SecuredLine/SecuredLine"
+import {
+  Spigot,
+  SpigotController,
+  Credit,
+  
+  AddCreditEvent,
+  IncreaseCreditEvent,
+  SetRatesEvent,
+  AddSpigotEvent,
+  ProposeTermsEvent,
+} from '../../generated/schema';
+import { CreditLib } from "../../generated/templates/SecuredLine/CreditLib";
+
+import {
+  BYTES32_ZERO_STR,
+  POSITION_STATUS_PROPOSED,
+  BIG_INT_ZERO,
+  getEventId,
+  getNullCredit,
+  NOT_IN_QUEUE,
+  BIG_DECIMAL_ZERO,
+  getNullToken,
+  ZERO_ADDRESS_STR,
+  getOrCreateToken
+} from "./utils";
+
+// Mutual Consent Function Signatures
+// generated IDs on remix then copied over
+const ADD_CREDIT_FUNC = '0xcb836209'; // 
+const ADD_CREDIT_ABI = '(uint128,uint128,uint256,address,address)';
+const ADD_CREDIT_U32 = 0;
+const ADD_SPIGOT_FUNC = ''; // todo cant get struct to work on remix
+const ADD_SPIGOT_ABI = '(bytes32,uint256)';
+const ADD_SPIGOT_U32 = 1;
+const SET_RATES_FUNC = '0xac856fac';
+const SET_RATES_ABI = '(bytes32,uint128,uint128)';
+const SET_RATES_U32 = 2;
+const INCREASE_CREDIT_FUNC = '0xc3651574';
+const INCREASE_CREDIT_ABI = '(address,uint8,bytes4,bytes4)';
+const INCREASE_CREDIT_U32 = 3;
+
+export const MUTUAL_CONSENT_FUNCTIONS = new Map<string, u32>(); 
+MUTUAL_CONSENT_FUNCTIONS.set(ADD_CREDIT_FUNC, ADD_CREDIT_U32);
+MUTUAL_CONSENT_FUNCTIONS.set(INCREASE_CREDIT_FUNC, ADD_SPIGOT_U32);
+MUTUAL_CONSENT_FUNCTIONS.set(SET_RATES_FUNC, SET_RATES_U32);
+MUTUAL_CONSENT_FUNCTIONS.set(ADD_SPIGOT_FUNC, INCREASE_CREDIT_U32);  // on SpigotedLine 
+
+
+const CREDIT_LIB_GOERLI_ADDRESS: Address = Address.fromBytes(Address.fromString("0x09a8d8eD61D117A3C550345BcA19bf0B8237B27e"));
+
+
+export function handleMutualConsentEvents(event: MutualConsentRegistered): void {
+    // event emits hash, we use tx data directly for 
+    const functionSig = event.transaction.input.toHexString().slice(0, 10);
+    const hasFunc = MUTUAL_CONSENT_FUNCTIONS.has(functionSig);
+    log.warning('mutual consent mappings {} {}', [functionSig, hasFunc.toString()]);
+  
+    if(!hasFunc) {
+      log.warning(
+        'No Mutual Consent Function registered in config for signature {}, total input is {}',
+        [functionSig, event.transaction.input.toHexString()]
+      );
+      return;
+    }
+  
+    const funcType = MUTUAL_CONSENT_FUNCTIONS.get(functionSig);
+    let inputParams: Bytes[] | null;
+    
+    switch(funcType) {
+       // assembly script is retarded and doesnt allow switch cases on strings so we have to use numbers
+      case ADD_CREDIT_U32:
+        const inputs = decodeTxData(event.transaction.input.toHexString(), ADD_CREDIT_ABI);
+        if (inputs) {
+          // inputParams = inputs.map<string>((x) => x.toString());
+          // TODO need to switch on x.kind() to parse eth.Value into normal types
+          // then translate into astrings to save as human readable i subgraph
+        }
+        handleAddCreditMutualConsent(event, inputs);
+        break;
+      case INCREASE_CREDIT_U32:
+        break;
+      case ADD_SPIGOT_U32:
+        break;
+      case SET_RATES_U32:
+        break;
+      default:
+        break;
+    }
+
+    // emit event for new terms
+    if(inputParams!) {
+      const eventId = getEventId(event.block.number, event.logIndex);
+      const proposalEvent = new ProposeTermsEvent(eventId);
+      proposalEvent.block = event.block.number;
+      proposalEvent.timestamp = event.block.timestamp;
+      proposalEvent.line = event.address.toHexString();
+      proposalEvent.funcSignature = functionSig;
+      // TODO return creditID from functions to save here
+      proposalEvent.credit = getNullCredit();
+      // proposalEvent.params = inputParams! || [];
+
+      proposalEvent.save();
+    }
+}
+
+function computeId(line: Address, lender: Address, token: Address): string {
+  // let tupleArray: Array<ethereum.Value> = [
+  //   ethereum.Value.fromAddress(line),
+  //   ethereum.Value.fromAddress(lender),
+  //   ethereum.Value.fromAddress(token),
+  // ];
+
+
+  const data = ethereum.encode(ethereum.Value.fromAddressArray([line, lender, token]))!;
+  return data ? crypto.keccak256(data).toHexString() : '0xblahblag';
+}
+
+function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParams: ethereum.Tuple | null): void {
+  if(!inputParams) {
+    log.warning('could not get input params for AddCredit mutual consent proposal', []);
+    return;
+  }
+  
+  log.warning('add credit inputs ', []);
+  
+  // breakdown input params tuple into individual values in typescript
+  // ADD_CREDIT_ABI = '(uint128,uint128,uint256,address,address)';
+  const args: string[] = [
+    inputParams[0].toBigInt().toString(),
+    inputParams[1].toBigInt().toString(),
+    inputParams[2].toBigInt().toString(),
+    inputParams[3].toAddress().toHexString(),
+    inputParams[4].toAddress().toHexString()
+  ];
+
+  log.warning('add credit inputs [1]. {} [2]. {} [3]. {} [4].  {} [5].  {}', args);
+
+  // TODO generate position id from inputParams
+  // might need to bring in CreditLib ABI and use computeId from there
+  // Oracle.bind(oracle).getLatestAnswer(Address.fromString(token.id));
+  let id = '0xblagblaggblag';
+  const computeResult = CreditLib.bind(CREDIT_LIB_GOERLI_ADDRESS).try_computeId(
+    event.address,
+    Address.fromBytes(Bytes.fromHexString(args[3])),
+    Address.fromBytes(Bytes.fromHexString(args[4]))
+  );
+
+  if(!computeResult.reverted) {
+    id = computeResult.value.toHexString()
+  } else {
+    log.warning("computing position ID failed. inputs {}", [event.transaction.input.toHexString()]);
+    id = computeId(
+      event.address,
+      Address.fromBytes(Bytes.fromHexString(args[3])),
+      Address.fromBytes(Bytes.fromHexString(args[4]))
+    );
+  }
+  
+  log.warning("compute position id", [id]);
+
+  if(!id) return;
+  // const id = '0xblahblah'
+
+  // credit hasnt been created yet so assume none exists in the db already (some data will be overwritten but not events)
+  let credit = new Credit(id);
+  credit.line = event.address.toHexString();
+  credit.status = POSITION_STATUS_PROPOSED;
+  credit.borrower = ZERO_ADDRESS_STR; // pull from line contract or entity
+  
+  // null data since position doesnt exist yet
+  credit.queue = NOT_IN_QUEUE.toI32();
+  
+  // get this data from function params
+
+  // TODO make interest rates BigInts since they can be even though they shouldnt be
+  const dRate = args[0] && args[0].length > 10 ? args[0].slice(0, 4) : '0';
+  const fRate = args[1] && args[1].length > 10 ? args[1].slice(0, 4) : '0';
+  credit.dRate = BigInt.fromString(dRate).toI32();
+  credit.fRate = BigInt.fromString(fRate).toI32();
+  credit.deposit =  BigInt.fromString(args[2]);
+  credit.lender = args[3];
+  credit.token = getOrCreateToken(args[4]).id;
+
+  credit.principal = BIG_INT_ZERO;
+  credit.interestAccrued = BIG_INT_ZERO;
+  credit.interestRepaid = BIG_INT_ZERO;
+  credit.totalInterestEarned = BIG_INT_ZERO;
+  
+  credit.principalUsd = BIG_DECIMAL_ZERO;
+  credit.interestUsd = BIG_DECIMAL_ZERO;
+  
+  credit.save();
+}
+
+
+function decodeTxData(rawTxData: string, decodeTemplate: string): ethereum.Tuple | null {
+  const inputs = rawTxData.slice(10);
+  const encodedData = Bytes.fromHexString(inputs);
+  const decoded = ethereum.decode(decodeTemplate, encodedData);
+  return decoded ? decoded.toTuple() : null;
+}

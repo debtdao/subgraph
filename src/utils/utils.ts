@@ -24,18 +24,18 @@ import {
   IncreaseCreditEvent,
   SetRatesEvent,
   AddSpigotEvent,
-} from "../generated/schema"
+} from "../../generated/schema"
 
 import {
   SecuredLine,
-} from "../generated/templates/SecuredLine/SecuredLine"
+} from "../../generated/templates/SecuredLine/SecuredLine"
 
 import {
   Escrow as EscrowContract,
-} from "../generated/templates/Escrow/Escrow"
+} from "../../generated/templates/Escrow/Escrow"
 
-import { Oracle } from "../generated/templates/SecuredLine/Oracle"
-import { ERC20 } from "../generated/templates/Spigot/ERC20";
+import { Oracle } from "../../generated/templates/SecuredLine/Oracle"
+import { ERC20 } from "../../generated/templates/Spigot/ERC20";
 import { readValue } from "./prices/common/utils";
 import { BIGDECIMAL_1E18 } from "./prices/common/constants";
 
@@ -70,6 +70,12 @@ STATUSES.set(1, STATUS_ACTIVE);
 STATUSES.set(2, STATUS_LIQUIDATABLE);
 STATUSES.set(3, STATUS_REPAID);
 STATUSES.set(4, STATUS_INSOLVENT);
+
+
+// Position statuses
+export const POSITION_STATUS_PROPOSED = "PROPOSED";
+export const POSITION_STATUS_OPENED  = "OPEN";
+export const POSITION_STATUS_CLOSED = "CLOSED";
 
 // apparently undefined/null doesnt exist so use empty strings for null (including Entity IDs)
 function isNullString(thing: string = ""): bool {
@@ -179,6 +185,7 @@ export function getOrCreateToken(address: string): Token {
   return token;
 }
 
+
 export function getEventId(block: BigInt, logIndex: BigInt): string {
   return `${block}-${logIndex}`
 }
@@ -194,15 +201,55 @@ export function getOrCreateSpigot(controller: Address, contract: Address): Spigo
 }
 
 
-export function getOrCreateLine(contract: Address, type: string = ""): LineOfCredit {
-  const id = contract.toHexString()
+// Null entities for when we need to link an entity but it hasnt been created yet (e.g. Credit during mutualConsent proposals
+
+export function getNullToken(): string {
+  const address = BYTES32_ZERO_STR
+  let token = Token.load(address);
+  if(token) return token.id;
+  token = new Token(address);
+
+  // get token metadata
+  token.decimals =new BigInt(18).toI32();
+  token.symbol = "NULL";
+  token.name = "Null Dummy Token";
+
+  token.save();
+  return token.id;
+}
+
+export function getNullCredit(): string {
+  const id = ZERO_ADDRESS_STR;
+  let credit = Credit.load(id);
+  if(credit) return credit.id;
+  credit = new Credit(id);
+  credit.line = getNullLine();
+  credit.borrower = id;
+  credit.lender = id;
+  credit.token = getNullToken();
+  credit.queue = NOT_IN_QUEUE.toI32(); 
+  credit.deposit = BIG_INT_ZERO;
+  credit.principal = BIG_INT_ZERO;
+  credit.interestAccrued = BIG_INT_ZERO;
+  credit.interestRepaid = BIG_INT_ZERO;
+  credit.totalInterestEarned = BIG_INT_ZERO;
+  credit.principalUsd = BIG_DECIMAL_ZERO;
+  credit.interestUsd = BIG_DECIMAL_ZERO;
+  credit.dRate = 0;
+  credit.fRate = 0;
+
+  credit.save();
+  return credit.id;
+}
+
+export function getNullLine(): string {
+  const id = ZERO_ADDRESS_STR;
   let line = LineOfCredit.load(id); 
   if(!line) {
     line = new LineOfCredit(id);
-    line.type = type;
   }
 
-  return line;
+  return line.id;
 }
 
 export function getOrCreateRevenueSummary(spigotController: Address, token: Address, now: BigInt): SpigotRevenueSummary {

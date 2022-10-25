@@ -10,7 +10,7 @@
 ############## Price Oracle ###############
 ###########################################
 # ERC20
-- name: _ERC20
+- name: ERC20
   file: ./abis/Prices/ERC20.json
 # Curve Contracts
 - name: CurveRegistry
