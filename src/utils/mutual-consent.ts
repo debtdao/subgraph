@@ -5,6 +5,7 @@ import {
   BigInt,
   ethereum,
   Bytes,
+  ByteArray,
 } from "@graphprotocol/graph-ts"
 
 import { MutualConsentRegistered } from "../../generated/templates/SecuredLine/SecuredLine"
@@ -57,11 +58,11 @@ MUTUAL_CONSENT_FUNCTIONS.set(SET_RATES_FUNC, SET_RATES_U32);
 MUTUAL_CONSENT_FUNCTIONS.set(ADD_SPIGOT_FUNC, INCREASE_CREDIT_U32);  // on SpigotedLine 
 
 
-const CREDIT_LIB_GOERLI_ADDRESS: Address = Address.fromBytes(Address.fromString("0x09a8d8eD61D117A3C550345BcA19bf0B8237B27e"));
-
+const CREDIT_LIB_GOERLI_ADDRESS: Address = Address.fromString("0x09a8d8eD61D117A3C550345BcA19bf0B8237B27e");
 
 export function handleMutualConsentEvents(event: MutualConsentRegistered): void {
-    // event emits hash, we use tx data directly for 
+    // event emits mutual consent hash which is not useful
+    // use function input params and decode them instead
     const functionSig = event.transaction.input.toHexString().slice(0, 10);
     const hasFunc = MUTUAL_CONSENT_FUNCTIONS.has(functionSig);
     log.warning('mutual consent mappings {} {}', [functionSig, hasFunc.toString()]);
@@ -112,7 +113,9 @@ export function handleMutualConsentEvents(event: MutualConsentRegistered): void 
 }
 
 function computeId(line: Address, lender: Address, token: Address): string {
-  const data = ethereum.encode(ethereum.Value.fromAddressArray([line, lender, token]))!;
+  const data = ethereum.encode(
+    ethereum.Value.fromAddressArray([line, lender, token])
+  );
   return data ? crypto.keccak256(data).toHexString() : '0xblahblag';
 }
 
@@ -122,7 +125,7 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
     return;
   }
   
-  // breakdown input params tuple into individual values in typescript
+  // breakdown addCrdit function input params into individual values in typescript
   // ADD_CREDIT_ABI = '(uint128,uint128,uint256,address,address)';
   const args: string[] = [
     inputParams[0].toBigInt().toString(),
@@ -132,30 +135,39 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
     inputParams[4].toAddress().toHexString()
   ];
 
-  log.warning('add credit inputs [1]. {} [2]. {} [3]. {} [4].  {} [5].  {}', args);
+  // log.warning('add credit inputs [1]. {} [2]. {} [3]. {} [4].  {} [5].  {}', args);
+  
+  log.warning(
+    'line, lender, token addy for compute id {} ----- {} ------- {}',
+    [event.address.toHexString(), args[3], args[4]]
+  );
 
   // generate position id from inputParam data
   let id = '';
   const computeResult = CreditLib.bind(CREDIT_LIB_GOERLI_ADDRESS).try_computeId(
     event.address,
-    Address.fromBytes(Bytes.fromHexString(args[3])),
-    Address.fromBytes(Bytes.fromHexString(args[4]))
+    Address.fromString(args[4]),
+    Address.fromString(args[3])
   );
+  
+  log.warning('credit lib computing position id {}', [computeResult.value.toHexString()]);
 
   if(!computeResult.reverted) {
+    log.warning('line lib computed id {}', [computeResult.value.toHexString()]);
     id = computeResult.value.toHexString()
   } else {
-    log.warning("computing position ID call to lib failed. inputs {}", [event.transaction.input.toHexString()]);
-    id = computeId(
-      event.address,
-      Address.fromBytes(Bytes.fromHexString(args[3])),
-      Address.fromBytes(Bytes.fromHexString(args[4]))
-    );
-    log.warning("assemblyscript computing position success. ID {}", [id]);
-
+    // log.warning("computing position ID call to lib failed. inputs {}", [event.transaction.input.toHexString()]);
+    
+    // this doesnt work for whatever reason. Returns a different result than CreditLib
+    // id = computeId(
+    //   event.address,
+    //   Address.fromString(args[4]),
+    //   Address.fromString(args[3])
+    // );
+    // log.warning("assemblyscript computing position success. ID {}", [id]);
   }
   
-  log.warning("compute position id {}", [id]);
+  log.warning("final addCredit position id {}", [id]);
 
   if(!id) return;
 
@@ -188,7 +200,7 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
   credit.lender = lendy.id;
   credit.token = getOrCreateToken(args[4]).id;
   
-  log.warning("saving credit to", [id]);
+  log.warning("saving credit to {}", [id]);
   credit.save();
 }
 

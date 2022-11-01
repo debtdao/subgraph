@@ -184,13 +184,13 @@ export function handleAddCredit(event: AddCredit): void {
   creditEvent.timestamp = event.block.timestamp;
   creditEvent.amount = event.params.deposit;
   creditEvent.value = getValue(
-    line.oracle as Address,
+    Address.fromBytes(line.oracle),
     token,
     credit.deposit,
     event.block.number
   )[0];
-  creditEvent.dRate = 0; // get set on SetRates
-  creditEvent.fRate = 0; // get set on SetRates
+  // creditEvent.dRate = 0; // get set on SetRates
+  // creditEvent.fRate = 0; // get set on SetRates
   creditEvent.save();
 }
 

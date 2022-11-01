@@ -7,7 +7,7 @@ dataSources:
     network: goerli
     source:
       abi: LineFactory
-      address: "0x43158693DBA386562F0581CD48E68dF027a5A877"
+      address: "0xc23b896F2b4aE3E6362B0D536113Fa2F0C9b8886"
       startBlock: 7666923
     mapping:
       kind: ethereum/events
@@ -28,7 +28,7 @@ dataSources:
     network: goerli
     source:
       abi: ModuleFactory
-      address: "0x4ef32Fb722106dD55b57213E8cd56035Df216954"
+      address: "0x87b8a47E7cFc0E7AE934f79654caC5dEad3B7b67"
       startBlock: 7666910
     mapping:
       kind: ethereum/events
