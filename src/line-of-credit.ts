@@ -142,38 +142,19 @@ export function handleAddCredit(event: AddCredit): void {
   const token = getOrCreateToken(event.params.token.toHexString());
   const id = event.params.id.toHexString();
 
-  let credit = Position.load(id);
-  if(credit) {
-    log.warning("add credit already exists! status {}", [credit.status!]);
-    // same lender/token already participated on line but it was closed, then reopened
-    // keep historical data e.g. totalInterestAccrued and clear active data
-  } else {
-    log.warning("add credit does not exists! id {}", [id]);
-    credit = new Position(id);
-  }
+  // if(credit) {
+  //   log.warning("add credit already exists! status {}", [credit.status!]);
+  //   // same lender/token already participated on line but it was closed, then reopened
+  //   // keep historical data e.g. totalInterestAccrued and clear active data
+  // } else {
+  //   log.warning("add credit does not exists! id {}", [id]);
+  //   credit = new Position(id);
+  // }
 
-  credit.token = token.id;
-  credit.line = line.id;
+  // fields are filled in mutual consent
+  const credit = new Position(id);
   credit.borrower = line.borrower;
-  credit.lender = event.params.lender.toHexString();
-  
-  const lendy = new Lender(credit.lender);
-  lendy.save(); // ensure entity persists
-
   credit.status = POSITION_STATUS_OPENED;
-  
-  // credit.queue = NOT_IN_QUEUE.toI32(); // set in MutualUpgradeRegistered
-
-  // credit.deposit = event.params.deposit; // set in MutualUpgradeRegistered
-  // credit.principal = BIG_INT_ZERO; // set in MutualUpgradeRegistered
-  
-  // credit.interestAccrued = BIG_INT_ZERO; // set in MutualUpgradeRegistered
-  // credit.interestRepaid = BIG_INT_ZERO; // set in MutualUpgradeRegistered
-  // credit.totalInterestEarned = BIG_INT_ZERO; // set in MutualUpgradeRegistered
-
-  // credit.dRate = 0; // set in MutualUpgradeRegistered
-  // credit.fRate = 0; // set in MutualUpgradeRegistered
-
   credit.save();
 
   const eventId = getEventId(event.block.number, event.logIndex);
@@ -186,11 +167,9 @@ export function handleAddCredit(event: AddCredit): void {
   creditEvent.value = getValue(
     Address.fromBytes(line.oracle),
     token,
-    credit.deposit,
+    event.params.deposit,
     event.block.number
   )[0];
-  // creditEvent.dRate = 0; // get set on SetRates
-  // creditEvent.fRate = 0; // get set on SetRates
   creditEvent.save();
 }
 

@@ -188,17 +188,19 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
   
   credit.principalUsd = BIG_DECIMAL_ZERO;
   credit.interestUsd = BIG_DECIMAL_ZERO;
-  const dRate = args[0] && args[0].length > 10 ? args[0].slice(0, 4) : '0';
-  const fRate = args[1] && args[1].length > 10 ? args[1].slice(0, 4) : '0';
+  
+  const dRate = args[0] && args[0].length > 10 ? args[0].slice(0, 4) : args[0];
+  const fRate = args[1] && args[1].length > 10 ? args[1].slice(0, 4) : args[1];
+  
   credit.dRate = BigInt.fromString(dRate).toI32();
   credit.fRate = BigInt.fromString(fRate).toI32();
 
   credit.deposit =  BigInt.fromString(args[2]);
   
-  const lendy = new Lender(args[3]);
+  const lendy = new Lender(args[4]);
   lendy.save(); // ensure entity persists
   credit.lender = lendy.id;
-  credit.token = getOrCreateToken(args[4]).id;
+  credit.token = getOrCreateToken(args[3]).id;
   
   log.warning("saving credit to {}", [id]);
   credit.save();

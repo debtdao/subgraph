@@ -162,8 +162,6 @@ type AddCreditEvent implements LineEventWithValue @entity {
 
   amount: BigInt!
   value: BigDecimal!
-  dRate: Int!
-  fRate: Int!
 }
 
 type IncreaseCreditEvent implements LineEventWithValue @entity {
