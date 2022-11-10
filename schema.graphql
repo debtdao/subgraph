@@ -585,3 +585,8 @@ type DeployEscrowEvent implements DeployEvent @entity {
   # event params
   minCRatio: BigDecimal!
 }
+
+type Oracle @entity {
+  id: ID!
+  tokens: [Token!]
+}
