@@ -98,7 +98,7 @@ export function handleMutualConsentEvents(event: MutualConsentRegistered): void 
 
     // emit event for new terms
     if(inputParams!) {
-      const eventId = getEventId(event.block.number, event.logIndex);
+      const eventId = getEventId(typeof ProposeTermsEvent, event.transaction.hash, event.logIndex);
       const proposalEvent = new ProposeTermsEvent(eventId);
       proposalEvent.block = event.block.number;
       proposalEvent.timestamp = event.block.timestamp;
@@ -135,13 +135,6 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
     inputParams[4].toAddress().toHexString()
   ];
 
-  // log.warning('add credit inputs [1]. {} [2]. {} [3]. {} [4].  {} [5].  {}', args);
-  
-  log.warning(
-    'line, lender, token addy for compute id {} ----- {} ------- {}',
-    [event.address.toHexString(), args[3], args[4]]
-  );
-
   // generate position id from inputParam data
   let id = '';
   const computeResult = CreditLib.bind(CREDIT_LIB_GOERLI_ADDRESS).try_computeId(
@@ -150,10 +143,10 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
     Address.fromString(args[3])
   );
   
-  log.warning('credit lib computing position id {}', [computeResult.value.toHexString()]);
+  // log.warning('credit lib computing position id {}', [computeResult.value.toHexString()]);
 
   if(!computeResult.reverted) {
-    log.warning('line lib computed id {}', [computeResult.value.toHexString()]);
+    // log.warning('line lib computed id {}', [computeResult.value.toHexString()]);
     id = computeResult.value.toHexString()
   } else {
     // log.warning("computing position ID call to lib failed. inputs {}", [event.transaction.input.toHexString()]);
@@ -167,8 +160,6 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
     // log.warning("assemblyscript computing position success. ID {}", [id]);
   }
   
-  log.warning("final addCredit position id {}", [id]);
-
   if(!id) return;
 
   // credit hasnt been created yet so assume none exists in the db already 
@@ -202,7 +193,7 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
   credit.lender = lendy.id;
   credit.token = getOrCreateToken(args[3]).id;
   
-  log.warning("saving credit to {}", [id]);
+  // log.warning("saving credit propoal to {}", [id]);
   credit.save();
 }
 

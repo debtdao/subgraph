@@ -73,7 +73,7 @@ import { handleTradeRevenue as _handleTradeRevenue } from "./spigot"
 import { handleMutualConsentEvents } from "./utils/mutual-consent";
 
 export function handleDeployLine(event: DeployLine): void {
-  log.warning("new Line addy {}", [event.address.toHexString()]);
+  // log.warning("new Line addy {}", [event.address.toHexString()]);
 
   const line = new LineOfCredit(event.address.toHexString());
   const borrower = new Borrower(event.params.borrower.toHexString());
@@ -110,18 +110,17 @@ export function handleDeployLine(event: DeployLine): void {
 }
 
 export function handleUpdateStatus(event: UpdateStatus): void {
-  log.warning(
-    "calling handleUpdateStatus addy {}, block {}, status {}",
-    [event.address.toHexString(), event.block.number.toString(), event.params.status.toString()]
-  );
+  // log.warning(
+    // "calling handleUpdateStatus addy {}, block {}, status {}",
+  //   [event.address.toHexString(), event.block.number.toString(), event.params.status.toString()]
+  // );
   if(STATUSES.has(event.params.status.toI32())) { // ensure its a known status with human label
     let credit = new LineOfCredit(event.address.toHexString());
     credit.status = STATUSES.get(event.params.status.toI32());
     credit.save();
 
-    const eventId = getEventId(event.block.number, event.logIndex);
+    const eventId = getEventId(typeof UpdateStatusEvent, event.transaction.hash, event.logIndex);
     let creditEvent = new UpdateStatusEvent(eventId);
-    creditEvent.id = credit.id;
     creditEvent.block = event.block.number;
     creditEvent.timestamp = event.block.timestamp;
 
@@ -137,27 +136,18 @@ export function handleUpdateStatus(event: UpdateStatus): void {
 
 
 export function handleAddCredit(event: AddCredit): void {
-  log.warning("calling handleAddCredit addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  // log.warning("calling handleAddCredit addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   const line = LineOfCredit.load(event.address.toHexString())!;
   const token = getOrCreateToken(event.params.token.toHexString());
   const id = event.params.id.toHexString();
 
-  // if(credit) {
-  //   log.warning("add credit already exists! status {}", [credit.status!]);
-  //   // same lender/token already participated on line but it was closed, then reopened
-  //   // keep historical data e.g. totalInterestAccrued and clear active data
-  // } else {
-  //   log.warning("add credit does not exists! id {}", [id]);
-  //   credit = new Position(id);
-  // }
-
-  // fields are filled in mutual consent
+  // Credit must exist and fields are filled in from mutual-consent
   const credit = new Position(id);
   credit.borrower = line.borrower;
   credit.status = POSITION_STATUS_OPENED;
   credit.save();
 
-  const eventId = getEventId(event.block.number, event.logIndex);
+  const eventId = getEventId(typeof AddCreditEvent, event.transaction.hash, event.logIndex);
   let creditEvent = new AddCreditEvent(eventId);
   creditEvent.block = event.block.number;
   creditEvent.line = event.address.toHexString();
@@ -174,7 +164,7 @@ export function handleAddCredit(event: AddCredit): void {
 }
 
 export function handleIncreaseCredit(event: IncreaseCredit): void {
-  log.warning("calling handleIncreaseCredit addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  // log.warning("calling handleIncreaseCredit addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   const id = event.params.id.toHexString();
 
   let credit = Position.load(id)!; // must have credit position from AddCredit
@@ -182,7 +172,7 @@ export function handleIncreaseCredit(event: IncreaseCredit): void {
   credit.deposit = event.params.deposit.plus(credit.deposit);
   credit.save();
 
-  const eventId = getEventId(event.block.number, event.logIndex);
+  const eventId = getEventId(typeof IncreaseCreditEvent, event.transaction.hash, event.logIndex);
   let creditEvent = new IncreaseCreditEvent(eventId);
   creditEvent.block = event.block.number;
   creditEvent.line = event.address.toHexString();
@@ -194,7 +184,7 @@ export function handleIncreaseCredit(event: IncreaseCredit): void {
 }
 
 export function handleCloseCreditPosition(event: CloseCreditPosition): void {
-  log.warning("calling handleCloseCreditPosition addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  // log.warning("calling handleCloseCreditPosition addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   let credit = Position.load(event.params.id.toHexString())!;
   credit.principal = BIG_INT_ZERO;
   credit.status = POSITION_STATUS_CLOSED;
@@ -206,9 +196,8 @@ export function handleCloseCreditPosition(event: CloseCreditPosition): void {
   credit.queue = NOT_IN_QUEUE.toI32(); // TODO figure out how to make null/undefined with type system
   credit.save();
 
-  const eventId = getEventId(event.block.number, event.logIndex);
+  const eventId = getEventId(typeof ClosePositionEvent, event.transaction.hash, event.logIndex);
   let creditEvent = new ClosePositionEvent(eventId);
-  creditEvent.id = credit.id;
   creditEvent.block = event.block.number;
   creditEvent.position = event.params.id.toHexString();
   creditEvent.line = event.address.toHexString();
@@ -221,14 +210,13 @@ export function handleCloseCreditPosition(event: CloseCreditPosition): void {
 }
 
 export function handleWithdrawProfit(event: WithdrawProfit): void {
-  log.warning("calling handleWithdrawProfit addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  // log.warning("calling handleWithdrawProfit addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   let credit = Position.load(event.params.id.toHexString())!;
   credit.interestRepaid = credit.interestRepaid.minus(event.params.amount);
   credit.save();
 
-  const eventId = getEventId(event.block.number, event.logIndex);
+  const eventId = getEventId(typeof WithdrawProfitEvent, event.transaction.hash, event.logIndex);
   let creditEvent = new WithdrawProfitEvent(eventId);
-  creditEvent.id = credit.id;
   creditEvent.block = event.block.number;
   creditEvent.line = event.address.toHexString();
   creditEvent.position = event.params.id.toHexString();
@@ -244,14 +232,13 @@ export function handleWithdrawProfit(event: WithdrawProfit): void {
 }
 
 export function handleWithdrawDeposit(event: WithdrawDeposit): void {
-  log.warning("calling handleWithdrawDeposit addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  // log.warning("calling handleWithdrawDeposit addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   let credit = Position.load(event.params.id.toHexString())!;
   credit.deposit = credit.deposit.minus(event.params.amount);
   credit.save();
 
-  const eventId = getEventId(event.block.number, event.logIndex);
+  const eventId = getEventId(typeof WithdrawDepositEvent, event.transaction.hash, event.logIndex);
   let creditEvent = new WithdrawDepositEvent(eventId);
-  creditEvent.id = credit.id;
   creditEvent.block = event.block.number;
   creditEvent.line = event.address.toHexString();
   creditEvent.position = event.params.id.toHexString();
@@ -267,7 +254,7 @@ export function handleWithdrawDeposit(event: WithdrawDeposit): void {
 }
 
 export function handleBorrow(event: Borrow): void {
-  log.warning("calling handleBorrow addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  // log.warning("calling handleBorrow addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   let credit = Position.load(event.params.id.toHexString())!;
   credit.principal = credit.principal.plus(event.params.amount);
   const data = getValueForPosition(
@@ -284,9 +271,8 @@ export function handleBorrow(event: Borrow): void {
   
   updateCollateralValue(event.address);
 
-  const eventId = getEventId(event.block.number, event.logIndex);
+  const eventId = getEventId(typeof BorrowEvent, event.transaction.hash, event.logIndex);
   let creditEvent = new BorrowEvent(eventId);
-  creditEvent.id = credit.id;
   creditEvent.block = event.block.number;
   creditEvent.line = event.address.toHexString();
   creditEvent.position = event.params.id.toHexString();
@@ -298,7 +284,8 @@ export function handleBorrow(event: Borrow): void {
 
 
 export function handleInterestAccrued(event: InterestAccrued): void {
-  log.warning("calling handleInterestAccrued addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  // log.warning("calling handleInterestAccrued - block {}, log {}, tx log {},", [event.block.number.toString(), event.logIndex.toString(),  event.transactionLogIndex.toString() ]);
+
   let credit = Position.load(event.params.id.toHexString())!;
   const data = getValueForPosition(
     event.address.toHexString(),
@@ -313,9 +300,8 @@ export function handleInterestAccrued(event: InterestAccrued): void {
   
   updateCollateralValue(event.address);
 
-  const eventId = getEventId(event.block.number, event.logIndex);
+  const eventId = getEventId(typeof InterestAccruedEvent, event.transaction.hash, event.logIndex);
   let creditEvent = new InterestAccruedEvent(eventId);
-  creditEvent.id = credit.id;
   creditEvent.block = event.block.number;
   creditEvent.position = event.params.id.toHexString();
   creditEvent.line = event.address.toHexString();
@@ -327,7 +313,7 @@ export function handleInterestAccrued(event: InterestAccrued): void {
 
 
 export function handleRepayInterest(event: RepayInterest): void {
-  log.warning("calling handleRepayInterest addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  // log.warning("calling handleRepayInterest addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   let credit = Position.load(event.params.id.toHexString())!;
   credit.interestAccrued = credit.interestAccrued.minus(event.params.amount);
   const data = getValueForPosition(
@@ -343,9 +329,8 @@ export function handleRepayInterest(event: RepayInterest): void {
   
   credit.save();
 
-  const eventId = getEventId(event.block.number, event.logIndex);
+  const eventId = getEventId(typeof RepayInterestEvent, event.transaction.hash, event.logIndex);
   let creditEvent = new RepayInterestEvent(eventId);
-  creditEvent.id = credit.id;
   creditEvent.block = event.block.number;
   creditEvent.line = event.address.toHexString();
   creditEvent.position = event.params.id.toHexString();
@@ -358,7 +343,7 @@ export function handleRepayInterest(event: RepayInterest): void {
 }
 
 export function handleRepayPrincipal(event: RepayPrincipal): void {
-  log.warning("calling handleRepayPrincipal addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  // log.warning("calling handleRepayPrincipal addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   let credit = Position.load(event.params.id.toHexString())!;
   credit.principal = credit.principal.minus(event.params.amount);
   const data = getValueForPosition(
@@ -375,9 +360,8 @@ export function handleRepayPrincipal(event: RepayPrincipal): void {
   
   updateCollateralValue(event.address);
 
-  const eventId = getEventId(event.block.number, event.logIndex);
+  const eventId = getEventId(typeof RepayPrincipalEvent, event.transaction.hash, event.logIndex);
   let creditEvent = new RepayPrincipalEvent(eventId);
-  creditEvent.id = credit.id;
   creditEvent.block = event.block.number;
   creditEvent.position = event.params.id.toHexString();
   creditEvent.line = event.address.toHexString();
@@ -388,7 +372,7 @@ export function handleRepayPrincipal(event: RepayPrincipal): void {
 }
 
 export function handleDefault(event: Default): void {
-  log.warning("calling handleDefault addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  // log.warning("calling handleDefault addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   // TODO: loop over all current credits and generate default events
   let line = LineOfCredit.load(event.address.toHexString())!;
   line.status = STATUS_DEFAULT;
@@ -397,7 +381,7 @@ export function handleDefault(event: Default): void {
   // must be lines if default event is emitted
   for(let i = 0; i < line.positions!.length; i ++) {
     let c = new Position(line.positions![i]);
-    let id = getEventId(event.block.number, event.logIndex);
+    let id = getEventId(typeof DefaultEvent, event.transaction.hash, event.logIndex);
     let creditEvent = new DefaultEvent(id);
     creditEvent.position = c.id;
     creditEvent.block = event.block.number;
@@ -415,7 +399,7 @@ export function handleDefault(event: Default): void {
 }
 
 export function handleLiquidate(event: Liquidate): void {
-  log.warning("calling handleLiquidate addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  // log.warning("calling handleLiquidate addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   let credit = Position.load(event.params.id.toHexString())!;
   credit.principal = credit.principal.minus(event.params.amount);
   const data = getValue(
@@ -432,9 +416,8 @@ export function handleLiquidate(event: Liquidate): void {
 
   updateCollateralValue(event.address);
 
-  const eventId = getEventId(event.block.number, event.logIndex);
+  const eventId = getEventId(typeof LiquidateEvent, event.transaction.hash, event.logIndex);
   let creditEvent = new LiquidateEvent(eventId);
-  creditEvent.id = credit.id;
   creditEvent.block = event.block.number;
   creditEvent.line = event.address.toHexString();
   creditEvent.position = credit.id;
@@ -446,15 +429,14 @@ export function handleLiquidate(event: Liquidate): void {
 
 
 export function handleSetRates(event: SetRates): void {
-  log.warning("calling handleSetRates addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  // log.warning("calling handleSetRates addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   let credit = new Position(event.params.id.toHexString());
   credit.dRate = event.params.dRate.toI32();
   credit.fRate = event.params.fRate.toI32();
   credit.save();
 
-  const eventId = getEventId(event.block.number, event.logIndex);
+  const eventId = getEventId(typeof SetRatesEvent, event.transaction.hash, event.logIndex);
   let creditEvent = new SetRatesEvent(eventId);
-  creditEvent.id = credit.id;
   creditEvent.block = event.block.number;
   creditEvent.line = event.address.toHexString();
   creditEvent.position = event.params.id.toHexString();
@@ -469,7 +451,7 @@ export function handleSetRates(event: SetRates): void {
 }
 
 export function handleTradeRevenue(event: TradeSpigotRevenue): void {
-  log.warning("calling handleTradeRevenue addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  // log.warning("calling handleTradeRevenue addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   // event emitted by Line but code stored in Spigot for organization
   _handleTradeRevenue(event);
 }

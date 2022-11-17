@@ -66,7 +66,7 @@ export function handleAddSpigot(event: AddSpigot): void {
   spigot.ownerSplit = event.params.ownerSplit.toI32();
   spigot.save();
 
-  const eventId = getEventId( event.block.number, event.logIndex);
+  const eventId = getEventId(typeof AddSpigotEvent, event.transaction.hash, event.logIndex);
   let spigotEvent = new AddSpigotEvent(eventId);
   spigotEvent.spigot = spigot.id;
   spigotEvent.block = spigot.startTime;
@@ -81,7 +81,7 @@ export function handleRemoveSpigot(event: RemoveSpigot): void {
 
   spigot.save();
 
-  const eventId = getEventId(event.block.number, event.logIndex);
+  const eventId = getEventId(typeof RemoveSpigotEvent, event.transaction.hash, event.logIndex);
   let spigotEvent = new RemoveSpigotEvent(eventId);
   spigotEvent.spigot = spigot.id;
   spigotEvent.block = event.block.number;
@@ -117,7 +117,7 @@ export function handleClaimRevenue(event: ClaimRevenue): void {
     getOrCreateToken(token)
   );
   
-  const eventId = getEventId(event.block.number, event.logIndex);
+  const eventId = getEventId(typeof ClaimRevenueEvent, event.transaction.hash, event.logIndex);
   let spigotEvent = new ClaimRevenueEvent(eventId);
   spigotEvent.spigot = `${event.address.toHexString()}-${event.params.revenueContract.toHexString()}`;
   spigotEvent.controller = event.address.toHexString();
@@ -139,7 +139,7 @@ export function handleUpdateOwnerSplit(event: UpdateOwnerSplit): void {
 
   spigot.save();
   
-  const eventId = getEventId(event.block.number, event.logIndex);
+  const eventId = getEventId(typeof UpdateOwnerSplitEvent, event.transaction.hash, event.logIndex);
   let spigotEvent = new UpdateOwnerSplitEvent(eventId);
 
   spigotEvent.spigot = `${event.address.toHexString()}-${event.params.revenueContract.toHexString()}`;
@@ -157,7 +157,7 @@ export function handleClaimEscrow(event: ClaimEscrow): void {
   
   let token = event.params.token.toHexString();
 
-  const eventId = getEventId(event.block.number, event.logIndex);
+  const eventId = getEventId(typeof ClaimEscrowEvent, event.transaction.hash, event.logIndex);
   let spigotEvent = new ClaimEscrowEvent(eventId);
   spigotEvent.controller = event.address.toHexString();
   spigotEvent.block = event.block.number;
@@ -179,8 +179,8 @@ export function handleClaimEscrow(event: ClaimEscrow): void {
 
 // technically event is generated in Line contract but makes more sense to store code here
 export function handleTradeRevenue(event: TradeSpigotRevenue): void {
-  const eventId = getEventId(event.block.number, event.logIndex);
-  const line = SecuredLine.bind(event.address);
+  const eventId = getEventId(typeof TradeRevenueEvent, event.transaction.hash, event.logIndex);
+  const line = SecuredLine. bind(event.address);
   let spigotEvent = new TradeRevenueEvent(eventId);
 
   spigotEvent.spigot = `${line.spigot()}-${event.logIndex}`
@@ -235,7 +235,7 @@ export function handleUpdateOwner(event: UpdateOwner): void {
   let spigot = SpigotController.load(event.address.toHexString())!;
 
   
-  const eventId = getEventId(event.block.number, event.logIndex);
+  const eventId = getEventId(typeof UpdateOwnerEvent, event.transaction.hash, event.logIndex);
   let spigotEvent = new UpdateOwnerEvent(eventId);
 
   spigotEvent.oldOwner = spigot.owner;
@@ -255,7 +255,7 @@ export function handleUpdateTreasury(event: UpdateTreasury): void {
   let spigot = SpigotController.load(event.address.toHexString())!;
 
   
-  const eventId = getEventId(event.block.number, event.logIndex);
+  const eventId = getEventId(typeof UpdateTreasuryEvent, event.transaction.hash, event.logIndex);
   let spigotEvent = new UpdateTreasuryEvent(eventId);
 
   spigotEvent.oldTreasury = spigot.treasury;
@@ -276,7 +276,7 @@ export function handleUpdateOperator(event: UpdateOperator): void {
   let spigot = SpigotController.load(event.address.toHexString())!;
 
   
-  const eventId = getEventId(event.block.number, event.logIndex);
+  const eventId = getEventId(typeof UpdateOperatorEvent, event.transaction.hash, event.logIndex);
   let spigotEvent = new UpdateOperatorEvent(eventId);
 
   spigotEvent.oldOperator = spigot.operator;
@@ -297,7 +297,7 @@ export function handleUpdateWhitelistFunction(event: UpdateWhitelistFunction): v
   let spigot = SpigotController.load(event.address.toHexString())!;
 
   
-  const eventId = getEventId(event.block.number, event.logIndex);
+  const eventId = getEventId(typeof UpdateWhitelistFunctionEvent, event.transaction.hash, event.logIndex);
   let spigotEvent = new UpdateWhitelistFunctionEvent(eventId);
 
   spigotEvent.func = event.params.func;
