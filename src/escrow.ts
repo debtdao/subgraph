@@ -56,8 +56,8 @@ export function handleEnableCollateral(event: EnableCollateral): void {
     deposit.save();
   }
 
-  const eventId = getEventId(event.block.number, event.logIndex);
-  let collateralEvent = new EnableCollateralEvent(eventId);
+  const eventId = getEventId(typeof EnableCollateralEvent, event.transaction.hash, event.logIndex);
+  const collateralEvent = new EnableCollateralEvent(eventId);
   collateralEvent.escrow = event.address.toHexString();
   collateralEvent.deposit = depositId;
   collateralEvent.block = event.block.number;
@@ -82,7 +82,7 @@ export function handleAddCollateral(event: AddCollateral): void {
     event.block.number
   );
 
-  const eventId = getEventId(event.block.number, event.logIndex);
+  const eventId = getEventId(typeof AddCollateralEvent, event.transaction.hash, event.logIndex);
   const collateralEvent = new AddCollateralEvent(eventId);
   collateralEvent.escrow = event.address.toHexString();
   collateralEvent.deposit = depositId;
@@ -109,8 +109,8 @@ export function handleRemoveCollateral(event: AddCollateral): void {
     event.block.number
   );
     
-  const eventId = getEventId(event.block.number, event.logIndex);
-  let collateralEvent = new RemoveCollateralEvent(eventId);
+  const eventId = getEventId(typeof RemoveCollateralEvent, event.transaction.hash, event.logIndex);
+  const collateralEvent = new RemoveCollateralEvent(eventId);
   collateralEvent.escrow = event.address.toHexString();
   collateralEvent.deposit = depositId;
   collateralEvent.block = event.block.number;

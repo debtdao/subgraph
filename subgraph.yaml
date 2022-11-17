@@ -86,6 +86,8 @@ templates:
           file: ./abis/Oracle.json
         - name: Spigot
           file: ./abis/Spigot.json
+        - name: Escrow
+          file: ./abis/Escrow.json
         - name: ERC20
           file: ./abis/Prices/ERC20.json
         - name: CreditLib

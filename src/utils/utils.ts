@@ -143,7 +143,7 @@ export function getValueForPosition(
   block: BigInt
 ): BigDecimal[] {
   return getValue(
-    LineOfCredit.load(credit)!.oracle as Address,
+    Address.fromBytes(LineOfCredit.load(credit)!.oracle),
     Token.load(token)!,
     amount,
     block
@@ -188,8 +188,8 @@ export function getOrCreateToken(address: string): Token {
 }
 
 
-export function getEventId(block: BigInt, logIndex: BigInt): string {
-  return `${block}-${logIndex}`
+export function getEventId(type: string, txHash: Bytes, logIndex: BigInt): string {
+  return `${type}-${txHash.toHexString()}-${logIndex.toString()}`
 }
 
 export function getOrCreateSpigot(controller: Address, contract: Address): Spigot {
