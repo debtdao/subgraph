@@ -199,7 +199,6 @@ export function getOrCreateCollateralToken(address: string): CollateralToken {
   collateralToken.symbol = readValue<string>(erc.try_symbol(), "TOKEN");
   collateralToken.name = readValue<string>(erc.try_name(), "Unknown Token");
 
-  collateralToken.save();
   return collateralToken;
 }
 
