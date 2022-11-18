@@ -24,7 +24,7 @@ type LineOfCredit @entity {
   start: Int!
   # when ttl expires
   end: Int!
-  # 
+  #
   status: String!
    # optional. amount of reveue line gets from spigot inflows
   defaultSplit: Int!
@@ -60,7 +60,7 @@ type Position @entity {
   # 0 indexed position in repayment queue
   # only has value if drawndown
   queue: Int
-  
+
   deposit: BigInt!
   principal: BigInt!
   # current amount of outstanding interest owed but not repaid by borrower
@@ -92,7 +92,7 @@ type Borrower @entity {
   positions: [Position!] @derivedFrom(field: "borrower") # all πositions on all contracts
 }
 
-#  Line EVENTS 
+#  Line EVENTS
 
 # dont need to track in database, just need event to initialize data
 # type DeployLineEvent  @entity {
@@ -149,7 +149,7 @@ type ProposeTermsEvent implements LineEvent @entity {
   position: Position!
 
   funcSignature: String! # hexcode e.g. 0x12345678
-  params: [Bytes!]  # all proposed terms 
+  params: [Bytes!]  # all proposed terms
 }
 
 
@@ -263,7 +263,7 @@ type LiquidateEvent implements LineEventWithValue @entity {
   position: Position!
 
   amount: BigInt!
-  value: BigDecimal! # not necessarily the amount received from executingliquidation 
+  value: BigDecimal! # not necessarily the amount received from executingliquidation
   liquidator: Bytes!  # contract or arbiter responsible for executing liquidations
 }
 
@@ -392,7 +392,7 @@ type Spigot @entity {
   escrowed: BigInt!             # current amount of tokens available for owner to claim
 
   totalVolumeUsd: BigDecimal!    # usd value of all tokens total volume
-  
+
   events: [SpigotEvent!] @derivedFrom(field: "spigot")
 }
 
@@ -438,7 +438,7 @@ type ClaimRevenueEvent implements SpigotEvent & SpigotControllerEvent & EventWit
 
   revenueToken: Token!
   amount: BigInt!
-  escrowed: BigInt! 
+  escrowed: BigInt!
   netIncome: BigInt! # amount of tokens sent to Treasury after Line cut escrowed
   value: BigDecimal!
 }
@@ -469,7 +469,7 @@ type Escrow @entity {
   oracle: Bytes!
   owner: Bytes!
   line: LineOfCredit
-  
+
   # not accurate in real time. just used for historical snapshots
   collateralValue: BigDecimal!
 
@@ -508,7 +508,7 @@ type AddCollateralEvent implements EscrowEvent & EventWithValue @entity {
   deposit: EscrowDeposit!
   block: BigInt!
   timestamp: BigInt!
-  
+
   amount: BigInt!
   value: BigDecimal!
   escrow: Escrow!
@@ -528,7 +528,7 @@ type RemoveCollateralEvent implements EscrowEvent & EventWithValue @entity {
 # LiquidateEvent handled in LineOfCredit because more data available
 
 
-#  Factory EVENTS 
+#  Factory EVENTS
 interface DeployEvent {
   id: ID!
   timestamp: BigInt!
@@ -567,7 +567,7 @@ type DeploySpigotEvent implements DeployEvent & SpigotControllerEvent @entity {
 
   # SpigotControllerEvent conformity
   controller: SpigotController!
-  
+
   # event params
   owner: Bytes!
   operator: Bytes!
@@ -586,7 +586,18 @@ type DeployEscrowEvent implements DeployEvent @entity {
   minCRatio: BigDecimal!
 }
 
-type Oracle @entity {
+type CollateralToken @entity {
+  # " Smart contract address of the token "
   id: ID!
-  tokens: [Token!]
+
+  # " Name of the token, mirrored from the smart contract "
+  name: String!
+  # " Symbol of the token, mirrored from the smart contract "
+  symbol: String!
+  # " The number of decimal places this token uses, default to 18 "
+  decimals: Int!
+  # " Optional field to track the price of a token, mostly for caching purposes "
+  lastPriceUSD: BigDecimal
+  # " Optional field to track the block number of the last token price "
+  lastPriceBlockNumber: BigInt
 }

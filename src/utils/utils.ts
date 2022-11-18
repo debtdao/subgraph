@@ -14,6 +14,7 @@ import {
 import {
   LineOfCredit,
   Token,
+  CollateralToken,
   Spigot,
   Escrow,
   Borrower,
@@ -21,7 +22,7 @@ import {
   SpigotController,
   SpigotRevenueSummary,
   Position,
-  
+
   AddCreditEvent,
   IncreaseCreditEvent,
   SetRatesEvent,
@@ -46,7 +47,7 @@ import { getUsdPrice } from "./prices";
 export const BIG_INT_ZERO = new BigInt(0);
 export const BIG_INT_ONE = new BigInt(1);
 export const BIG_DECIMAL_ZERO = new BigDecimal(BIG_INT_ZERO);
-export const NOT_IN_QUEUE = new BigInt(42069); // Can't set undefined so # to represent a position does not need to be repayed. 
+export const NOT_IN_QUEUE = new BigInt(42069); // Can't set undefined so # to represent a position does not need to be repayed.
 export const ZERO_ADDRESS_STR = "0x0000000000000000000000000000000000000000";
 export const ZERO_ADDRESS = Address.fromString(ZERO_ADDRESS_STR);
 export const BYTES32_ZERO_STR = "0x00000000000000000000000000000000000000000000000000000000000000";
@@ -66,7 +67,7 @@ export const STATUS_REPAID = "REPAID";
 export const STATUS_INSOLVENT = "INSOLVENT";
 
 // mapping of number (enum index) emmitted on status update event to string value
-export const STATUSES = new Map<i32, string>(); 
+export const STATUSES = new Map<i32, string>();
 STATUSES.set(0, STATUS_UNINITIALIZED);
 STATUSES.set(1, STATUS_ACTIVE);
 STATUSES.set(2, STATUS_LIQUIDATABLE);
@@ -96,7 +97,7 @@ export function getQueueIndex(line: string, id: string): i32 {
 }
 
 export function updateCollateralValue(line: Address): BigDecimal {
-  let escrowAddr = readValue<Address>(SecuredLine.bind(line).try_escrow(), ZERO_ADDRESS); 
+  let escrowAddr = readValue<Address>(SecuredLine.bind(line).try_escrow(), ZERO_ADDRESS);
   if(escrowAddr === ZERO_ADDRESS) return BIG_DECIMAL_ZERO;
   let valInt = readValue<BigInt>(EscrowContract.bind(escrowAddr).try_getCollateralValue(), BIG_INT_ZERO);
   let value = new BigDecimal(valInt);
@@ -116,7 +117,7 @@ export function getValue(
   // use this one
   // const price = getUsdPrice(Address.fromString(token.id), new BigDecimal(amount));
   // const value = price.times(new BigDecimal(amount));
-  
+
   // not this one
   // const prc = Oracle.bind(oracle).getLatestAnswer(Address.fromString(token.id));
   // const price: BigInt = prc.lt(BIG_INT_ZERO) ? BIG_INT_ZERO : prc;
@@ -151,7 +152,7 @@ export function getValueForPosition(
 }
 
 /**
- * 
+ *
  * @dev can ass in either token or address depending on which you have available
  */
 export function updateTokenPrice(
@@ -187,6 +188,20 @@ export function getOrCreateToken(address: string): Token {
   return token;
 }
 
+// export function getOrCreateCollateralToken(address: string): Token {
+//   let collateralToken = CollateralToken.load(address);
+//   if(collateralToken) return collateralToken;
+//   const erc = ERC20.bind(Address.fromString(address));
+//   collateralToken = new CollateralToken(address);
+
+//   // get token metadata
+//   collateralToken.decimals = readValue<BigInt>(erc.try_decimals(), new BigInt(18)).toI32();
+//   collateralToken.symbol = readValue<string>(erc.try_symbol(), "TOKEN");
+//   collateralToken.name = readValue<string>(erc.try_name(), "Unknown Token");
+
+//   collateralToken.save();
+//   return collateralToken;
+// }
 
 export function getEventId(type: string, txHash: Bytes, logIndex: BigInt): string {
   return `${type}-${txHash.toHexString()}-${logIndex.toString()}`
@@ -194,7 +209,7 @@ export function getEventId(type: string, txHash: Bytes, logIndex: BigInt): strin
 
 export function getOrCreateSpigot(controller: Address, contract: Address): Spigot {
   const id = `${controller.toHexString()}-${contract.toHexString()}`
-  let spigot = Spigot.load(id); 
+  let spigot = Spigot.load(id);
   if(!spigot) {
     spigot = new Spigot(id);
   }
@@ -224,7 +239,7 @@ export function getNullPosition(): string {
   const id = ZERO_ADDRESS_STR;
   let position =  Position.load(id);
   if(position) return position.id;
-  
+
   position = new Position(id);
   position.line = getNullLine();
 
@@ -235,7 +250,7 @@ export function getNullPosition(): string {
   position.lender = id;
 
   position.token = getNullToken();
-  position.queue = NOT_IN_QUEUE.toI32(); 
+  position.queue = NOT_IN_QUEUE.toI32();
   position.deposit = BIG_INT_ZERO;
   position.principal = BIG_INT_ZERO;
   position.interestAccrued = BIG_INT_ZERO;
@@ -252,7 +267,7 @@ export function getNullPosition(): string {
 
 export function getNullLine(): string {
   const id = ZERO_ADDRESS_STR;
-  let line = LineOfCredit.load(id); 
+  let line = LineOfCredit.load(id);
   if(!line) {
     line = new LineOfCredit(id);
 
@@ -277,7 +292,7 @@ export function getNullLine(): string {
 
 export function getOrCreateRevenueSummary(spigotController: Address, token: Address, now: BigInt): SpigotRevenueSummary {
   const id = spigotController.toHexString();
-  let summary = SpigotRevenueSummary.load(id); 
+  let summary = SpigotRevenueSummary.load(id);
   if(!summary) {
     summary = new SpigotRevenueSummary(id);
     summary.token = token.toHexString();

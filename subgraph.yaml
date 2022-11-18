@@ -46,6 +46,29 @@ dataSources:
           handler: handleDeploySpigot
         - event: DeployedEscrow(indexed address,indexed uint32,indexed address,address)
           handler: handleDeployEscrow
+  - name: FeedRegistry
+    kind: ethereum/contract
+    network: goerli
+    source:
+      abi: FeedRegistry
+      address: "0x4DF0abBe72A79cC65aDf694DE64535904aB43aAc"
+      startBlock: 7966450
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/feed-registry.ts
+      entities:
+        - CollateralToken
+      abis:
+        - name: FeedRegistry
+          file: ./abis/FeedRegistry/FeedRegistry.json
+        - name: ERC20
+          file: ./abis/Prices/ERC20.json
+      eventHandlers:
+        - event: FeedConfirmed(indexed address,indexed address,indexed
+            address,address,uint16,address)
+          handler: handleCollateralToken
 templates:
   - name: SecuredLine
     kind: ethereum/contract
