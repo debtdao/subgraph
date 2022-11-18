@@ -188,20 +188,20 @@ export function getOrCreateToken(address: string): Token {
   return token;
 }
 
-// export function getOrCreateCollateralToken(address: string): Token {
-//   let collateralToken = CollateralToken.load(address);
-//   if(collateralToken) return collateralToken;
-//   const erc = ERC20.bind(Address.fromString(address));
-//   collateralToken = new CollateralToken(address);
+export function getOrCreateCollateralToken(address: string): CollateralToken {
+  let collateralToken = CollateralToken.load(address);
+  if(collateralToken) return collateralToken;
+  const erc = ERC20.bind(Address.fromString(address));
+  collateralToken = new CollateralToken(address);
 
-//   // get token metadata
-//   collateralToken.decimals = readValue<BigInt>(erc.try_decimals(), new BigInt(18)).toI32();
-//   collateralToken.symbol = readValue<string>(erc.try_symbol(), "TOKEN");
-//   collateralToken.name = readValue<string>(erc.try_name(), "Unknown Token");
+  // get token metadata
+  collateralToken.decimals = readValue<BigInt>(erc.try_decimals(), new BigInt(18)).toI32();
+  collateralToken.symbol = readValue<string>(erc.try_symbol(), "TOKEN");
+  collateralToken.name = readValue<string>(erc.try_name(), "Unknown Token");
 
-//   collateralToken.save();
-//   return collateralToken;
-// }
+  collateralToken.save();
+  return collateralToken;
+}
 
 export function getEventId(type: string, txHash: Bytes, logIndex: BigInt): string {
   return `${type}-${txHash.toHexString()}-${logIndex.toString()}`

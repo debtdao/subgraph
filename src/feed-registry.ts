@@ -16,22 +16,18 @@ import {
 } from "../generated/FeedRegistry/FeedRegistry"
 
 import {
-  getOrCreateToken
-  // getOrCreateCollateralToken,
+  getOrCreateToken,
+  getOrCreateCollateralToken
 } from "./utils/utils";
 
 export function handleCollateralToken(event: FeedConfirmed): void {
   let contractAddress = event.params.asset.toHexString();
-  let collateralToken = getOrCreateToken(contractAddress);
-  // let collateralToken = getOrCreateCollateralToken(contractAddress);
 
-  // let oracleToken = CollateralToken.load(contractAddress);
-  // if (!oracleToken) {
-  //   oracleToken = new CollateralToken(contractAddress);
-  //   oracleToken =
-  // }
-  // oracleToken.save()
+  // Add tokens in Chainlink Feed Registry to Token entity
+  let token = getOrCreateToken(contractAddress);
+  token.save();
 
-  // collateralToken.save();
-  collateralToken.save();
+  // Add tokens in Chainlink Feed Registry to CollateralToken entity
+  let collateralToken = getOrCreateCollateralToken(contractAddress);
+  collateralToken.save()
 }
