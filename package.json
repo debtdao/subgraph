@@ -7,9 +7,6 @@
     "predeploy-test": "yarn run build goerli --network-file ./networks.json",
     "deploy-test": "graph deploy --product hosted-service hepnerthomas/dd-test",
     "deploy": "graph deploy --node https://api.thegraph.com/deploy/ hepnerthomas/dd-test",
-    "create-local": "graph create --node http://localhost:8020/ hepnerthomas/dd-test",
-    "remove-local": "graph remove --node http://localhost:8020/ hepnerthomas/dd-test",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 hepnerthomas/debt-dao"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.29.2",
