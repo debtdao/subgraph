@@ -59,7 +59,9 @@ dataSources:
       language: wasm/assemblyscript
       file: ./src/feed-registry.ts
       entities:
-        - CollateralToken
+        - Token
+        - SupportedToken
+        - Oracle
       abis:
         - name: FeedRegistry
           file: ./abis/FeedRegistry/FeedRegistry.json
