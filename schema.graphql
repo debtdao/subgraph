@@ -586,18 +586,13 @@ type DeployEscrowEvent implements DeployEvent @entity {
   minCRatio: BigDecimal!
 }
 
-type CollateralToken @entity {
-  # " Smart contract address of the token "
+type SupportedToken @entity {
   id: ID!
+  oracles: [Oracle!]!
+  token: Token!
+}
 
-  # " Name of the token, mirrored from the smart contract "
-  name: String!
-  # " Symbol of the token, mirrored from the smart contract "
-  symbol: String!
-  # " The number of decimal places this token uses, default to 18 "
-  decimals: Int!
-  # " Optional field to track the price of a token, mostly for caching purposes "
-  lastPriceUSD: BigDecimal
-  # " Optional field to track the block number of the last token price "
-  lastPriceBlockNumber: BigInt
+type Oracle @entity {
+  id: ID!
+  supportedTokens: [SupportedToken!] @derivedFrom(field: "oracles")
 }
