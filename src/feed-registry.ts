@@ -7,27 +7,47 @@ import {
 } from "@graphprotocol/graph-ts"
 
 import {
-  Token,
-  CollateralToken
-} from "../generated/schema"
+  Token, Oracle, SupportedToken
+} from "../generated/schema";
 
 import {
   FeedConfirmed
 } from "../generated/FeedRegistry/FeedRegistry"
 
 import {
-  getOrCreateToken,
-  getOrCreateCollateralToken
+  getOrCreateToken
 } from "./utils/utils";
 
-export function handleCollateralToken(event: FeedConfirmed): void {
+export function handleAddSupportedToken(event: FeedConfirmed): void {
+
+  // Chainlink Feed Registry Address
+  const feedRegistryAddress = event.address.toHexString();
+
+  // Chainlink Feed Address and ERC20
   let contractAddress = event.params.asset.toHexString();
+  let token = getOrCreateToken(contractAddress, true);
 
-  // Add tokens in Chainlink Feed Registry to Token entity
-  let token = getOrCreateToken(contractAddress);
-  token.save();
+  // Remove non-ERC20 compliant tokens
+  if (token.name !== "Unknown Token") {
+    let oracle = Oracle.load(feedRegistryAddress);
+    if(!oracle) {
+      oracle = new Oracle(feedRegistryAddress);
+    }
+    let supportedToken = SupportedToken.load(token.id.toString());
+    let oracles = [feedRegistryAddress];
+    if(!supportedToken) {
+      supportedToken = new SupportedToken(token.id.toString());
+      supportedToken.oracles = oracles;
+    } else {
+      oracles = supportedToken.oracles;
+      oracles.push(feedRegistryAddress);
+      supportedToken.oracles = oracles;
+    }
+    supportedToken.token = token.id;
 
-  // Add tokens in Chainlink Feed Registry to CollateralToken entity
-  let collateralToken = getOrCreateCollateralToken(contractAddress);
-  collateralToken.save()
+    // Save entities
+    token.save()
+    supportedToken.save();
+    oracle.save();
+  }
 }

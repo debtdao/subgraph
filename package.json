@@ -6,7 +6,7 @@
     "build": "graph build --network ",
     "predeploy-test": "yarn run build goerli --network-file ./networks.json",
     "deploy-test": "graph deploy --product hosted-service hepnerthomas/dd-test",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ hepnerthomas/dd-test",
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ hepnerthomas/dd-test"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.29.2",

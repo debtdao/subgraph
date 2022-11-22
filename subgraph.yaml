@@ -68,7 +68,7 @@ dataSources:
       eventHandlers:
         - event: FeedConfirmed(indexed address,indexed address,indexed
             address,address,uint16,address)
-          handler: handleCollateralToken
+          handler: handleAddSupportedToken
 templates:
   - name: SecuredLine
     kind: ethereum/contract
