@@ -5,11 +5,11 @@
     "prebuild": "graph codegen",
     "build": "graph build --network ",
     "predeploy-test": "yarn run build goerli --network-file ./networks.json",
-    "deploy-test": "graph deploy --product hosted-service -- $(grep SUBGRAPH_URL .env | cut -d '=' -f2)",
-    "create-local": "graph create --node http://localhost:8020/ -- $(grep SUBGRAPH_URL .env | cut -d '=' -f2)",
-    "remove-local": "graph remove --node http://localhost:8020/ -- $(grep SUBGRAPH_URL .env | cut -d '=' -f2)",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 -- $(grep SUBGRAPH_URL .env | cut -d '=' -f2)",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ -- $(grep SUBGRAPH_URL .env | cut -d '=' -f2)"
+    "deploy-test": "source .env && graph deploy --product hosted-service -- $SUBGRAPH_URL",
+    "create-local": "graph create --node http://localhost:8020/ -- $SUBGRAPH_URL",
+    "remove-local": "graph remove --node http://localhost:8020/ -- $SUBGRAPH_URL",
+    "deploy-local": "graph deploy --node http://localhost:8020/ -- $SUBGRAPH_URL",
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ -- $SUBGRAPH_URL"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.29.2",
