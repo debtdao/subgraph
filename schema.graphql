@@ -24,7 +24,7 @@ type LineOfCredit @entity {
   start: Int!
   # when ttl expires
   end: Int!
-  # 
+  #
   status: String!
    # optional. amount of reveue line gets from spigot inflows
   defaultSplit: Int!
@@ -60,7 +60,7 @@ type Position @entity {
   # 0 indexed position in repayment queue
   # only has value if drawndown
   queue: Int
-  
+
   deposit: BigInt!
   principal: BigInt!
   # current amount of outstanding interest owed but not repaid by borrower
@@ -92,7 +92,7 @@ type Borrower @entity {
   positions: [Position!] @derivedFrom(field: "borrower") # all πositions on all contracts
 }
 
-#  Line EVENTS 
+#  Line EVENTS
 
 # dont need to track in database, just need event to initialize data
 # type DeployLineEvent  @entity {
@@ -106,7 +106,7 @@ type Borrower @entity {
 # }
 
 interface EventWithValue {
-  id: ID!                 # block-logIndex
+  id: ID!                 # block-logIndex-txLogIndex
   block: BigInt!
   timestamp: BigInt!
   amount: BigInt!
@@ -114,7 +114,7 @@ interface EventWithValue {
 }
 
 interface LineEvent {
-  id: ID!                 # block-logIndex
+  id: ID!                 # block-logIndex-txLogIndex
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit! # could get from Position but this makes it easier to traverse
@@ -122,7 +122,7 @@ interface LineEvent {
 }
 
 interface LineEventWithValue implements LineEvent & EventWithValue {
-  id: ID!                 # block-logIndex
+  id: ID!                 # block-logIndex-txLogIndex
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit! # could get from Position but this makes it easier to traverse
@@ -132,7 +132,7 @@ interface LineEventWithValue implements LineEvent & EventWithValue {
 }
 
 type UpdateStatusEvent implements LineEvent @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
@@ -142,19 +142,19 @@ type UpdateStatusEvent implements LineEvent @entity {
 }
 
 type ProposeTermsEvent implements LineEvent @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
   position: Position!
 
   funcSignature: String! # hexcode e.g. 0x12345678
-  params: [Bytes!]  # all proposed terms 
+  params: [Bytes!]  # all proposed terms
 }
 
 
 type AddCreditEvent implements LineEventWithValue @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
@@ -165,7 +165,7 @@ type AddCreditEvent implements LineEventWithValue @entity {
 }
 
 type IncreaseCreditEvent implements LineEventWithValue @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
@@ -177,7 +177,7 @@ type IncreaseCreditEvent implements LineEventWithValue @entity {
 }
 
 type ClosePositionEvent implements LineEventWithValue @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
@@ -189,7 +189,7 @@ type ClosePositionEvent implements LineEventWithValue @entity {
 }
 
 type WithdrawProfitEvent implements LineEventWithValue @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
@@ -200,7 +200,7 @@ type WithdrawProfitEvent implements LineEventWithValue @entity {
 }
 
 type WithdrawDepositEvent implements LineEventWithValue @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
@@ -211,7 +211,7 @@ type WithdrawDepositEvent implements LineEventWithValue @entity {
 }
 
 type BorrowEvent implements LineEventWithValue @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
@@ -222,7 +222,7 @@ type BorrowEvent implements LineEventWithValue @entity {
 }
 
 type InterestAccruedEvent implements LineEventWithValue @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
@@ -233,7 +233,7 @@ type InterestAccruedEvent implements LineEventWithValue @entity {
 }
 
 type RepayInterestEvent implements LineEventWithValue @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
@@ -244,7 +244,7 @@ type RepayInterestEvent implements LineEventWithValue @entity {
 }
 
 type RepayPrincipalEvent implements LineEventWithValue @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
@@ -256,19 +256,19 @@ type RepayPrincipalEvent implements LineEventWithValue @entity {
 
 
 type LiquidateEvent implements LineEventWithValue @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
   position: Position!
 
   amount: BigInt!
-  value: BigDecimal! # not necessarily the amount received from executingliquidation 
+  value: BigDecimal! # not necessarily the amount received from executingliquidation
   liquidator: Bytes!  # contract or arbiter responsible for executing liquidations
 }
 
 type DefaultEvent implements LineEventWithValue @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
@@ -279,7 +279,7 @@ type DefaultEvent implements LineEventWithValue @entity {
 }
 
 type SetRatesEvent implements LineEventWithValue @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
@@ -323,14 +323,14 @@ type SpigotRevenueSummary @entity {
 }
 
 interface SpigotControllerEvent {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   controller: SpigotController!
   block: BigInt!
   timestamp: BigInt!
 }
 
 type UpdateOwnerEvent implements SpigotControllerEvent @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   controller: SpigotController!
   block: BigInt!
   timestamp: BigInt!
@@ -340,7 +340,7 @@ type UpdateOwnerEvent implements SpigotControllerEvent @entity {
 }
 
 type UpdateOperatorEvent implements SpigotControllerEvent @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   controller: SpigotController!
   block: BigInt!
   timestamp: BigInt!
@@ -350,7 +350,7 @@ type UpdateOperatorEvent implements SpigotControllerEvent @entity {
 }
 
 type UpdateTreasuryEvent implements SpigotControllerEvent @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   controller: SpigotController!
   block: BigInt!
   timestamp: BigInt!
@@ -360,7 +360,7 @@ type UpdateTreasuryEvent implements SpigotControllerEvent @entity {
 }
 
 type UpdateWhitelistFunctionEvent implements SpigotControllerEvent @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   controller: SpigotController!
   block: BigInt!
   timestamp: BigInt!
@@ -370,7 +370,7 @@ type UpdateWhitelistFunctionEvent implements SpigotControllerEvent @entity {
 }
 
 type ClaimEscrowEvent implements SpigotControllerEvent & EventWithValue @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   controller: SpigotController!
   block: BigInt!
   timestamp: BigInt!
@@ -392,12 +392,12 @@ type Spigot @entity {
   escrowed: BigInt!             # current amount of tokens available for owner to claim
 
   totalVolumeUsd: BigDecimal!    # usd value of all tokens total volume
-  
+
   events: [SpigotEvent!] @derivedFrom(field: "spigot")
 }
 
 interface SpigotEvent {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   spigot: Spigot!
   revenueToken: Token!
   block: BigInt!
@@ -405,7 +405,7 @@ interface SpigotEvent {
 }
 
 type UpdateOwnerSplitEvent implements SpigotEvent @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   spigot: Spigot!
   revenueToken: Token!
   block: BigInt!
@@ -414,7 +414,7 @@ type UpdateOwnerSplitEvent implements SpigotEvent @entity {
 }
 
 type AddSpigotEvent implements SpigotEvent @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   spigot: Spigot!
   revenueToken: Token!
   block: BigInt!
@@ -422,7 +422,7 @@ type AddSpigotEvent implements SpigotEvent @entity {
 }
 
 type RemoveSpigotEvent implements SpigotEvent @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   spigot: Spigot!
   revenueToken: Token!
   block: BigInt!
@@ -430,7 +430,7 @@ type RemoveSpigotEvent implements SpigotEvent @entity {
 }
 
 type ClaimRevenueEvent implements SpigotEvent & SpigotControllerEvent & EventWithValue@entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   spigot: Spigot!
   controller: SpigotController!
   block: BigInt!
@@ -438,14 +438,14 @@ type ClaimRevenueEvent implements SpigotEvent & SpigotControllerEvent & EventWit
 
   revenueToken: Token!
   amount: BigInt!
-  escrowed: BigInt! 
+  escrowed: BigInt!
   netIncome: BigInt! # amount of tokens sent to Treasury after Line cut escrowed
   value: BigDecimal!
 }
 
 # @dev only tracks revenue. does not track actual line repayment
 type TradeRevenueEvent implements SpigotEvent & EventWithValue @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   spigot: Spigot!
   block: BigInt!
   timestamp: BigInt!
@@ -469,7 +469,7 @@ type Escrow @entity {
   oracle: Bytes!
   owner: Bytes!
   line: LineOfCredit
-  
+
   # not accurate in real time. just used for historical snapshots
   collateralValue: BigDecimal!
 
@@ -488,7 +488,7 @@ type EscrowDeposit @entity {
 }
 
 interface EscrowEvent {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   deposit: EscrowDeposit!
   block: BigInt!
   timestamp: BigInt!
@@ -496,7 +496,7 @@ interface EscrowEvent {
 }
 
 type EnableCollateralEvent implements EscrowEvent @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   deposit: EscrowDeposit!
   block: BigInt!
   timestamp: BigInt!
@@ -504,18 +504,18 @@ type EnableCollateralEvent implements EscrowEvent @entity {
 }
 
 type AddCollateralEvent implements EscrowEvent & EventWithValue @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   deposit: EscrowDeposit!
   block: BigInt!
   timestamp: BigInt!
-  
+
   amount: BigInt!
   value: BigDecimal!
   escrow: Escrow!
 }
 
 type RemoveCollateralEvent implements EscrowEvent & EventWithValue @entity {
-  id: ID! # block-logIndex
+  id: ID! # block-logIndex-txLogIndex
   deposit: EscrowDeposit!
   block: BigInt!
   timestamp: BigInt!
@@ -528,7 +528,7 @@ type RemoveCollateralEvent implements EscrowEvent & EventWithValue @entity {
 # LiquidateEvent handled in LineOfCredit because more data available
 
 
-#  Factory EVENTS 
+#  Factory EVENTS
 interface DeployEvent {
   id: ID!
   timestamp: BigInt!
@@ -567,7 +567,7 @@ type DeploySpigotEvent implements DeployEvent & SpigotControllerEvent @entity {
 
   # SpigotControllerEvent conformity
   controller: SpigotController!
-  
+
   # event params
   owner: Bytes!
   operator: Bytes!
@@ -584,4 +584,15 @@ type DeployEscrowEvent implements DeployEvent @entity {
 
   # event params
   minCRatio: BigDecimal!
+}
+
+type SupportedToken @entity {
+  id: ID!
+  oracles: [Oracle!]!
+  token: Token!
+}
+
+type Oracle @entity {
+  id: ID!
+  supportedTokens: [SupportedToken!] @derivedFrom(field: "oracles")
 }

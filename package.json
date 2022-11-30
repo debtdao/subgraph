@@ -5,11 +5,11 @@
     "prebuild": "graph codegen",
     "build": "graph build --network ",
     "predeploy-test": "yarn run build goerli --network-file ./networks.json",
-    "deploy-test": "graph deploy --product hosted-service kibagateaux/dd-test",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ kibagateaux/dd-test",
-    "create-local": "graph create --node http://localhost:8020/ kibagateaux/dd-test",
-    "remove-local": "graph remove --node http://localhost:8020/ kibagateaux/dd-test",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 kibagateaux/debt-dao"
+    "deploy-test": "source .env && graph deploy --product hosted-service -- $SUBGRAPH_URL",
+    "create-local": "graph create --node http://localhost:8020/ -- $SUBGRAPH_URL",
+    "remove-local": "graph remove --node http://localhost:8020/ -- $SUBGRAPH_URL",
+    "deploy-local": "graph deploy --node http://localhost:8020/ -- $SUBGRAPH_URL",
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ -- $SUBGRAPH_URL"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.29.2",

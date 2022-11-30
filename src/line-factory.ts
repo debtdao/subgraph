@@ -35,7 +35,7 @@ export function handleDeploySecuredLine(event: DeployedSecuredLine): void {
   SecuredLineTemplate.create(event.params.deployedAt);
 
   // dont need  to create LoC entity bc created in line's own deploy event
-  const eventId = getEventId(event.block.number, event.logIndex);
+  const eventId = getEventId(typeof DeploySecuredLineEvent, event.transaction.hash, event.logIndex);
   const deployEvent = new DeploySecuredLineEvent(eventId);
   deployEvent.factory = event.address;
   deployEvent.block = event.block.number;
@@ -65,7 +65,7 @@ export function handleDeploySpigot(event: DeployedSpigot): void {
   spigot.startTime = event.block.number;
   spigot.save();
 
-  const eventId = getEventId(event.block.number, event.logIndex);
+  const eventId = getEventId(typeof DeploySpigotEvent, event.transaction.hash, event.logIndex);
   const deployEvent = new DeploySpigotEvent(eventId);
   deployEvent.factory = event.address;
   deployEvent.block = event.block.number;
@@ -96,7 +96,7 @@ export function handleDeployEscrow(event: DeployedEscrow): void {
   escrow.collateralValue = BIG_DECIMAL_ZERO;
   escrow.save();
 
-  const eventId = getEventId(event.block.number, event.logIndex);
+  const eventId = getEventId(typeof DeployEscrowEvent, event.transaction.hash, event.logIndex);
   const deployEvent = new DeployEscrowEvent(eventId);
   deployEvent.factory = event.address;
   deployEvent.block = event.block.number;

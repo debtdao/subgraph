@@ -2,15 +2,19 @@
   "goerli": {
     "LineFactory": {
       "address": "0xc23b896F2b4aE3E6362B0D536113Fa2F0C9b8886",
-      "startBlock": 7666923 
+      "startBlock": 7666923
     },
     "CreditLib": {
       "address": "0x09a8d8eD61D117A3C550345BcA19bf0B8237B27e",
-      "startBlock": 7666923 
+      "startBlock": 7666923
     },
-    "ModuleFactory":{
+    "ModuleFactory": {
       "address": "0x87b8a47E7cFc0E7AE934f79654caC5dEad3B7b67",
       "startBlock": 7666910
+    },
+    "FeedRegistry": {
+      "address": "0x4DF0abBe72A79cC65aDf694DE64535904aB43aAc",
+      "startBlock": 7966450
     }
   }
 }
