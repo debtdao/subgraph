@@ -3,9 +3,6 @@ import {
   log,
 
   Address,
-  Bytes,
-  BigInt,
-  BigDecimal,
 } from "@graphprotocol/graph-ts"
 
 import {
@@ -15,7 +12,6 @@ import {
 } from "../generated/templates/Escrow/Escrow"
 
 import {
-  Token,
   Escrow,
   EscrowDeposit,
 
@@ -25,14 +21,9 @@ import {
 } from "../generated/schema"
 
 import {
-  STATUSES,
-  NOT_IN_QUEUE,
   BIG_INT_ZERO,
-  BIG_DECIMAL_ZERO,
-  ZERO_ADDRESS,
 
   getValue,
-  getQueueIndex,
   getEventId,
   getOrCreateToken,
   updateTokenPrice,
@@ -94,7 +85,7 @@ export function handleAddCollateral(event: AddCollateral): void {
   collateralEvent.save();
 }
 
-export function handleRemoveCollateral(event: AddCollateral): void {
+export function handleRemoveCollateral(event: RemoveCollateral): void {
   const escrowId = event.address.toHexString();
   const tokenId = event.params.token.toHexString();
   const depositId = `${escrowId}-${tokenId}`;

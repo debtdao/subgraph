@@ -50,6 +50,12 @@ type Position @entity {
   id: ID!       # keccak(line,lender,token)
   line: LineOfCredit!
   token: Token!
+  
+  proposedAt: BigInt!
+  openedAt: BigInt
+  canceledAt: BigInt
+  closedAt: BigInt
+
   # if position is proposed, accepted, or closed.
   status: String
 
@@ -301,11 +307,10 @@ type SetRatesEvent implements LineEventWithValue @entity {
 type SpigotController @entity {
   id: ID!                         # address
   owner: Bytes!
+  operator: Bytes!
   line: LineOfCredit          # should be `owner` if configured for collateral
   startTime: BigInt!              # timestamp when deployed
 
-  operator: Bytes!
-  treasury: Bytes!
 
   summaries: [SpigotRevenueSummary!] @derivedFrom(field: "controller")
   spigots: [Spigot!] @derivedFrom(field: "controller")
@@ -349,16 +354,6 @@ type UpdateOperatorEvent implements SpigotControllerEvent @entity {
   newOperator: Bytes!
 }
 
-type UpdateTreasuryEvent implements SpigotControllerEvent @entity {
-  id: ID! # block-logIndex-txLogIndex
-  controller: SpigotController!
-  block: BigInt!
-  timestamp: BigInt!
-
-  oldTreasury: Bytes!
-  newTreasury: Bytes!
-}
-
 type UpdateWhitelistFunctionEvent implements SpigotControllerEvent @entity {
   id: ID! # block-logIndex-txLogIndex
   controller: SpigotController!
@@ -369,7 +364,18 @@ type UpdateWhitelistFunctionEvent implements SpigotControllerEvent @entity {
   whitelisted: Boolean!
 }
 
-type ClaimEscrowEvent implements SpigotControllerEvent & EventWithValue @entity {
+type ClaimOwnerTokensEvent implements SpigotControllerEvent & EventWithValue @entity {
+  id: ID! # block-logIndex-txLogIndex
+  controller: SpigotController!
+  block: BigInt!
+  timestamp: BigInt!
+  to: LineOfCredit!
+
+  amount: BigInt! # amount of tokens sent to Owner from escrow
+  value: BigDecimal!
+}
+
+type ClaimOperatorTokensEvent implements SpigotControllerEvent & EventWithValue @entity {
   id: ID! # block-logIndex-txLogIndex
   controller: SpigotController!
   block: BigInt!
@@ -571,7 +577,6 @@ type DeploySpigotEvent implements DeployEvent & SpigotControllerEvent @entity {
   # event params
   owner: Bytes!
   operator: Bytes!
-  treasury: Bytes!
 }
 
 type DeployEscrowEvent implements DeployEvent @entity {

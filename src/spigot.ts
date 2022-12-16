@@ -7,11 +7,10 @@ import {
   AddSpigot,
   RemoveSpigot,
   ClaimRevenue,
-  ClaimEscrow,
+  ClaimOwnerTokens,
   UpdateOwnerSplit,
   UpdateWhitelistFunction,
   UpdateOwner,
-  UpdateTreasury,
   UpdateOperator,
 } from "../generated/templates/Spigot/Spigot"
   
@@ -29,24 +28,18 @@ import {
   AddSpigotEvent,
   RemoveSpigotEvent,
   ClaimRevenueEvent,
-  ClaimEscrowEvent,
+  ClaimOwnerTokensEvent,
   TradeRevenueEvent,
   UpdateOwnerSplitEvent,
   UpdateOwnerEvent,
-  UpdateTreasuryEvent,
   UpdateOperatorEvent,
   UpdateWhitelistFunctionEvent,
 } from "../generated/schema"
 import {
-  STATUSES,
-  NOT_IN_QUEUE,
-  BIG_INT_ZERO,
   BIG_DECIMAL_ZERO,
-  ZERO_ADDRESS,
   BYTES32_ZERO_STR,
 
   getValue,
-  getQueueIndex,
   getEventId,
   getOrCreateToken,
   updateTokenPrice,
@@ -149,7 +142,7 @@ export function handleUpdateOwnerSplit(event: UpdateOwnerSplit): void {
   spigotEvent.save();
 }
 
-export function handleClaimEscrow(event: ClaimEscrow): void {
+export function handleClaimEscrow(event: ClaimOwnerTokens): void {
   let spigot = Spigot.load(event.params.token.toHexString())!;
   spigot.escrowed = spigot.escrowed.minus(event.params.amount);
   spigot.save();
@@ -157,8 +150,8 @@ export function handleClaimEscrow(event: ClaimEscrow): void {
   
   let token = event.params.token.toHexString();
 
-  const eventId = getEventId(typeof ClaimEscrowEvent, event.transaction.hash, event.logIndex);
-  let spigotEvent = new ClaimEscrowEvent(eventId);
+  const eventId = getEventId(typeof ClaimOwnerTokensEvent, event.transaction.hash, event.logIndex);
+  let spigotEvent = new ClaimOwnerTokensEvent(eventId);
   spigotEvent.controller = event.address.toHexString();
   spigotEvent.block = event.block.number;
   spigotEvent.timestamp = event.block.timestamp;
@@ -249,27 +242,6 @@ export function handleUpdateOwner(event: UpdateOwner): void {
   spigot.owner = event.params.newOwner;
   spigot.save();
 }
-
-export function handleUpdateTreasury(event: UpdateTreasury): void {
-  // load entity to use current Treasury
-  let spigot = SpigotController.load(event.address.toHexString())!;
-
-  
-  const eventId = getEventId(typeof UpdateTreasuryEvent, event.transaction.hash, event.logIndex);
-  let spigotEvent = new UpdateTreasuryEvent(eventId);
-
-  spigotEvent.oldTreasury = spigot.treasury;
-  spigotEvent.newTreasury = event.params.newTreasury;
-  spigotEvent.controller = event.address.toHexString();
-  spigotEvent.block = event.block.number;
-  spigotEvent.timestamp = event.block.timestamp;
-  spigotEvent.save();
-
-  // update spigot after so we can use old Treasury for event data
-  spigot.treasury = event.params.newTreasury;
-  spigot.save();
-}
-
 
 export function handleUpdateOperator(event: UpdateOperator): void {
   // load entity to use current Operator

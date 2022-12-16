@@ -60,6 +60,20 @@ MUTUAL_CONSENT_FUNCTIONS.set(ADD_SPIGOT_FUNC, INCREASE_CREDIT_U32);  // on Spigo
 
 const CREDIT_LIB_GOERLI_ADDRESS: Address = Address.fromString("0x09a8d8eD61D117A3C550345BcA19bf0B8237B27e");
 
+function createProposalEvent(event: MutualConsentRegistered, functionSig: string, positionId: string = ZERO_ADDRESS_STR): void {
+    const eventId = getEventId(typeof ProposeTermsEvent, event.transaction.hash, event.logIndex);
+    const proposalEvent = new ProposeTermsEvent(eventId);
+    proposalEvent.block = event.block.number;
+    proposalEvent.timestamp = event.block.timestamp;
+    proposalEvent.line = event.address.toHexString();
+    proposalEvent.funcSignature = functionSig;
+    // TODO return creditID from functions to save here
+    proposalEvent.position = positionId;
+    // proposalEvent.params = inputParams! || [];
+
+    proposalEvent.save();
+}
+
 export function handleMutualConsentEvents(event: MutualConsentRegistered): void {
     // event emits mutual consent hash which is not useful
     // use function input params and decode them instead
@@ -76,14 +90,14 @@ export function handleMutualConsentEvents(event: MutualConsentRegistered): void 
     }
   
     const funcType = MUTUAL_CONSENT_FUNCTIONS.get(functionSig);
-    let inputParams: Bytes[] | null;
     
     switch(funcType) {
        // assembly script is retarded and doesnt allow switch cases on strings so we have to use numbers
       case ADD_CREDIT_U32:
         const inputs = decodeTxData(event.transaction.input.toHexString(), ADD_CREDIT_ABI);
         if (inputs) {
-          handleAddCreditMutualConsent(event, inputs);
+          const id = handleAddCreditMutualConsent(event, inputs);
+          createProposalEvent(event, functionSig, id);
         }
         break;
       case INCREASE_CREDIT_U32:
@@ -95,21 +109,6 @@ export function handleMutualConsentEvents(event: MutualConsentRegistered): void 
       default:
         break;
     }
-
-    // emit event for new terms
-    if(inputParams!) {
-      const eventId = getEventId(typeof ProposeTermsEvent, event.transaction.hash, event.logIndex);
-      const proposalEvent = new ProposeTermsEvent(eventId);
-      proposalEvent.block = event.block.number;
-      proposalEvent.timestamp = event.block.timestamp;
-      proposalEvent.line = event.address.toHexString();
-      proposalEvent.funcSignature = functionSig;
-      // TODO return creditID from functions to save here
-      proposalEvent.position = getNullPosition();
-      // proposalEvent.params = inputParams! || [];
-
-      proposalEvent.save();
-    }
 }
 
 function computeId(line: Address, lender: Address, token: Address): string {
@@ -119,10 +118,10 @@ function computeId(line: Address, lender: Address, token: Address): string {
   return data ? crypto.keccak256(data).toHexString() : '0xblahblag';
 }
 
-function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParams: ethereum.Tuple | null): void {
+function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParams: ethereum.Tuple | null): string {
   if(!inputParams) {
     log.warning('could not get input params for AddCredit mutual consent proposal', []);
-    return;
+    return ZERO_ADDRESS_STR;
   }
   
   // breakdown addCrdit function input params into individual values in typescript
@@ -160,7 +159,7 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
     // log.warning("assemblyscript computing position success. ID {}", [id]);
   }
   
-  if(!id) return;
+  if(!id) return ZERO_ADDRESS_STR;
 
   // credit hasnt been created yet so assume none exists in the db already 
   // some data will be overwritten but not events
@@ -171,6 +170,7 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
   // fill with null data since position doesnt exist yet
   
   credit.borrower = ZERO_ADDRESS_STR; // TODO: pull from line contract or entity
+  credit.proposedAt = event.block.timestamp; // TODO: pull from line contract or entity
   credit.queue = NOT_IN_QUEUE.toI32();
   credit.principal = BIG_INT_ZERO;
   credit.interestAccrued = BIG_INT_ZERO;
@@ -195,6 +195,8 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
   
   // log.warning("saving credit propoal to {}", [id]);
   credit.save();
+  
+  return id;
 }
 
 

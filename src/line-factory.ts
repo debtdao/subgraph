@@ -4,9 +4,12 @@ import {
 
 import { 
   DeployedSecuredLine,
+} from "../generated/LineFactory/LineFactory"
+
+import { 
   DeployedSpigot,
   DeployedEscrow,
-} from "../generated/LineFactory/LineFactory"
+} from "../generated/ModuleFactory/ModuleFactory"
 
 import { 
   SpigotController,
@@ -61,7 +64,6 @@ export function handleDeploySpigot(event: DeployedSpigot): void {
   spigot.owner = event.params.owner; // may or may not be a line contract
   spigot.line = null; // LoC will claim module when deployed
   spigot.operator = event.params.operator;
-  spigot.treasury = event.params.treasury;
   spigot.startTime = event.block.number;
   spigot.save();
 
@@ -77,7 +79,6 @@ export function handleDeploySpigot(event: DeployedSpigot): void {
 
   deployEvent.owner = event.params.owner;
   deployEvent.operator = event.params.operator;
-  deployEvent.treasury = event.params.treasury;
   deployEvent.save();
 }
 

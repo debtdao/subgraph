@@ -7,7 +7,7 @@ dataSources:
     network: goerli
     source:
       abi: LineFactory
-      address: "0xc23b896F2b4aE3E6362B0D536113Fa2F0C9b8886"
+      address: "0x582Da20CE3Eb970467Ac68be1c9Ee0997BC8A7e9"
       startBlock: 7666923
     mapping:
       kind: ethereum/events
@@ -28,7 +28,7 @@ dataSources:
     network: goerli
     source:
       abi: ModuleFactory
-      address: "0x87b8a47E7cFc0E7AE934f79654caC5dEad3B7b67"
+      address: "0xb4E9ADF494f0d2e41f84DE995e4834f7020357ab"
       startBlock: 7666910
     mapping:
       kind: ethereum/events
@@ -42,7 +42,7 @@ dataSources:
         - name: ModuleFactory
           file: ./abis/ModuleFactory.json
       eventHandlers:
-        - event: DeployedSpigot(indexed address,indexed address,indexed address,address)
+        - event: DeployedSpigot(indexed address,indexed address,address)
           handler: handleDeploySpigot
         - event: DeployedEscrow(indexed address,indexed uint32,indexed address,address)
           handler: handleDeployEscrow
@@ -197,16 +197,16 @@ templates:
       eventHandlers:
         - event: AddSpigot(indexed address,uint256)
           handler: handleAddSpigot
-        - event: ClaimEscrow(indexed address,indexed uint256,address)
-          handler: handleClaimEscrow
+        - event: ClaimOwnerTokens(indexed address,indexed uint256,address)
+          handler: handleClaimOwnerTokens
+        - event: ClaimOperatorTokens(indexed address,indexed uint256,address)
+          handler: handleClaimOperatorTokens
         - event: RemoveSpigot(indexed address,address)
           handler: handleRemoveSpigot
         - event: ClaimRevenue(indexed address,indexed uint256,uint256,address)
           handler: handleClaimRevenue
         - event: UpdateOwner(indexed address)
           handler: handleUpdateOwner
-        - event: UpdateTreasury(indexed address)
-          handler: handleUpdateTreasury
         - event: UpdateOperator(indexed address)
           handler: handleUpdateOperator
         - event: UpdateWhitelistFunction(indexed bytes4,indexed bool)

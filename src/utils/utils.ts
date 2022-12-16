@@ -237,6 +237,7 @@ export function getNullPosition(): string {
   position.lender = id;
 
   position.token = getNullToken();
+  position.proposedAt = BIG_INT_ZERO;
   position.queue = NOT_IN_QUEUE.toI32();
   position.deposit = BIG_INT_ZERO;
   position.principal = BIG_INT_ZERO;

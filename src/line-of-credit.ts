@@ -143,6 +143,7 @@ export function handleAddCredit(event: AddCredit): void {
 
   // Credit must exist and fields are filled in from mutual-consent
   const credit = new Position(id);
+  credit.openedAt = event.block.timestamp;
   credit.borrower = line.borrower;
   credit.status = POSITION_STATUS_OPENED;
   credit.save();
@@ -374,40 +375,47 @@ export function handleRepayPrincipal(event: RepayPrincipal): void {
 export function handleDefault(event: Default): void {
   // log.warning("calling handleDefault addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   // TODO: loop over all current credits and generate default events
-  let line = LineOfCredit.load(event.address.toHexString())!;
+  const line = LineOfCredit.load(event.address.toHexString())!;
   line.status = STATUS_DEFAULT;
   line.save();
   
   // must be lines if default event is emitted
-  for(let i = 0; i < line.positions!.length; i ++) {
-    let c = new Position(line.positions![i]);
-    let id = getEventId(typeof DefaultEvent, event.transaction.hash, event.logIndex);
-    let creditEvent = new DefaultEvent(id);
-    creditEvent.position = c.id;
-    creditEvent.block = event.block.number;
-    creditEvent.line = event.address.toHexString();
-    creditEvent.timestamp = event.block.timestamp;
-    creditEvent.amount = c.principal.plus(c.interestAccrued);
-    creditEvent.value = getValueForPosition(
-      line.oracle.toHexString(),
-      c.token,
-      creditEvent.amount,
-      creditEvent.block
-    )[0];
-    creditEvent.save();
+  const numPositions = line.positions ? line.positions!.length : 0
+  if(numPositions > 0) {
+    for(let i = 0; i < numPositions; i ++) {
+      let c = new Position(line.positions![i]);
+      let id = getEventId(typeof DefaultEvent, event.transaction.hash, event.logIndex);
+      let creditEvent = new DefaultEvent(id);
+      creditEvent.position = c.id;
+      creditEvent.block = event.block.number;
+      creditEvent.line = event.address.toHexString();
+      creditEvent.timestamp = event.block.timestamp;
+      creditEvent.amount = c.principal.plus(c.interestAccrued);
+      creditEvent.value = getValueForPosition(
+        line.oracle.toHexString(),
+        c.token,
+        creditEvent.amount,
+        creditEvent.block
+      )[0];
+      creditEvent.save();
+    }
   }
 }
 
 export function handleLiquidate(event: Liquidate): void {
   // log.warning("calling handleLiquidate addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   let credit = Position.load(event.params.id.toHexString())!;
-  credit.principal = credit.principal.minus(event.params.amount);
+  log.warning('liquidate token {} - {}', [event.params.token.toString(), event.params.amount.toString()])
+
   const data = getValue(
-    SecuredLine.bind(Address.fromString(credit.line)).oracle(),
-    getOrCreateToken(event.params.token.toString()),
+    SecuredLine.bind(event.address).oracle(),
+    getOrCreateToken(credit.token),
     event.params.amount,
     event.block.number
   );
+  
+  log.warning('Liquidate line/position - {}  -  - - {}' , [event.address.toHexString(), credit.id]);
+
   credit.principalUsd = credit.principalUsd.times(data[1]);
 
   if(credit.principal.equals(BIG_INT_ZERO)) credit.queue = NOT_IN_QUEUE.toI32();
@@ -422,6 +430,7 @@ export function handleLiquidate(event: Liquidate): void {
   creditEvent.line = event.address.toHexString();
   creditEvent.position = credit.id;
   creditEvent.timestamp = event.block.timestamp;
+  creditEvent.liquidator = event.transaction.from;
   creditEvent.amount = event.params.amount;
   creditEvent.value = data[0];
   creditEvent.save();
