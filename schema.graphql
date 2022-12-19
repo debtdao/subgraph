@@ -46,6 +46,28 @@ type LineOfCredit @entity {
   events: [LineEventWithValue!]  @derivedFrom(field: "line")
 }
 
+type Stakeholder @entity {
+  id: ID!
+  borrowingLines: [LineOfCredit!] @derivedFrom(field: "borrower") # all contracts
+  borrowingPosition: [Position!]! @derivedFrom("borrower")
+  lendingPositions: [Position!]! @derivedFrom("lender")
+}
+
+type MutualConsentTerms @entity  {
+  id: ID!
+
+  # if position is proposed, accepted, canceled, or closed.
+  status: String!
+
+  # social graph metadata 
+  # who created nd accepted the terms
+  maker: Stakeholder!
+  proposalTimestamp: BigInt!
+
+  taker: Stakeholder!
+  acceptedTimestamp: BigInt
+}
+
 type Position @entity {
   id: ID!       # keccak(line,lender,token)
   line: LineOfCredit!
@@ -56,12 +78,16 @@ type Position @entity {
   canceledAt: BigInt
   closedAt: BigInt
 
-  # if position is proposed, accepted, or closed.
+  # if position is proposed, accepted, canceled, or closed.
   status: String
 
-  # used to easily find positions by stakeholder
+  # define stakehodler roles
   lender: Lender!
   borrower: Borrower!
+
+  terms: MutualConsentTerms
+
+
 
   # 0 indexed position in repayment queue
   # only has value if drawndown
