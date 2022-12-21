@@ -142,6 +142,7 @@ export function handleAddCredit(event: AddCredit): void {
   const id = event.params.id.toHexString();
 
   // Credit must exist and fields are filled in from mutual-consent
+  log.warning("addCredit p ID {}", [id])
   const credit = new Position(id);
   credit.openedAt = event.block.timestamp;
   credit.borrower = line.borrower;

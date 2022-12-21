@@ -6,6 +6,7 @@ import {
   ethereum,
   Bytes,
   ByteArray,
+  dataSource,
 } from "@graphprotocol/graph-ts"
 
 import { MutualConsentRegistered } from "../../generated/templates/SecuredLine/SecuredLine"
@@ -57,8 +58,9 @@ MUTUAL_CONSENT_FUNCTIONS.set(INCREASE_CREDIT_FUNC, ADD_SPIGOT_U32);
 MUTUAL_CONSENT_FUNCTIONS.set(SET_RATES_FUNC, SET_RATES_U32);
 MUTUAL_CONSENT_FUNCTIONS.set(ADD_SPIGOT_FUNC, INCREASE_CREDIT_U32);  // on SpigotedLine 
 
-
 const CREDIT_LIB_GOERLI_ADDRESS: Address = Address.fromString("0x09a8d8eD61D117A3C550345BcA19bf0B8237B27e");
+const CREDIT_LIB_MAINNET_ADDRESS: Address = Address.fromString("0x8e73667B175887B106A9F803F8b62DeffC11535e");
+
 
 function createProposalEvent(event: MutualConsentRegistered, functionSig: string, positionId: string = ZERO_ADDRESS_STR): void {
     const eventId = getEventId(typeof ProposeTermsEvent, event.transaction.hash, event.logIndex);
@@ -115,8 +117,21 @@ function computeId(line: Address, lender: Address, token: Address): string {
   const data = ethereum.encode(
     ethereum.Value.fromAddressArray([line, lender, token])
   );
-  return data ? crypto.keccak256(data).toHexString() : '0xblahblag';
+  return data ? crypto.keccak256(data).toHexString() : '';
 }
+
+function getCreditLibForNetwork():  CreditLib {
+  const network = dataSource.network()
+  log.warning('subgraph network {}, is main/test {}/{}', [network, (network === 'mainnet').toString(), (network === 'goerli').toString()]);
+  
+  if( network === 'mainnet' ) {
+    return CreditLib.bind(CREDIT_LIB_MAINNET_ADDRESS);
+  } else if ( network === 'goerli' ) {
+    return CreditLib.bind(CREDIT_LIB_GOERLI_ADDRESS);
+  } else {
+    return CreditLib.bind(CREDIT_LIB_GOERLI_ADDRESS);
+  }
+} 
 
 function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParams: ethereum.Tuple | null): string {
   if(!inputParams) {
@@ -136,41 +151,44 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
 
   // generate position id from inputParam data
   let id = '';
-  const computeResult = CreditLib.bind(CREDIT_LIB_GOERLI_ADDRESS).try_computeId(
+  const libForNetwork = getCreditLibForNetwork();
+  const computeResult = libForNetwork.try_computeId(
     event.address,
     Address.fromString(args[4]),
     Address.fromString(args[3])
-  );
-  
+    );
+    
+  log.warning("Credit Lib for network *{}* =  {}. Call failed ?= {}", [dataSource.network(), libForNetwork._address.toHexString(), computeResult.reverted.toString()])
   // log.warning('credit lib computing position id {}', [computeResult.value.toHexString()]);
 
   if(!computeResult.reverted) {
-    // log.warning('line lib computed id {}', [computeResult.value.toHexString()]);
+    log.warning('line lib computed id {}', [computeResult.value.toHexString()]);
     id = computeResult.value.toHexString()
   } else {
-    // log.warning("computing position ID call to lib failed. inputs {}", [event.transaction.input.toHexString()]);
+    log.warning("computing position ID call to lib failed. inputs {}", [event.transaction.input.toHexString()]);
     
     // this doesnt work for whatever reason. Returns a different result than CreditLib
-    // id = computeId(
-    //   event.address,
-    //   Address.fromString(args[4]),
-    //   Address.fromString(args[3])
-    // );
-    // log.warning("assemblyscript computing position success. ID {}", [id]);
+    id = computeId(
+      event.address,
+      Address.fromString(args[4]),
+      Address.fromString(args[3])
+    );
+    log.warning("assemblyscript computing position success. ID {}", [id]);
   }
+
   
   if(!id) return ZERO_ADDRESS_STR;
 
   // credit hasnt been created yet so assume none exists in the db already 
   // some data will be overwritten but not events
-  let credit = new Position(id);
+  const credit = new Position(id);
   credit.line = event.address.toHexString(); // line entity must exist for proposal to happen
   credit.status = POSITION_STATUS_PROPOSED;
   
   // fill with null data since position doesnt exist yet
   
   credit.borrower = ZERO_ADDRESS_STR; // TODO: pull from line contract or entity
-  credit.proposedAt = event.block.timestamp; // TODO: pull from line contract or entity
+  credit.proposedAt = event.block.timestamp;
   credit.queue = NOT_IN_QUEUE.toI32();
   credit.principal = BIG_INT_ZERO;
   credit.interestAccrued = BIG_INT_ZERO;
@@ -180,6 +198,7 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
   credit.principalUsd = BIG_DECIMAL_ZERO;
   credit.interestUsd = BIG_DECIMAL_ZERO;
   
+  // TODO innaccurate for BigNumbers
   const dRate = args[0] && args[0].length > 10 ? args[0].slice(0, 4) : args[0];
   const fRate = args[1] && args[1].length > 10 ? args[1].slice(0, 4) : args[1];
   
@@ -193,7 +212,8 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
   credit.lender = lendy.id;
   credit.token = getOrCreateToken(args[3]).id;
   
-  // log.warning("saving credit propoal to {}", [id]);
+    // log.warning('could not get input params for AddCredit mutual consent proposal', []);
+  log.warning("saving credit propoal to {}", [id]);
   credit.save();
   
   return id;
