@@ -122,11 +122,11 @@ function computeId(line: Address, lender: Address, token: Address): string {
 
 function getCreditLibForNetwork():  CreditLib {
   const network = dataSource.network()
-  log.warning('subgraph network {}, is main/test {}/{}', [network, (network === 'mainnet').toString(), (network === 'goerli').toString()]);
+  log.warning('subgraph network {}, is main/test {}/{}', [network, (network == 'mainnet').toString(), (network == 'goerli').toString()]);
   
-  if( network === 'mainnet' ) {
+  if( network == 'mainnet' ) {
     return CreditLib.bind(CREDIT_LIB_MAINNET_ADDRESS);
-  } else if ( network === 'goerli' ) {
+  } else if ( network == 'goerli' ) {
     return CreditLib.bind(CREDIT_LIB_GOERLI_ADDRESS);
   } else {
     return CreditLib.bind(CREDIT_LIB_GOERLI_ADDRESS);
@@ -162,18 +162,18 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
   // log.warning('credit lib computing position id {}', [computeResult.value.toHexString()]);
 
   if(!computeResult.reverted) {
-    log.warning('line lib computed id {}', [computeResult.value.toHexString()]);
+    // log.warning('line lib computed id {}', [computeResult.value.toHexString()]);
     id = computeResult.value.toHexString()
   } else {
     log.warning("computing position ID call to lib failed. inputs {}", [event.transaction.input.toHexString()]);
     
     // this doesnt work for whatever reason. Returns a different result than CreditLib
-    id = computeId(
-      event.address,
-      Address.fromString(args[4]),
-      Address.fromString(args[3])
-    );
-    log.warning("assemblyscript computing position success. ID {}", [id]);
+    // id = computeId(
+    //   event.address,
+    //   Address.fromString(args[4]),
+    //   Address.fromString(args[3])
+    // );
+    // log.warning("assemblyscript computing position success. ID {}", [id]);
   }
 
   
@@ -213,8 +213,9 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
   credit.token = getOrCreateToken(args[3]).id;
   
     // log.warning('could not get input params for AddCredit mutual consent proposal', []);
-  log.warning("saving credit propoal to {}", [id]);
-  credit.save();
+    log.warning("saving credit propoal to {}", [id]);
+    log.warning("propsoal params d/fRate - {}/{} - amount {} -  lender {} -  token {}", args);
+    credit.save();
   
   return id;
 }
