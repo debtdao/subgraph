@@ -55,6 +55,7 @@ import {
   NOT_IN_QUEUE,
   BIG_INT_ZERO,
   BYTES32_ZERO_STR,
+  STATUS_UNINITIALIZED,
   STATUS_DEFAULT,
 
   getNullPosition,
@@ -87,7 +88,7 @@ export function handleDeployLine(event: DeployLine): void {
   line.arbiter = event.params.arbiter;
   line.start = event.block.timestamp.toI32();
   line.end = LoC.deadline().toI32();
-  line.status = STATUSES.get(0); // LoC is UNINITIALIZED on deployment
+  line.status = STATUS_UNINITIALIZED; // LoC is UNINITIALIZED on deployment
   line.defaultSplit = LoC.defaultRevenueSplit();
   
   // Add SecuredLine modules
@@ -136,17 +137,18 @@ export function handleUpdateStatus(event: UpdateStatus): void {
 
 
 export function handleAddCredit(event: AddCredit): void {
-  // log.warning("calling handleAddCredit addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  // log.warning("calling handleAddCredit line {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   const line = LineOfCredit.load(event.address.toHexString())!;
   const token = getOrCreateToken(event.params.token.toHexString());
   const id = event.params.id.toHexString();
 
   // Credit must exist and fields are filled in from mutual-consent
-  log.warning("addCredit p ID {}", [id])
   const credit = new Position(id);
+  // log.warning("addCredit existing p ID {}, lender {}, deposit {}", [id, credit.lender, credit.deposit.toString()])
   credit.openedAt = event.block.timestamp;
   credit.borrower = line.borrower;
   credit.status = POSITION_STATUS_OPENED;
+  credit.taker = event.transaction.from.toHexString();
   credit.save();
 
   const eventId = getEventId(typeof AddCreditEvent, event.transaction.hash, event.logIndex);
@@ -166,7 +168,7 @@ export function handleAddCredit(event: AddCredit): void {
 }
 
 export function handleIncreaseCredit(event: IncreaseCredit): void {
-  // log.warning("calling handleIncreaseCredit addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  // log.warning("calling handleIncreaseCredit line {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   const id = event.params.id.toHexString();
 
   let credit = Position.load(id)!; // must have credit position from AddCredit
@@ -186,7 +188,7 @@ export function handleIncreaseCredit(event: IncreaseCredit): void {
 }
 
 export function handleCloseCreditPosition(event: CloseCreditPosition): void {
-  // log.warning("calling handleCloseCreditPosition addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  log.warning("calling handleCloseCreditPosition line {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   let credit = Position.load(event.params.id.toHexString())!;
   credit.principal = BIG_INT_ZERO;
   credit.status = POSITION_STATUS_CLOSED;
@@ -212,8 +214,11 @@ export function handleCloseCreditPosition(event: CloseCreditPosition): void {
 }
 
 export function handleWithdrawProfit(event: WithdrawProfit): void {
-  // log.warning("calling handleWithdrawProfit addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  // log.warning("calling handleWithdrawProfit line {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   let credit = Position.load(event.params.id.toHexString())!;
+  if(!credit) {
+    log.warning
+  }
   credit.interestRepaid = credit.interestRepaid.minus(event.params.amount);
   credit.save();
 
@@ -234,7 +239,7 @@ export function handleWithdrawProfit(event: WithdrawProfit): void {
 }
 
 export function handleWithdrawDeposit(event: WithdrawDeposit): void {
-  // log.warning("calling handleWithdrawDeposit addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  log.warning("calling handleWithdrawDeposit line {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   let credit = Position.load(event.params.id.toHexString())!;
   credit.deposit = credit.deposit.minus(event.params.amount);
   credit.save();
@@ -256,7 +261,7 @@ export function handleWithdrawDeposit(event: WithdrawDeposit): void {
 }
 
 export function handleBorrow(event: Borrow): void {
-  // log.warning("calling handleBorrow addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  log.warning("calling handleBorrow line {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   let credit = Position.load(event.params.id.toHexString())!;
   credit.principal = credit.principal.plus(event.params.amount);
   const data = getValueForPosition(
@@ -315,7 +320,7 @@ export function handleInterestAccrued(event: InterestAccrued): void {
 
 
 export function handleRepayInterest(event: RepayInterest): void {
-  // log.warning("calling handleRepayInterest addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  log.warning("calling handleRepayInterest line {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   let credit = Position.load(event.params.id.toHexString())!;
   credit.interestAccrued = credit.interestAccrued.minus(event.params.amount);
   const data = getValueForPosition(
@@ -345,7 +350,7 @@ export function handleRepayInterest(event: RepayInterest): void {
 }
 
 export function handleRepayPrincipal(event: RepayPrincipal): void {
-  // log.warning("calling handleRepayPrincipal addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  // log.warning("calling handleRepayPrincipal line {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   let credit = Position.load(event.params.id.toHexString())!;
   credit.principal = credit.principal.minus(event.params.amount);
   const data = getValueForPosition(
@@ -374,7 +379,7 @@ export function handleRepayPrincipal(event: RepayPrincipal): void {
 }
 
 export function handleDefault(event: Default): void {
-  // log.warning("calling handleDefault addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  log.error("BORROWER DEFAULT: line {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   // TODO: loop over all current credits and generate default events
   const line = LineOfCredit.load(event.address.toHexString())!;
   line.status = STATUS_DEFAULT;
@@ -404,7 +409,7 @@ export function handleDefault(event: Default): void {
 }
 
 export function handleLiquidate(event: Liquidate): void {
-  // log.warning("calling handleLiquidate addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  // log.warning("calling handleLiquidate line {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   let credit = Position.load(event.params.id.toHexString())!;
   log.warning('liquidate token {} - {}', [event.params.token.toString(), event.params.amount.toString()])
 
@@ -439,7 +444,7 @@ export function handleLiquidate(event: Liquidate): void {
 
 
 export function handleSetRates(event: SetRates): void {
-  // log.warning("calling handleSetRates addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  // log.warning("calling handleSetRates line {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   let credit = new Position(event.params.id.toHexString());
   credit.dRate = event.params.dRate.toI32();
   credit.fRate = event.params.fRate.toI32();
@@ -461,7 +466,7 @@ export function handleSetRates(event: SetRates): void {
 }
 
 export function handleTradeRevenue(event: TradeSpigotRevenue): void {
-  // log.warning("calling handleTradeRevenue addy {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  // log.warning("calling handleTradeRevenue line {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   // event emitted by Line but code stored in Spigot for organization
   _handleTradeRevenue(event);
 }

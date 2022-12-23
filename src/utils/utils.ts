@@ -54,15 +54,9 @@ export const BYTES32_ZERO_STR = "0x000000000000000000000000000000000000000000000
 
 // Line statuses
 export const STATUS_UNINITIALIZED = "UNINITIALIZED";
-export const STATUS_INITIALIZED = "INITIALIZED";
 export const STATUS_ACTIVE = "ACTIVE";
-export const STATUS_UNDERCOLLATERALIZED = "UNDERCOLLATERALIZED";
 export const STATUS_LIQUIDATABLE = "LIQUIDATABLE";
-export const STATUS_DELINQUENT = "DELINQUENT";
-export const STATUS_LIQUIDATING = "LIQUIDATING";
-export const STATUS_OVERDRAWN = "OVERDRAWN";
 export const STATUS_DEFAULT = "DEFAULT";
-export const STATUS_ARBITRATION = "ARBITRATION";
 export const STATUS_REPAID = "REPAID";
 export const STATUS_INSOLVENT = "INSOLVENT";
 
@@ -246,6 +240,8 @@ export function getNullPosition(): string {
   position.totalInterestEarned = BIG_INT_ZERO;
   position.principalUsd = BIG_DECIMAL_ZERO;
   position.interestUsd = BIG_DECIMAL_ZERO;
+  position.maker = ZERO_ADDRESS_STR;
+  position.taker = ZERO_ADDRESS_STR;
   position.dRate = 0;
   position.fRate = 0;
 

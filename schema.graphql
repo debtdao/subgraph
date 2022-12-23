@@ -62,6 +62,8 @@ type Position @entity {
   # used to easily find positions by stakeholder
   lender: Lender!
   borrower: Borrower!
+  maker: String
+  taker: String
 
   # 0 indexed position in repayment queue
   # only has value if drawndown

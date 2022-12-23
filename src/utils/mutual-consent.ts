@@ -42,9 +42,6 @@ import {
 const ADD_CREDIT_FUNC = '0xcb836209'; // 
 const ADD_CREDIT_ABI = '(uint128,uint128,uint256,address,address)';
 const ADD_CREDIT_U32 = 0;
-const ADD_SPIGOT_FUNC = ''; // todo cant get struct to work on remix
-const ADD_SPIGOT_ABI = '(bytes32,uint256)';
-const ADD_SPIGOT_U32 = 1;
 const SET_RATES_FUNC = '0xac856fac';
 const SET_RATES_ABI = '(bytes32,uint128,uint128)';
 const SET_RATES_U32 = 2;
@@ -54,13 +51,11 @@ const INCREASE_CREDIT_U32 = 3;
 
 export const MUTUAL_CONSENT_FUNCTIONS = new Map<string, u32>(); 
 MUTUAL_CONSENT_FUNCTIONS.set(ADD_CREDIT_FUNC, ADD_CREDIT_U32);
-MUTUAL_CONSENT_FUNCTIONS.set(INCREASE_CREDIT_FUNC, ADD_SPIGOT_U32);
+MUTUAL_CONSENT_FUNCTIONS.set(INCREASE_CREDIT_FUNC, INCREASE_CREDIT_U32);
 MUTUAL_CONSENT_FUNCTIONS.set(SET_RATES_FUNC, SET_RATES_U32);
-MUTUAL_CONSENT_FUNCTIONS.set(ADD_SPIGOT_FUNC, INCREASE_CREDIT_U32);  // on SpigotedLine 
 
 const CREDIT_LIB_GOERLI_ADDRESS: Address = Address.fromString("0x09a8d8eD61D117A3C550345BcA19bf0B8237B27e");
 const CREDIT_LIB_MAINNET_ADDRESS: Address = Address.fromString("0x8e73667B175887B106A9F803F8b62DeffC11535e");
-
 
 function createProposalEvent(event: MutualConsentRegistered, functionSig: string, positionId: string = ZERO_ADDRESS_STR): void {
     const eventId = getEventId(typeof ProposeTermsEvent, event.transaction.hash, event.logIndex);
@@ -69,7 +64,6 @@ function createProposalEvent(event: MutualConsentRegistered, functionSig: string
     proposalEvent.timestamp = event.block.timestamp;
     proposalEvent.line = event.address.toHexString();
     proposalEvent.funcSignature = functionSig;
-    // TODO return creditID from functions to save here
     proposalEvent.position = positionId;
     // proposalEvent.params = inputParams! || [];
 
@@ -104,8 +98,6 @@ export function handleMutualConsentEvents(event: MutualConsentRegistered): void 
         break;
       case INCREASE_CREDIT_U32:
         break;
-      case ADD_SPIGOT_U32:
-        break;
       case SET_RATES_U32:
         break;
       default:
@@ -113,6 +105,7 @@ export function handleMutualConsentEvents(event: MutualConsentRegistered): void 
     }
 }
 
+// manually compute position id if call to onchain lib used fails.
 function computeId(line: Address, lender: Address, token: Address): string {
   const data = ethereum.encode(
     ethereum.Value.fromAddressArray([line, lender, token])
@@ -151,14 +144,16 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
 
   // generate position id from inputParam data
   let id = '';
-  const libForNetwork = getCreditLibForNetwork();
-  const computeResult = libForNetwork.try_computeId(
+  const creditLib = getCreditLibForNetwork();
+
+  // log.warning("compute positoin id linelender,token ", [event.address.toHexString(), args[4], args[3]])
+  const computeResult = creditLib.try_computeId(
     event.address,
     Address.fromString(args[4]),
     Address.fromString(args[3])
-    );
+  );
     
-  log.warning("Credit Lib for network *{}* =  {}. Call failed ?= {}", [dataSource.network(), libForNetwork._address.toHexString(), computeResult.reverted.toString()])
+  log.warning("Credit Lib for network *{}* =  {}. Call failed ?= {}", [dataSource.network(), creditLib._address.toHexString(), computeResult.reverted.toString()])
   // log.warning('credit lib computing position id {}', [computeResult.value.toHexString()]);
 
   if(!computeResult.reverted) {
@@ -194,6 +189,7 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
   credit.interestAccrued = BIG_INT_ZERO;
   credit.interestRepaid = BIG_INT_ZERO;
   credit.totalInterestEarned = BIG_INT_ZERO;
+  credit.maker = event.transaction.from.toHexString();
   
   credit.principalUsd = BIG_DECIMAL_ZERO;
   credit.interestUsd = BIG_DECIMAL_ZERO;
@@ -201,22 +197,22 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
   // TODO innaccurate for BigNumbers
   const dRate = args[0] && args[0].length > 10 ? args[0].slice(0, 4) : args[0];
   const fRate = args[1] && args[1].length > 10 ? args[1].slice(0, 4) : args[1];
-  
+
   credit.dRate = BigInt.fromString(dRate).toI32();
   credit.fRate = BigInt.fromString(fRate).toI32();
 
   credit.deposit =  BigInt.fromString(args[2]);
-  
+
   const lendy = new Lender(args[4]);
   lendy.save(); // ensure entity persists
   credit.lender = lendy.id;
   credit.token = getOrCreateToken(args[3]).id;
-  
+
     // log.warning('could not get input params for AddCredit mutual consent proposal', []);
-    log.warning("saving credit propoal to {}", [id]);
-    log.warning("propsoal params d/fRate - {}/{} - amount {} -  lender {} -  token {}", args);
-    credit.save();
-  
+  log.warning("saving credit propoal to {} from proposer {}", [id, event.transaction.from.toHexString()]);
+  log.warning("propsoal params d/fRate - {}/{} - amount {} -  token {} - lender {}", args);
+  credit.save();
+
   return id;
 }
 
