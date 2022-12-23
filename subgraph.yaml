@@ -104,6 +104,7 @@ templates:
         - UpdateLineStatusEvent
         - WithdrawProfitEvent
         - WithdrawDepositEvent
+        - SortQEvent
       abis:
         - name: SecuredLine
           file: ./abis/SecuredLine.json
@@ -151,6 +152,8 @@ templates:
           handler: handleTradeRevenue
         - event: Liquidate(indexed bytes32,indexed uint256,indexed address,address)
           handler: handleLiquidate
+        - event: SortedIntoQ(indexed bytes32,indexed uint256,indexed uint256,bytes32)
+          handler: handleSortQ
   - name: Spigot
     kind: ethereum/contract
     network: goerli
