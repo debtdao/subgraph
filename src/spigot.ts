@@ -1,5 +1,6 @@
 import {
   BigDecimal,
+  log,
 } from "@graphprotocol/graph-ts"
 
 import {
@@ -44,16 +45,19 @@ import {
   getOrCreateToken,
   updateTokenPrice,
   getOrCreateRevenueSummary,
+  BIG_INT_ZERO,
 } from "./utils/utils";
 import { getUsdPrice } from "./utils/prices";
 
 
 export function handleAddSpigot(event: AddSpigot): void {
   let spigot = new Spigot(`${event.address.toHexString()}-${event.params.revenueContract.toHexString()}`);
+  log.warning('adding spigot with tx data - {}', [event.transaction.input.toHexString()])
   spigot.controller = event.address.toHexString(); // controller must exist already because it emitted event
   spigot.contract = event.params.revenueContract;
   // ensure that token exists
   spigot.active = true;
+  spigot.escrowed = BIG_INT_ZERO;
   spigot.startTime = event.block.timestamp;
   spigot.totalVolumeUsd = BIG_DECIMAL_ZERO;
   spigot.ownerSplit = event.params.ownerSplit.toI32();

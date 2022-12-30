@@ -39,15 +39,15 @@ import {
 
 // Mutual Consent Function Signatures
 // generated IDs on remix then copied over
-const ADD_CREDIT_FUNC = '0xcb836209'; // 
-const ADD_CREDIT_ABI = '(uint128,uint128,uint256,address,address)';
 const ADD_CREDIT_U32 = 0;
+const ADD_CREDIT_FUNC = '0xcb836209';
+const ADD_CREDIT_ABI = '(uint128,uint128,uint256,address,address)';
+const SET_RATES_U32 = 2;
 const SET_RATES_FUNC = '0xac856fac';
 const SET_RATES_ABI = '(bytes32,uint128,uint128)';
-const SET_RATES_U32 = 2;
+const INCREASE_CREDIT_U32 = 3;
 const INCREASE_CREDIT_FUNC = '0xc3651574';
 const INCREASE_CREDIT_ABI = '(address,uint8,bytes4,bytes4)';
-const INCREASE_CREDIT_U32 = 3;
 
 export const MUTUAL_CONSENT_FUNCTIONS = new Map<string, u32>(); 
 MUTUAL_CONSENT_FUNCTIONS.set(ADD_CREDIT_FUNC, ADD_CREDIT_U32);
@@ -218,6 +218,7 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
 
 
 function decodeTxData(rawTxData: string, decodeTemplate: string): ethereum.Tuple | null {
+  // NOTE: this only works for EOAs. if tx sent by multisig then data comes in a different format
   const inputs = rawTxData.slice(10);
   const encodedData = Bytes.fromHexString(inputs);
   const decoded = ethereum.decode(decodeTemplate, encodedData);

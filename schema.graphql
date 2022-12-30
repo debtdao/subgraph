@@ -395,6 +395,8 @@ type Spigot @entity {
   contract: Bytes!              # revenue generating contract
   startTime: BigInt!            # time that spigot started
 
+  claimFunc: Bytes
+  transferFunc: Bytes
   active: Boolean!              # if contract is currently attached to spigot
   ownerSplit: Int!              # % of tokens escrowed for owner
   escrowed: BigInt!             # current amount of tokens available for owner to claim

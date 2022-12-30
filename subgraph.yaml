@@ -4,11 +4,11 @@ schema:
 dataSources:
   - name: LineFactory
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: LineFactory
-      address: "0x582Da20CE3Eb970467Ac68be1c9Ee0997BC8A7e9"
-      startBlock: 7666923
+      address: "0xd008d9b4e08DCdaF7F68dAe936EF5cb5FB84F3f4"
+      startBlock: 16203233
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -25,11 +25,11 @@ dataSources:
           handler: handleDeploySecuredLine
   - name: ModuleFactory
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: ModuleFactory
-      address: "0xb4E9ADF494f0d2e41f84DE995e4834f7020357ab"
-      startBlock: 7666910
+      address: "0xC45677cf45080Df035fD4F2df082ae47EacA729e"
+      startBlock: 16203233
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -48,11 +48,11 @@ dataSources:
           handler: handleDeployEscrow
   - name: FeedRegistry
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: FeedRegistry
-      address: "0x4DF0abBe72A79cC65aDf694DE64535904aB43aAc"
-      startBlock: 7966450
+      address: "0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf"
+      startBlock: 12864088
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -74,7 +74,7 @@ dataSources:
 templates:
   - name: SecuredLine
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: SecuredLine
     mapping:
@@ -153,7 +153,7 @@ templates:
           handler: handleLiquidate
   - name: Spigot
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: Spigot
     mapping:
@@ -215,7 +215,7 @@ templates:
           handler: handleUpdateOwnerSplit
   - name: Escrow
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: Escrow
     mapping:
