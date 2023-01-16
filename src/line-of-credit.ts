@@ -24,6 +24,7 @@ import {
   MutualConsentRegistered,
   TradeSpigotRevenue,
   SetRates,
+  SortedIntoQ,
 } from "../generated/templates/SecuredLine/SecuredLine"
 
 import {
@@ -165,6 +166,30 @@ export function handleAddCredit(event: AddCredit): void {
     event.block.number
   )[0];
   creditEvent.save();
+}
+
+export function handleSortQ(event: SortedIntoQ): void {
+  // log.warning("calling handleAddCredit line {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  const id = event.params.id.toHexString();
+  // Credit must exist and fields are filled in from mutual-consent
+  const credit = new Position(id);
+  // log.warning("addCredit existing p ID {}, lender {}, deposit {}", [id, credit.lender, credit.deposit.toString()])
+  credit.queue = event.params.newIdx.toI32();
+  credit.save();
+
+  const oldId = event.params.oldId.toHexString();
+  const swappedCredit = new Position(oldId);
+  // log.warning("addCredit existing p ID {}, lender {}, deposit {}", [id, credit.lender, credit.deposit.toString()])
+  swappedCredit.queue = event.params.oldIdx.toI32();
+  swappedCredit.save();
+  // No need to track events separately yet. 
+  // const eventId = getEventId(typeof SortQEvent, event.transaction.hash, event.logIndex);
+  // let creditEvent = new SortQEvent(eventId);
+  // creditEvent.block = event.block.number;
+  // creditEvent.line = event.address.toHexString();
+  // creditEvent.position = event.params.id.toHexString();
+  // creditEvent.timestamp = event.block.timestamp;
+  // creditEvent.save();
 }
 
 export function handleIncreaseCredit(event: IncreaseCredit): void {
