@@ -155,7 +155,7 @@ export function updateTokenPrice(
   address: string, // TODO: remove support, only Token.
   token: Token
 ): void {
-  log.warning("update price tkn/addr - {}, {}", [token.id, address]);
+  log.warning("update price tkn/addr price - {}, {}, {}", [token.id, address, price.toString()]);
 
   // if(isNullToken(token)) {
   //   if(isNullString(address)) return;
@@ -275,7 +275,8 @@ export function getNullLine(): string {
 }
 
 export function getOrCreateRevenueSummary(spigotController: Address, token: Address, now: BigInt): SpigotRevenueSummary {
-  const id = spigotController.toHexString();
+  const controller = spigotController.toHexString();
+  const id = `${controller}-${token.toHexString()}`
   let summary = SpigotRevenueSummary.load(id);
   if(!summary) {
     summary = new SpigotRevenueSummary(id);
@@ -284,6 +285,7 @@ export function getOrCreateRevenueSummary(spigotController: Address, token: Addr
     summary.totalVolumeUsd = BIG_DECIMAL_ZERO;
     summary.timeOfFirstIncome = now;
     summary.timeOfLastIncome = now;
+    summary.controller = controller;
   }
 
   return summary;

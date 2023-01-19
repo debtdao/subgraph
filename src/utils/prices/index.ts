@@ -16,6 +16,9 @@ export function getUsdPricePerToken(tokenAddr: Address): CustomPriceType {
   }
 
   let network = dataSource.network();
+  
+  // prevent price lookups on unsupported networks
+  if(!constants.WHITELIST_TOKENS_MAP.isSet(network)) { return CustomPriceType.initialize(constants.BIGDECIMAL_ZERO, 0);}
 
   // 1. Yearn Lens Oracle
   let yearnLensPrice = getTokenPriceFromYearnLens(tokenAddr, network);

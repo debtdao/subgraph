@@ -187,16 +187,10 @@ export function handleIncreaseCredit(event: IncreaseCredit): void {
   creditEvent.save();
 }
 
-export function handleCloseCreditPosition(event: CloseCreditPosition): void {
-  log.warning("calling handleCloseCreditPosition line {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+export function handleCloseCredit(event: CloseCreditPosition): void {
+  log.warning("calling handleCloseCredit line {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   let credit = Position.load(event.params.id.toHexString())!;
-  credit.principal = BIG_INT_ZERO;
   credit.status = POSITION_STATUS_CLOSED;
-  credit.deposit = BIG_INT_ZERO;
-  credit.interestAccrued = BIG_INT_ZERO;
-  credit.interestRepaid = BIG_INT_ZERO;
-  credit.dRate = 0;
-  credit.fRate = 0;
   credit.queue = NOT_IN_QUEUE.toI32(); // TODO figure out how to make null/undefined with type system
   credit.save();
 

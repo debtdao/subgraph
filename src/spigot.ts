@@ -59,6 +59,8 @@ export function handleAddSpigot(event: AddSpigot): void {
   spigot.active = true;
   spigot.escrowed = BIG_INT_ZERO;
   spigot.startTime = event.block.timestamp;
+  spigot.claimFunc = event.params.claimFnSig;
+  spigot.transferFunc = event.params.trsfrFnSig;
   spigot.totalVolumeUsd = BIG_DECIMAL_ZERO;
   spigot.ownerSplit = event.params.ownerSplit.toI32();
   spigot.save();
