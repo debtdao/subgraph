@@ -4,11 +4,11 @@ schema:
 dataSources:
   - name: LineFactory
     kind: ethereum/contract
-    network: mainnet
+    network: goerli
     source:
       abi: LineFactory
-      address: "0xd008d9b4e08DCdaF7F68dAe936EF5cb5FB84F3f4"
-      startBlock: 16203233
+      address: "0x0E81C743aF01Dc8D77A0cC002daE94EB0433399d"
+      startBlock: 7666923
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -25,11 +25,11 @@ dataSources:
           handler: handleDeploySecuredLine
   - name: ModuleFactory
     kind: ethereum/contract
-    network: mainnet
+    network: goerli
     source:
       abi: ModuleFactory
-      address: "0xC45677cf45080Df035fD4F2df082ae47EacA729e"
-      startBlock: 16203233
+      address: "0x70a951E2D2Ee4Fc6D38325AB0e0ED1a789Eb2D8E"
+      startBlock: 7666910
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -48,11 +48,11 @@ dataSources:
           handler: handleDeployEscrow
   - name: FeedRegistry
     kind: ethereum/contract
-    network: mainnet
+    network: goerli
     source:
       abi: FeedRegistry
-      address: "0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf"
-      startBlock: 12864088
+      address: "0x4DF0abBe72A79cC65aDf694DE64535904aB43aAc"
+      startBlock: 7966450
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -74,7 +74,7 @@ dataSources:
 templates:
   - name: SecuredLine
     kind: ethereum/contract
-    network: mainnet
+    network: goerli
     source:
       abi: SecuredLine
     mapping:
@@ -153,7 +153,7 @@ templates:
           handler: handleLiquidate
   - name: Spigot
     kind: ethereum/contract
-    network: mainnet
+    network: goerli
     source:
       abi: Spigot
     mapping:
@@ -195,7 +195,7 @@ templates:
         - name: CalculationsSushiSwap
           file: ./abis/Prices/Calculations/SushiSwap.json
       eventHandlers:
-        - event: AddSpigot(indexed address,uint256)
+        - event: AddSpigot(indexed address,uint256,bytes4,bytes4)
           handler: handleAddSpigot
         - event: ClaimOwnerTokens(indexed address,indexed uint256,address)
           handler: handleClaimOwnerTokens
@@ -215,7 +215,7 @@ templates:
           handler: handleUpdateOwnerSplit
   - name: Escrow
     kind: ethereum/contract
-    network: mainnet
+    network: goerli
     source:
       abi: Escrow
     mapping:
