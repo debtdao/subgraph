@@ -40,10 +40,18 @@ type LineOfCredit @entity {
   # modules
   escrow: Escrow @derivedFrom(field: "line")
   spigot: SpigotController @derivedFrom(field: "line")
+  reserves: LineReserve @derivedFrom(field: "line")
 
   # `lines` not guaranteed to return in order of repayment queue like smart contract
   positions: [Position!] @derivedFrom(field: "line")
   events: [LineEventWithValue!]  @derivedFrom(field: "line")
+}
+
+type LineReserve @entity {
+  id: ID! # line.id - token.id
+  line: LineOfCredit!
+  token: Token!
+  amount: BigInt!
 }
 
 type Position @entity {
@@ -92,11 +100,31 @@ type Lender @entity {
   positions: [Position!] @derivedFrom(field: "lender")
 }
 
-type Borrower @entity {
-  id: ID!
-  lines: [LineOfCredit!] @derivedFrom(field: "borrower") # all contracts
-  positions: [Position!] @derivedFrom(field: "borrower") # all πositions on all contracts
+type MarketplaceActor @entity {
+  id: ID! # address of account
+  lines: [LineOfCredit!]
+  positions: [Position!] 
 }
+
+# type Lender implements MarketplaceActor @entity {
+#   id: ID!
+#   lines: [LineOfCredit!] # all lines they've ever lent or proposed to
+#   positions: [Position!] @derivedFrom(field: "lender")
+# }
+
+# type Borrower implements MarketplaceActor @entity {
+#   id: ID!
+#   lines: [LineOfCredit!] @derivedFrom(field: "borrower") # all contracts
+#   positions: [Position!] @derivedFrom(field: "borrower") # all πositions on all contracts
+# }
+
+# type Arbiter implements MarketplaceActor @entity {
+#   id: ID!
+#   lines: [LineOfCredit!] @derivedFrom(field: "arbiter")
+#   positions: [Position!] # empty for now
+# }
+
+
 
 #  Line EVENTS
 
@@ -154,8 +182,12 @@ type ProposeTermsEvent implements LineEvent @entity {
   line: LineOfCredit!
   position: Position!
 
-  funcSignature: String! # hexcode e.g. 0x12345678
-  params: [Bytes!]  # all proposed terms
+type RevokeConsentEvent implements ProposalEvents @entity {
+  id: ID! # block-logIndex-txLogIndex
+  block: BigInt!
+  timestamp: BigInt!
+  line: LineOfCredit!
+  proposal: Proposal! # bytes32 mututal consent hash
 }
 
 
@@ -284,7 +316,22 @@ type DefaultEvent implements LineEventWithValue @entity {
   value: BigDecimal!
 }
 
-type SetRatesEvent implements LineEventWithValue @entity {
+
+type ReservesChangedEvent implements LineEventWithValue @entity {
+  id: ID! # block-logIndex-txLogIndex
+  block: BigInt!
+  timestamp: BigInt!
+  line: LineOfCredit!
+  position: Position! # always null
+
+  reserve: LineReserve!
+  amount: BigInt!
+  value: BigDecimal! # not necessarily the amount received from executingliquidation
+  type: Int! # if reserve change is due to revenue or debt payment (possible for reserve to be used for both)
+}
+
+
+type SetRatesEvent implements LineEvent @entity {
   id: ID! # block-logIndex-txLogIndex
   block: BigInt!
   timestamp: BigInt!
@@ -293,10 +340,6 @@ type SetRatesEvent implements LineEventWithValue @entity {
 
   dRate: Int! # bps
   fRate: Int! # bps
-
-  # always 0, needed for compatability
-  amount: BigInt!
-  value: BigDecimal!
 }
 
 

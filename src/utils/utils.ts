@@ -14,6 +14,7 @@ import {
 import {
   LineOfCredit,
   Token,
+  LineReserve,
   SupportedToken,
   Spigot,
   Escrow,
@@ -287,6 +288,20 @@ export function getOrCreateRevenueSummary(spigotController: Address, token: Addr
   }
 
   return summary;
+}
+
+export function getOrCreateLineReserve(line: Address, token: Address): LineReserve {
+  const lineId = line.toHexString();
+  const reserveId = `${lineId}-${token.toHexString()}`
+  let reserves = LineReserve.load(reserveId);
+  if(!reserves) {
+    reserves = new LineReserve(reserveId);
+    reserves.token = token.toHexString();
+    reserves.amount = BIG_INT_ZERO;
+    reserves.line = lineId;
+  }
+
+  return reserves;
 }
 
 

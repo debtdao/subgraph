@@ -14,7 +14,8 @@ import {
   Spigot,
   SpigotController,
   Position,
-  Lender,
+  MarketplaceActor,
+  Proposal,
   
   AddCreditEvent,
   IncreaseCreditEvent,

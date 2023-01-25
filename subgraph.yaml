@@ -151,6 +151,8 @@ templates:
           handler: handleTradeRevenue
         - event: Liquidate(indexed bytes32,indexed uint256,indexed address,address)
           handler: handleLiquidate
+        - event: ReservesChanged(indexed address,indexed int256,uint256)
+          handler: handleReservesChanged
   - name: Spigot
     kind: ethereum/contract
     network: goerli

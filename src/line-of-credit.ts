@@ -14,6 +14,7 @@ import {
   Default,
   DeployLine,
   InterestAccrued,
+  ReservesChanged,
   IncreaseCredit,
   Liquidate,
   RepayInterest,
@@ -24,6 +25,7 @@ import {
   MutualConsentRegistered,
   TradeSpigotRevenue,
   SetRates,
+  MutualConsentRevoked,
 } from "../generated/templates/SecuredLine/SecuredLine"
 
 import {
@@ -33,6 +35,7 @@ import {
   SpigotController,
   Escrow,
   Position,
+  LineReserve,
   // graph schema events
   AddCreditEvent,
   BorrowEvent,
@@ -41,12 +44,15 @@ import {
   IncreaseCreditEvent,
   InterestAccruedEvent,
   LiquidateEvent,
+  ReservesChangedEvent,
   RepayInterestEvent,
   RepayPrincipalEvent,
   UpdateStatusEvent,
   WithdrawProfitEvent,
   WithdrawDepositEvent,
   SetRatesEvent,
+  RevokeConsentEvent,
+  Proposal,
 } from "../generated/schema"
 
 import {
@@ -319,17 +325,17 @@ export function handleInterestAccrued(event: InterestAccrued): void {
 
 
 export function handleRepayInterest(event: RepayInterest): void {
-  log.warning("calling handleRepayInterest line {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  // log.warning("calling handleRepayInterest line {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   let credit = Position.load(event.params.id.toHexString())!;
-  credit.interestAccrued = credit.interestAccrued.minus(event.params.amount);
   const data = getValueForPosition(
     event.address.toHexString(),
     credit.token,
     event.params.amount,
     event.block.number
   );
+  
+  credit.interestAccrued = credit.interestAccrued.minus(event.params.amount);
   credit.interestUsd = new BigDecimal(credit.interestAccrued).times(data[1]);
-
   credit.totalInterestEarned = credit.totalInterestEarned.plus(event.params.amount);
   credit.interestRepaid = credit.interestRepaid.plus(event.params.amount);
   
@@ -457,16 +463,13 @@ export function handleSetRates(event: SetRates): void {
   creditEvent.timestamp = event.block.timestamp;
   creditEvent.dRate = event.params.dRate.toI32();
   creditEvent.fRate = event.params.fRate.toI32();
-    // compatability
-  creditEvent.amount = BIG_INT_ZERO;
-  creditEvent.value = BIG_DECIMAL_ZERO;
 
   creditEvent.save();
 }
 
 export function handleTradeRevenue(event: TradeSpigotRevenue): void {
   // log.warning("calling handleTradeRevenue line {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
-  // event emitted by Line but code stored in Spigot for organization
+  // event emitted by Line but code stored in Spigot with other rev functions for organization
   _handleTradeRevenue(event);
 }
 
@@ -474,3 +477,51 @@ export function handleTradeRevenue(event: TradeSpigotRevenue): void {
 export function handleMutualConsentRegistered(event: MutualConsentRegistered): void {
   handleMutualConsentEvents(event);
 }
+
+
+export function handleReservesChanged(event: ReservesChanged): void {
+  // log.warning("calling handleSetRates line {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  const lineId = event.address.toHexString()
+  const token = getOrCreateToken(event.params.token.toHexString())
+  const reserveId = `${lineId}-${token.id}`
+  const reserves  = getOrCreateLineReserve(event.address, event.params.token);
+  reserves.line = lineId;
+  reserves.token = token.id;
+  // diff is int not uint so .plus() is always right
+  log.warning('resrve change token {} -- diff {} -- type {}', [token.id, event.params.diff.toString(), event.params.tokenType.toString()])
+  reserves.amount = reserves.amount.plus(event.params.diff)
+  token.save();
+  reserves.save();
+
+  const eventId = getEventId(typeof ReservesChangedEvent, event.transaction.hash, event.logIndex);
+  let creditEvent = new ReservesChangedEvent(eventId);
+  creditEvent.block = event.block.number;
+  creditEvent.line = lineId;
+  creditEvent.position = BYTES32_ZERO_STR; // for compatibility
+  creditEvent.timestamp = event.block.timestamp;
+
+  creditEvent.reserve = reserveId;
+  creditEvent.amount = event.params.diff;
+  creditEvent.value = BIG_DECIMAL_ZERO;
+  creditEvent.type = event.params.tokenType.toI32();
+  
+  creditEvent.save();
+}
+
+
+export function handleRevokeConsent(event: MutualConsentRevoked): void {
+  // log.warning("calling handleSetRates line {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  const proposalId = event.params._toRevoke.toHexString()
+  const proposal = new Proposal(proposalId)
+  proposal.revokedAt = event.block.timestamp;
+
+  const eventId = getEventId(typeof RevokeConsentEvent, event.transaction.hash, event.logIndex);
+  let creditEvent = new RevokeConsentEvent(eventId);
+  creditEvent.block = event.block.number;
+  creditEvent.line = event.address.toHexString();
+  creditEvent.timestamp = event.block.timestamp;
+  creditEvent.proposal = proposalId;
+  
+  creditEvent.save();
+}
+

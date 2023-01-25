@@ -94,25 +94,30 @@ export function handleRemoveSpigot(event: RemoveSpigot): void {
 
 export function handleClaimRevenue(event: ClaimRevenue): void {
   let spigot = Spigot.load(`${event.address.toHexString()}-${event.params.revenueContract.toHexString()}`)!;
-
+  const revenueSummary = getOrCreateRevenueSummary(event.address, event.params.token, event.block.timestamp);
+  const revenue = event.params.amount
+  const ownerTokens = event.params.escrowed
   // use generic price oracle to accomodate wide range of revenue tokens
-  let value = getUsdPrice(event.params.token, new BigDecimal(event.params.amount));
+  let value = getUsdPrice(event.params.token, new BigDecimal(revenue));
   
-  spigot.escrowed = spigot.escrowed.plus(event.params.escrowed);
   spigot.totalVolumeUsd = spigot.totalVolumeUsd.plus(value);
   spigot.save();
-
+  
   const token = event.params.token.toHexString();
   // need to getOrCreate sumary because new tokens can be added anytime arbitrarily
-  let revenueSummary = getOrCreateRevenueSummary(event.address, event.params.token, event.block.timestamp);
+  
+  revenueSummary.ownerTokens = (revenueSummary.ownerTokens ? revenueSummary.ownerTokens! : BIGINT_ZERO)
+    .plus(ownerTokens);
+  revenueSummary.operatorTokens = (revenueSummary.operatorTokens ? revenueSummary.operatorTokens! : BIGINT_ZERO)
+    .plus(revenue.minus(ownerTokens));
   revenueSummary.totalVolumeUsd = revenueSummary.totalVolumeUsd.plus(value);
-  revenueSummary.totalVolume = revenueSummary.totalVolume.plus(event.params.amount);
+  revenueSummary.totalVolume = revenueSummary.totalVolume.plus(revenue);
   revenueSummary.timeOfLastIncome = event.block.timestamp;
   revenueSummary.save();
 
   // update price in subgraph for revenue token potentially not tracked by oracle
   updateTokenPrice(
-    value.div(new BigDecimal(event.params.amount)),
+    value.div(new BigDecimal(revenue)),
     event.block.number,
     token,
     getOrCreateToken(token)
@@ -125,9 +130,9 @@ export function handleClaimRevenue(event: ClaimRevenue): void {
   spigotEvent.block = event.block.number;
   spigotEvent.timestamp = event.block.timestamp;
   spigotEvent.revenueToken = token; // already exists from AddSpigot
-  spigotEvent.amount = event.params.amount;
-  spigotEvent.escrowed = spigot.escrowed;
-  spigotEvent.netIncome = event.params.amount.minus(spigot.escrowed);
+  spigotEvent.amount = revenue;
+  spigotEvent.escrowed = ownerTokens;
+  spigotEvent.netIncome = revenue.minus(ownerTokens);
   spigotEvent.value = value;
   
 
@@ -220,6 +225,12 @@ export function handleTradeRevenue(event: TradeSpigotRevenue): void {
   spigotEvent.debtToken = event.params.debtToken.toHexString(); // Token entity already exists from AddCredit
   spigotEvent.bought = event.params.debtTokensBought;
   
+  log.warning('TRADE SPIGOT REVENUE rev/credit amounts -- {}/{} -- {}/{}', [
+    spigotEvent.revenueToken,
+    spigotEvent.sold.toString(),
+    spigotEvent.debtToken,
+    spigotEvent.bought.toString()
+  ])
   // we dont necessarily have an oracle for revenue tokens so  get best dex price
   // Can compare dex price vs trade execution price
   const revenueTokenValue = getUsdPrice(event.params.revenueToken, new BigDecimal(spigotEvent.sold));
