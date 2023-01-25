@@ -58,7 +58,7 @@ type Position @entity {
   id: ID!       # keccak(abi.encode(line, lender, token))
   line: LineOfCredit!
   token: Token!
-  proposal: Proposal @derivedFrom(field: "position")
+  proposal: [Proposal!]! @derivedFrom(field: "position")
 
   # if position is proposed, accepted, or closed.
   status: String
@@ -94,7 +94,8 @@ type Position @entity {
 type Proposal @entity {
   id: ID!           # bytes32 mutualConsent hash
   mutualConsentFunc: String!  # function signature that requres mutualConsent to call
-  msgData: String!  # hexdata passed into function call
+  msgData: String!  # hexdata passed directly into mutualConsent function call. 
+  txInput: String!  # original tx data for proposal tx. May include multisig or 3rd party smart contract interactions wrapping `msgData`
   args: [String!]   # human readable version of params
 
   maker: MarketplaceActor! # function signature that requres mutualConsent to call

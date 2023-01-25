@@ -93,7 +93,7 @@ export function handleMutualConsentEvents(event: MutualConsentRegistered): void 
             inputs[4].toAddress().toHexString()
           ];
           const positionId = handleAddCreditMutualConsent(event, args);
-          createProposal(event, functionSig, inputs, args, positionId);
+          createProposal(event, functionSig, args, positionId);
         }
         break;
       case INCREASE_CREDIT_U32:
@@ -108,7 +108,6 @@ export function handleMutualConsentEvents(event: MutualConsentRegistered): void 
 function createProposal(
   event: MutualConsentRegistered,
   functionSig: string,
-  msgData: ethereum.Tuple,
   args: dot_top,
   positionId: string = BYTES32_ZERO_STR
 ): void {
@@ -116,12 +115,12 @@ function createProposal(
   const proposal = new Proposal(proposalId);
   
   proposal.line = event.address.toHexString();
-  log.warning("create proposal id, pos, line - {}, {}, {}", [proposalId, positionId, msgData.toString()])
+  // log.warning("create proposal id, pos, line - {}, {}, {}", [proposalId, positionId, event.transaction.input.toHexString()])
   proposal.position = positionId;
   proposal.mutualConsentFunc = functionSig;
   proposal.maker = event.transaction.from.toHexString();
   proposal.proposedAt = event.block.timestamp;
-  proposal.msgData = msgData.toString() // todo convert Tuples to Bytes
+  proposal.msgData = event.transaction.input.toHexString() // todo convert Tuples to Bytes
   proposal.args = args;
   proposal.save()
 
@@ -212,21 +211,23 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, args: dot_
   credit.principalUsd = BIG_DECIMAL_ZERO;
   credit.interestUsd = BIG_DECIMAL_ZERO;
   
+  // Position data is null on proposal. Fill terms in hanldeAddCredit.
   // TODO innaccurate for BigNumbers
-  const dRate = args[0] && args[0].length > 10 ? args[0].slice(0, 4) : args[0];
-  const fRate = args[1] && args[1].length > 10 ? args[1].slice(0, 4) : args[1];
-
-  credit.dRate = BigInt.fromString(dRate).toI32();
-  credit.fRate = BigInt.fromString(fRate).toI32();
-
-  credit.deposit =  BigInt.fromString(args[2]);
+  // const dRate = args[0] && args[0].length > 10 ? args[0].slice(0, 4) : args[0];
+  // const fRate = args[1] && args[1].length > 10 ? args[1].slice(0, 4) : args[1];
+  // credit.dRate = BigInt.fromString(dRate).toI32();
+  // credit.fRate = BigInt.fromString(fRate).toI32();
+  // credit.deposit =  BigInt.fromString(args[2]);
+  credit.dRate = 0;
+  credit.fRate = 0;
+  credit.deposit = BIG_INT_ZERO;
 
   const lendy = new MarketplaceActor(args[4]);
   lendy.save(); // ensure entity persists
   credit.lender = lendy.id;
   credit.token = getOrCreateToken(args[3]).id;
 
-    // log.warning('could not get input params for AddCredit mutual consent proposal', []);
+  // log.warning('could not get input params for AddCredit mutual consent proposal', []);
   // log.warning("saving credit propoal to {} from proposer {}", [id, event.transaction.from.toHexString()]);
   log.warning("propsoal params d/fRate - {}/{} - amount {} -  token {} - lender {}", args);
   credit.save();
@@ -236,7 +237,8 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, args: dot_
 
 
 function decodeTxData(rawTxData: string, decodeTemplate: string): ethereum.Tuple | null {
-  // NOTE: this only works for EOAs. if tx sent by multisig then data comes in a different format
+  // NOTE: this only works for EOAs. if tx sent by multisig then data comes in a different format.
+  // TODO: add support for gnosis multisig tx formats
   const inputs = rawTxData.slice(10);
   const encodedData = Bytes.fromHexString(inputs);
   const decoded = ethereum.decode(decodeTemplate, encodedData);
