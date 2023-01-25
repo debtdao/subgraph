@@ -29,8 +29,7 @@ import {
 import {
   // main entity types
   LineOfCredit,
-  Borrower,
-  Lender,
+  MarketplaceActor,
   SpigotController,
   Escrow,
   Position,
@@ -68,24 +67,30 @@ import {
   BIG_DECIMAL_ZERO,
   POSITION_STATUS_OPENED,
   POSITION_STATUS_CLOSED,
+  getOrCreateSpigot,
+  getOrCreateLineReserve,
 } from "./utils/utils";
 
 import { handleTradeRevenue as _handleTradeRevenue } from "./spigot"
 import { handleMutualConsentEvents } from "./utils/mutual-consent";
+import { BIGINT_ZERO } from "./utils/prices/common/constants";
+import { ProposeFeedCall } from "../generated/FeedRegistry/FeedRegistry";
 
 export function handleDeployLine(event: DeployLine): void {
   // log.warning("new Line addy {}", [event.address.toHexString()]);
 
   const line = new LineOfCredit(event.address.toHexString());
-  const borrower = new Borrower(event.params.borrower.toHexString());
-  borrower.save(); // ensure entity persists
+  const borrower = new MarketplaceActor(event.params.borrower.toHexString());
+  const arbiter = new MarketplaceActor(event.params.arbiter.toHexString());
+  borrower.save(); // no metadata to add
+  arbiter.save(); // no metadata to add
 
   const LoC = SecuredLine.bind(event.address);
 
   line.borrower = borrower.id;
   line.type = "Crypto Credit Account";
   line.oracle = event.params.oracle;
-  line.arbiter = event.params.arbiter;
+  line.arbiter = arbiter .id;
   line.start = event.block.timestamp.toI32();
   line.end = LoC.deadline().toI32();
   line.status = STATUS_UNINITIALIZED; // LoC is UNINITIALIZED on deployment

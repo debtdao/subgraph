@@ -172,7 +172,7 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
   }
 
   
-  if(!id) return ZERO_ADDRESS_STR;
+  if(!id) return BYTES32_ZERO_STR;
 
   // credit hasnt been created yet so assume none exists in the db already 
   // some data will be overwritten but not events
@@ -183,13 +183,11 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
   // fill with null data since position doesnt exist yet
   
   credit.borrower = ZERO_ADDRESS_STR; // TODO: pull from line contract or entity
-  credit.proposedAt = event.block.timestamp;
   credit.queue = NOT_IN_QUEUE.toI32();
   credit.principal = BIG_INT_ZERO;
   credit.interestAccrued = BIG_INT_ZERO;
   credit.interestRepaid = BIG_INT_ZERO;
   credit.totalInterestEarned = BIG_INT_ZERO;
-  credit.maker = event.transaction.from.toHexString();
   
   credit.principalUsd = BIG_DECIMAL_ZERO;
   credit.interestUsd = BIG_DECIMAL_ZERO;
@@ -203,13 +201,13 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParam
 
   credit.deposit =  BigInt.fromString(args[2]);
 
-  const lendy = new Lender(args[4]);
+  const lendy = new MarketplaceActor(args[4]);
   lendy.save(); // ensure entity persists
   credit.lender = lendy.id;
   credit.token = getOrCreateToken(args[3]).id;
 
     // log.warning('could not get input params for AddCredit mutual consent proposal', []);
-  log.warning("saving credit propoal to {} from proposer {}", [id, event.transaction.from.toHexString()]);
+  // log.warning("saving credit propoal to {} from proposer {}", [id, event.transaction.from.toHexString()]);
   log.warning("propsoal params d/fRate - {}/{} - amount {} -  token {} - lender {}", args);
   credit.save();
 

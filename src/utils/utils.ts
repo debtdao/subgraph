@@ -17,11 +17,11 @@ import {
   SupportedToken,
   Spigot,
   Escrow,
-  Borrower,
-  Lender,
   SpigotController,
   SpigotRevenueSummary,
   Position,
+  MarketplaceActor,
+  Proposal,
 
   AddCreditEvent,
   IncreaseCreditEvent,
@@ -217,21 +217,21 @@ export function getNullToken(): string {
 }
 
 export function getNullPosition(): string {
-  const id = ZERO_ADDRESS_STR;
+  getNullProposal(); // ensure dependencies
+  const id = BYTES32_ZERO_STR;
   let position =  Position.load(id);
   if(position) return position.id;
 
   position = new Position(id);
   position.line = getNullLine();
 
-  const lender = new Lender(id);
+  const lender = new MarketplaceActor(`${ZERO_ADDRESS_STR}1`);
   lender.save();
 
-  position.borrower = id;
-  position.lender = id;
+  position.borrower = ZERO_ADDRESS_STR;
+  position.lender = lender.id;
 
   position.token = getNullToken();
-  position.proposedAt = BIG_INT_ZERO;
   position.queue = NOT_IN_QUEUE.toI32();
   position.deposit = BIG_INT_ZERO;
   position.principal = BIG_INT_ZERO;
@@ -240,8 +240,6 @@ export function getNullPosition(): string {
   position.totalInterestEarned = BIG_INT_ZERO;
   position.principalUsd = BIG_DECIMAL_ZERO;
   position.interestUsd = BIG_DECIMAL_ZERO;
-  position.maker = ZERO_ADDRESS_STR;
-  position.taker = ZERO_ADDRESS_STR;
   position.dRate = 0;
   position.fRate = 0;
 
@@ -255,7 +253,7 @@ export function getNullLine(): string {
   if(!line) {
     line = new LineOfCredit(id);
 
-    const borrower = new Borrower(id);
+    const borrower = new MarketplaceActor(id);
     borrower.save();
 
     line.borrower = id;
@@ -266,7 +264,7 @@ export function getNullLine(): string {
     line.dex =  Bytes.fromHexString(id);
     line.borrower =  id;
     line.oracle =  Bytes.fromHexString(id);
-    line.arbiter =  Bytes.fromHexString(id);
+    line.arbiter =  id;
 
     line.save();
   }

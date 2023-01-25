@@ -33,9 +33,9 @@ type LineOfCredit @entity {
   dex: Bytes!
 
   #stakeholders
-  borrower: Borrower!
+  borrower: MarketplaceActor!
   oracle: Bytes!
-  arbiter: Bytes!
+  arbiter: MarketplaceActor!
 
   # modules
   escrow: Escrow @derivedFrom(field: "line")
@@ -47,7 +47,7 @@ type LineOfCredit @entity {
 }
 
 type Position @entity {
-  id: ID!       # keccak(line,lender,token)
+  id: ID!       # keccak(abi.encode(line, lender, token))
   line: LineOfCredit!
   token: Token!
   
@@ -60,10 +60,8 @@ type Position @entity {
   status: String
 
   # used to easily find positions by stakeholder
-  lender: Lender!
-  borrower: Borrower!
-  maker: String
-  taker: String
+  lender: MarketplaceActor!
+  borrower: MarketplaceActor!
 
   # 0 indexed position in repayment queue
   # only has value if drawndown
@@ -319,10 +317,29 @@ type SpigotController @entity {
   events: [SpigotControllerEvent!] @derivedFrom(field: "controller")
 }
 
+# TODO rename Seting and Controlelr to Spigot?
+type Spigot @entity {
+  id: ID!                       # spigot-revenueContract
+  controller: SpigotController!
+  contract: Bytes!              # revenue generating contract
+  startTime: BigInt!            # time that spigot started
+
+  claimFunc: Bytes
+  transferFunc: Bytes
+  active: Boolean!              # if contract is currently attached to spigot
+  ownerSplit: Int!              # % of tokens escrowed for owner
+
+  totalVolumeUsd: BigDecimal!    # usd value of all tokens total volume
+
+  events: [SpigotEvent!] @derivedFrom(field: "spigot")
+}
+
 type SpigotRevenueSummary @entity {
   id: ID!                       # controller-token
   controller: SpigotController!
   token: Token!                 # token revenue is earned in
+  ownerTokens: BigInt           # currently claimable by spigot owner
+  operatorTokens: BigInt        # currently claimable by spigot operator
   timeOfFirstIncome: BigInt!
   timeOfLastIncome: BigInt!
   totalVolume: BigInt!
@@ -388,23 +405,7 @@ type ClaimOperatorTokensEvent implements SpigotControllerEvent & EventWithValue 
   value: BigDecimal!
 }
 
-# TODO rename Seting and Controlelr to Spigot
-type Spigot @entity {
-  id: ID!                       # spigot-revenueContract
-  controller: SpigotController!
-  contract: Bytes!              # revenue generating contract
-  startTime: BigInt!            # time that spigot started
 
-  claimFunc: Bytes
-  transferFunc: Bytes
-  active: Boolean!              # if contract is currently attached to spigot
-  ownerSplit: Int!              # % of tokens escrowed for owner
-  escrowed: BigInt!             # current amount of tokens available for owner to claim
-
-  totalVolumeUsd: BigDecimal!    # usd value of all tokens total volume
-
-  events: [SpigotEvent!] @derivedFrom(field: "spigot")
-}
 
 interface SpigotEvent {
   id: ID! # block-logIndex-txLogIndex

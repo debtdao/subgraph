@@ -9,6 +9,7 @@ import {
   RemoveSpigot,
   ClaimRevenue,
   ClaimOwnerTokens,
+  ClaimOperatorTokens,
   UpdateOwnerSplit,
   UpdateWhitelistFunction,
   UpdateOwner,
@@ -30,6 +31,7 @@ import {
   RemoveSpigotEvent,
   ClaimRevenueEvent,
   ClaimOwnerTokensEvent,
+  ClaimOperatorTokensEvent,
   TradeRevenueEvent,
   UpdateOwnerSplitEvent,
   UpdateOwnerEvent,
@@ -48,6 +50,7 @@ import {
   BIG_INT_ZERO,
 } from "./utils/utils";
 import { getUsdPrice } from "./utils/prices";
+import { BIGINT_ZERO } from "./utils/prices/common/constants";
 
 
 export function handleAddSpigot(event: AddSpigot): void {
@@ -57,7 +60,6 @@ export function handleAddSpigot(event: AddSpigot): void {
   spigot.contract = event.params.revenueContract;
   // ensure that token exists
   spigot.active = true;
-  spigot.escrowed = BIG_INT_ZERO;
   spigot.startTime = event.block.timestamp;
   spigot.claimFunc = event.params.claimFnSig;
   spigot.transferFunc = event.params.trsfrFnSig;
@@ -148,9 +150,9 @@ export function handleUpdateOwnerSplit(event: UpdateOwnerSplit): void {
   spigotEvent.save();
 }
 
-export function handleClaimEscrow(event: ClaimOwnerTokens): void {
-  let spigot = Spigot.load(event.params.token.toHexString())!;
-  spigot.escrowed = spigot.escrowed.minus(event.params.amount);
+export function handleClaimOwnerTokens(event: ClaimOwnerTokens): void {
+  let spigot = SpigotRevenueSummary.load(`${event.address.toHexString()}-${event.params.token.toHexString()}`)!;
+  spigot.ownerTokens = spigot.ownerTokens!.minus(event.params.amount);
   spigot.save();
 
   
@@ -175,6 +177,33 @@ export function handleClaimEscrow(event: ClaimOwnerTokens): void {
   );
 }
 
+
+export function handleClaimOperatorTokens(event: ClaimOperatorTokens): void {
+  let spigot = SpigotRevenueSummary.load(`${event.address.toHexString()}-${event.params.token.toHexString()}`)!;
+  spigot.operatorTokens = spigot.operatorTokens!.minus(event.params.amount);
+  spigot.save();
+
+  
+  let token = event.params.token.toHexString();
+
+  const eventId = getEventId(typeof ClaimOperatorTokensEvent, event.transaction.hash, event.logIndex);
+  let spigotEvent = new ClaimOperatorTokensEvent(eventId);
+  spigotEvent.controller = event.address.toHexString();
+  spigotEvent.block = event.block.number;
+  spigotEvent.timestamp = event.block.timestamp;
+  spigotEvent.amount = event.params.amount;
+  spigotEvent.value = getUsdPrice(event.params.token, new BigDecimal(spigotEvent.amount));
+  spigotEvent.to = event.params.operator.toHexString();
+  spigotEvent.save();
+  
+  // update price in subgraph for revenue token potentially not tracked by oracle
+  updateTokenPrice(
+    spigotEvent.value.div(new BigDecimal(spigotEvent.amount)),
+    event.block.number,
+    token,
+    getOrCreateToken(token)
+  );
+}
 
 // technically event is generated in Line contract but makes more sense to store code here
 export function handleTradeRevenue(event: TradeSpigotRevenue): void {
