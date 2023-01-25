@@ -58,11 +58,7 @@ type Position @entity {
   id: ID!       # keccak(abi.encode(line, lender, token))
   line: LineOfCredit!
   token: Token!
-  
-  proposedAt: BigInt!
-  openedAt: BigInt
-  canceledAt: BigInt
-  closedAt: BigInt
+  proposal: Proposal @derivedFrom(field: "position")
 
   # if position is proposed, accepted, or closed.
   status: String
@@ -95,9 +91,25 @@ type Position @entity {
   events: [LineEventWithValue!]  @derivedFrom(field: "position")
 }
 
-type Lender @entity {
-  id: ID!
-  positions: [Position!] @derivedFrom(field: "lender")
+type Proposal @entity {
+  id: ID!           # bytes32 mutualConsent hash
+  mutualConsentFunc: String!  # function signature that requres mutualConsent to call
+  msgData: String!  # hexdata passed into function call
+  args: [String!]   # human readable version of params
+
+  maker: MarketplaceActor! # function signature that requres mutualConsent to call
+  taker: MarketplaceActor  # function signature that requres mutualConsent to call
+  
+  proposedAt: BigInt!
+  revokedAt: BigInt
+  acceptedAt: BigInt
+  endedAt: BigInt
+  
+  # optional resources related to proposal
+  line: LineOfCredit
+  position: Position
+
+  events: [ProposalEvents!] @derivedFrom(field: "proposal")
 }
 
 type MarketplaceActor @entity {
@@ -175,12 +187,20 @@ type UpdateStatusEvent implements LineEvent @entity {
   status: Int!
 }
 
-type ProposeTermsEvent implements LineEvent @entity {
+interface ProposalEvents {
+  id: ID! # block-logIndex-txLogIndex
+  block: BigInt!
+  timestamp: BigInt!
+  proposal: Proposal! # bytes32 mututal consent hash
+}
+
+type ProposeTermsEvent implements ProposalEvents @entity {
   id: ID! # block-logIndex-txLogIndex
   block: BigInt!
   timestamp: BigInt!
   line: LineOfCredit!
-  position: Position!
+  proposal: Proposal! # bytes32 mututal consent hash
+}
 
 type RevokeConsentEvent implements ProposalEvents @entity {
   id: ID! # block-logIndex-txLogIndex

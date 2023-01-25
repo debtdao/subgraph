@@ -248,6 +248,23 @@ export function getNullPosition(): string {
   return position.id;
 }
 
+export function getNullProposal(): string {
+  const id = BYTES32_ZERO_STR;
+  let prop = Proposal.load(id);
+  if(!prop) {
+    prop = new Proposal(id);
+    prop.mutualConsentFunc = '0x00000000';
+    prop.maker =  ZERO_ADDRESS_STR;
+    prop.proposedAt =  BIG_INT_ZERO;
+    prop.position =  BYTES32_ZERO_STR;
+    prop.msgData =  '';
+    prop.line =  ZERO_ADDRESS_STR;
+    prop.save();
+  }
+
+  return prop.id;
+}
+
 export function getNullLine(): string {
   const id = ZERO_ADDRESS_STR;
   let line = LineOfCredit.load(id);

@@ -154,12 +154,21 @@ export function handleAddCredit(event: AddCredit): void {
   const id = event.params.id.toHexString();
 
   // Credit must exist and fields are filled in from mutual-consent
-  const credit = new Position(id);
+  const credit = Position.load(id)!;
+  // update position proposal on acceptance
+  const prop = credit.proposal ? credit.proposal! : 'null'
+  log.warning('accept proposal: pos id - {}, proposal {}', [id, prop])
+
+  if(credit.proposal) {
+    const proposal = new Proposal(credit.proposal!)
+    proposal.taker = event.transaction.from.toHexString()
+    proposal.acceptedAt = event.block.timestamp
+    proposal.save();
+  }
+
   // log.warning("addCredit existing p ID {}, lender {}, deposit {}", [id, credit.lender, credit.deposit.toString()])
-  credit.openedAt = event.block.timestamp;
   credit.borrower = line.borrower;
   credit.status = POSITION_STATUS_OPENED;
-  credit.taker = event.transaction.from.toHexString();
   credit.save();
 
   const eventId = getEventId(typeof AddCreditEvent, event.transaction.hash, event.logIndex);
@@ -176,6 +185,8 @@ export function handleAddCredit(event: AddCredit): void {
     event.block.number
   )[0];
   creditEvent.save();
+
+
 }
 
 export function handleIncreaseCredit(event: IncreaseCredit): void {
@@ -199,11 +210,18 @@ export function handleIncreaseCredit(event: IncreaseCredit): void {
 }
 
 export function handleCloseCredit(event: CloseCreditPosition): void {
-  log.warning("calling handleCloseCredit line {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   let credit = Position.load(event.params.id.toHexString())!;
   credit.status = POSITION_STATUS_CLOSED;
   credit.queue = NOT_IN_QUEUE.toI32(); // TODO figure out how to make null/undefined with type system
   credit.save();
+  
+  const prop = credit.proposal ? credit.proposal! : 'null'
+  log.warning("calling handleCloseCredit position {}, proposal {}", [credit.id, prop]);
+  if(credit.proposal) {
+    const proprosal = new Proposal(credit.proposal!)
+    proprosal.endedAt = event.block.timestamp;
+    proprosal.save()
+  }
 
   const eventId = getEventId(typeof ClosePositionEvent, event.transaction.hash, event.logIndex);
   let creditEvent = new ClosePositionEvent(eventId);

@@ -55,28 +55,18 @@ MUTUAL_CONSENT_FUNCTIONS.set(ADD_CREDIT_FUNC, ADD_CREDIT_U32);
 MUTUAL_CONSENT_FUNCTIONS.set(INCREASE_CREDIT_FUNC, INCREASE_CREDIT_U32);
 MUTUAL_CONSENT_FUNCTIONS.set(SET_RATES_FUNC, SET_RATES_U32);
 
+// type yo_oy = string | number | Bytes | Address | BigInt
+type dot_top = string[]
+
 const CREDIT_LIB_GOERLI_ADDRESS: Address = Address.fromString("0x09a8d8eD61D117A3C550345BcA19bf0B8237B27e");
 const CREDIT_LIB_MAINNET_ADDRESS: Address = Address.fromString("0x8e73667B175887B106A9F803F8b62DeffC11535e");
-
-function createProposalEvent(event: MutualConsentRegistered, functionSig: string, positionId: string = ZERO_ADDRESS_STR): void {
-    const eventId = getEventId(typeof ProposeTermsEvent, event.transaction.hash, event.logIndex);
-    const proposalEvent = new ProposeTermsEvent(eventId);
-    proposalEvent.block = event.block.number;
-    proposalEvent.timestamp = event.block.timestamp;
-    proposalEvent.line = event.address.toHexString();
-    proposalEvent.funcSignature = functionSig;
-    proposalEvent.position = positionId;
-    // proposalEvent.params = inputParams! || [];
-
-    proposalEvent.save();
-}
 
 export function handleMutualConsentEvents(event: MutualConsentRegistered): void {
     // event emits mutual consent hash which is not useful
     // use function input params and decode them instead
     const functionSig = event.transaction.input.toHexString().slice(0, 10);
     const hasFunc = MUTUAL_CONSENT_FUNCTIONS.has(functionSig);
-    log.warning('mutual consent mappings {} {}', [functionSig, hasFunc.toString()]);
+    // log.warning('mutual consent mappings {} {}', [functionSig, hasFunc.toString()]);
   
     if(!hasFunc) {
       log.warning(
@@ -93,8 +83,17 @@ export function handleMutualConsentEvents(event: MutualConsentRegistered): void 
       case ADD_CREDIT_U32:
         const inputs = decodeTxData(event.transaction.input.toHexString(), ADD_CREDIT_ABI);
         if (inputs) {
-          const id = handleAddCreditMutualConsent(event, inputs);
-          createProposalEvent(event, functionSig, id);
+          // breakdown addCrdit function input params into individual values in typescript
+          // ADD_CREDIT_ABI = '(uint128,uint128,uint256,address,address)';
+          const args: string[] = [
+            inputs[0].toBigInt().toString(),
+            inputs[1].toBigInt().toString(),
+            inputs[2].toBigInt().toString(),
+            inputs[3].toAddress().toHexString(),
+            inputs[4].toAddress().toHexString()
+          ];
+          const positionId = handleAddCreditMutualConsent(event, args);
+          createProposal(event, functionSig, inputs, args, positionId);
         }
         break;
       case INCREASE_CREDIT_U32:
@@ -104,6 +103,36 @@ export function handleMutualConsentEvents(event: MutualConsentRegistered): void 
       default:
         break;
     }
+}
+
+function createProposal(
+  event: MutualConsentRegistered,
+  functionSig: string,
+  msgData: ethereum.Tuple,
+  args: dot_top,
+  positionId: string = BYTES32_ZERO_STR
+): void {
+  const proposalId = event.params._consentHash.toHexString();
+  const proposal = new Proposal(proposalId);
+  
+  proposal.line = event.address.toHexString();
+  log.warning("create proposal id, pos, line - {}, {}, {}", [proposalId, positionId, msgData.toString()])
+  proposal.position = positionId;
+  proposal.mutualConsentFunc = functionSig;
+  proposal.maker = event.transaction.from.toHexString();
+  proposal.proposedAt = event.block.timestamp;
+  proposal.msgData = msgData.toString() // todo convert Tuples to Bytes
+  proposal.args = args;
+  proposal.save()
+
+  const eventId = getEventId(typeof ProposeTermsEvent, event.transaction.hash, event.logIndex);
+  const proposalEvent = new ProposeTermsEvent(eventId);
+  proposalEvent.block = event.block.number;
+  proposalEvent.timestamp = event.block.timestamp;
+  proposalEvent.proposal = proposalId;
+  proposalEvent.line = event.address.toHexString();
+
+  proposalEvent.save();
 }
 
 // manually compute position id if call to onchain lib used fails.
@@ -116,7 +145,7 @@ function computeId(line: Address, lender: Address, token: Address): string {
 
 function getCreditLibForNetwork():  CreditLib {
   const network = dataSource.network()
-  log.warning('subgraph network {}, is main/test {}/{}', [network, (network == 'mainnet').toString(), (network == 'goerli').toString()]);
+  // log.warning('subgraph network {}, is main/test {}/{}', [network, (network == 'mainnet').toString(), (network == 'goerli').toString()]);
   
   if( network == 'mainnet' ) {
     return CreditLib.bind(CREDIT_LIB_MAINNET_ADDRESS);
@@ -127,21 +156,11 @@ function getCreditLibForNetwork():  CreditLib {
   }
 } 
 
-function handleAddCreditMutualConsent(event: MutualConsentRegistered, inputParams: ethereum.Tuple | null): string {
-  if(!inputParams) {
+function handleAddCreditMutualConsent(event: MutualConsentRegistered, args: dot_top | null): string {
+  if(!args) {
     log.warning('could not get input params for AddCredit mutual consent proposal', []);
-    return ZERO_ADDRESS_STR;
+    return BYTES32_ZERO_STR;
   }
-  
-  // breakdown addCrdit function input params into individual values in typescript
-  // ADD_CREDIT_ABI = '(uint128,uint128,uint256,address,address)';
-  const args: string[] = [
-    inputParams[0].toBigInt().toString(),
-    inputParams[1].toBigInt().toString(),
-    inputParams[2].toBigInt().toString(),
-    inputParams[3].toAddress().toHexString(),
-    inputParams[4].toAddress().toHexString()
-  ];
 
   // generate position id from inputParam data
   let id = '';
