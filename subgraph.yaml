@@ -153,6 +153,8 @@ templates:
           handler: handleLiquidate
         - event: ReservesChanged(indexed address,indexed int256,uint256)
           handler: handleReservesChanged
+        - event: MutualConsentRevoked(indexed address,bytes32)
+          handler: handleRevokeConsent
   - name: Spigot
     kind: ethereum/contract
     network: goerli
