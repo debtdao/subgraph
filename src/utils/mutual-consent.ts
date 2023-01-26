@@ -120,7 +120,8 @@ function createProposal(
   proposal.mutualConsentFunc = functionSig;
   proposal.maker = event.transaction.from.toHexString();
   proposal.proposedAt = event.block.timestamp;
-  proposal.msgData = event.transaction.input.toHexString() // todo convert Tuples to Bytes
+  proposal.msgData = event.transaction.input // TODO extrace from multisig data
+  proposal.txInput = event.transaction.input
   proposal.args = args;
   proposal.save()
 

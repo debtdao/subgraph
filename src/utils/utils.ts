@@ -257,7 +257,8 @@ export function getNullProposal(): string {
     prop.maker =  ZERO_ADDRESS_STR;
     prop.proposedAt =  BIG_INT_ZERO;
     prop.position =  BYTES32_ZERO_STR;
-    prop.msgData =  '';
+    prop.msgData =  Bytes.fromI32(0);
+    prop.txInput = Bytes.fromI32(0);
     prop.line =  ZERO_ADDRESS_STR;
     prop.save();
   }

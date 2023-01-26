@@ -529,10 +529,12 @@ export function handleReservesChanged(event: ReservesChanged): void {
 
 
 export function handleRevokeConsent(event: MutualConsentRevoked): void {
-  // log.warning("calling handleSetRates line {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   const proposalId = event.params._toRevoke.toHexString()
   const proposal = new Proposal(proposalId)
+  log.warning("calling revoke line {}, prop {}", [event.address.toHexString(), proposalId, proposal.proposedAt.toString()]);
   proposal.revokedAt = event.block.timestamp;
+
+  proposal.save();
 
   const eventId = getEventId(typeof RevokeConsentEvent, event.transaction.hash, event.logIndex);
   let creditEvent = new RevokeConsentEvent(eventId);
