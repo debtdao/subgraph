@@ -35,8 +35,10 @@ import {
   BIG_DECIMAL_ZERO,
   getNullToken,
   ZERO_ADDRESS_STR,
-  getOrCreateToken
+  getOrCreateToken,
+  POSITION_STATUS_OPENED
 } from "./utils";
+import { Burn__Params } from "../../generated/templates/Spigot/UniswapPair";
 
 // Mutual Consent Function Signatures
 // generated IDs on remix then copied over
@@ -191,38 +193,36 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, args: dot_
     // log.warning("assemblyscript computing position success. ID {}", [id]);
   }
 
-  
+  // cant compute position from input params. revert bc cant instantiate position
   if(!id) return BYTES32_ZERO_STR;
 
   // credit hasnt been created yet so assume none exists in the db already 
   // some data will be overwritten but not events
-  const credit = new Position(id);
+  let credit = Position.load(id);
+
+  // we already accepted a proposal. dont overwrite position
+  if(credit && credit.status == POSITION_STATUS_OPENED) return id;
+  else credit = new Position(id);
+
   credit.line = event.address.toHexString(); // line entity must exist for proposal to happen
   credit.status = POSITION_STATUS_PROPOSED;
   
   // fill with null data since position doesnt exist yet
   
-  credit.borrower = ZERO_ADDRESS_STR; // TODO: pull from line contract or entity
+  // Exact position terms are null on proposal. Fill in hanldeAddCredit.
+  credit.borrower = ZERO_ADDRESS_STR;
   credit.queue = NOT_IN_QUEUE.toI32();
   credit.principal = BIG_INT_ZERO;
   credit.interestAccrued = BIG_INT_ZERO;
   credit.interestRepaid = BIG_INT_ZERO;
   credit.totalInterestEarned = BIG_INT_ZERO;
-  
   credit.principalUsd = BIG_DECIMAL_ZERO;
   credit.interestUsd = BIG_DECIMAL_ZERO;
-  
-  // Position data is null on proposal. Fill terms in hanldeAddCredit.
-  // TODO innaccurate for BigNumbers
-  // const dRate = args[0] && args[0].length > 10 ? args[0].slice(0, 4) : args[0];
-  // const fRate = args[1] && args[1].length > 10 ? args[1].slice(0, 4) : args[1];
-  // credit.dRate = BigInt.fromString(dRate).toI32();
-  // credit.fRate = BigInt.fromString(fRate).toI32();
-  // credit.deposit =  BigInt.fromString(args[2]);
   credit.dRate = 0;
   credit.fRate = 0;
   credit.deposit = BIG_INT_ZERO;
 
+ // lender MUST be the same for one position across multiple prososals
   const lendy = new MarketplaceActor(args[4]);
   lendy.save(); // ensure entity persists
   credit.lender = lendy.id;

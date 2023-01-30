@@ -153,9 +153,18 @@ export function handleAddCredit(event: AddCredit): void {
   const token = getOrCreateToken(event.params.token.toHexString());
   const id = event.params.id.toHexString();
 
-  // Credit must exist and fields are filled in from mutual-consent
+  // Credit must exist and fields are pre-filled from mutual-consent
   const credit = new Position(id);
+  
+  log.warning("add Credit event+posiitoin id {} -  deposit {}", [id, event.params.deposit.toString()])
+  
   credit.deposit =  event.params.deposit;
+  credit.borrower = line.borrower;
+  credit.status = POSITION_STATUS_OPENED;
+  credit.save();
+
+  log.warning("add Credit event+posiitoin id {} -  deposit {}/{}", [id, event.params.deposit.toString(), credit.deposit.toString()])
+
 
   // update position proposal on acceptance
   // const prop = credit.proposal ? credit.proposal! : 'null'
@@ -168,9 +177,7 @@ export function handleAddCredit(event: AddCredit): void {
   // }
 
   // log.warning("addCredit existing p ID {}, lender {}, deposit {}", [id, credit.lender, credit.deposit.toString()])
-  credit.borrower = line.borrower;
-  credit.status = POSITION_STATUS_OPENED;
-  credit.save();
+
 
   const eventId = getEventId(typeof AddCreditEvent, event.transaction.hash, event.logIndex);
   let creditEvent = new AddCreditEvent(eventId);
@@ -263,7 +270,7 @@ export function handleWithdrawProfit(event: WithdrawProfit): void {
 }
 
 export function handleWithdrawDeposit(event: WithdrawDeposit): void {
-  log.warning("calling handleWithdrawDeposit line {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
+  // log.warning("calling handleWithdrawDeposit line {}, block {}", [event.address.toHexString(), event.block.number.toString()]);
   let credit = Position.load(event.params.id.toHexString())!;
   credit.deposit = credit.deposit.minus(event.params.amount);
   credit.save();
@@ -531,7 +538,7 @@ export function handleReservesChanged(event: ReservesChanged): void {
 export function handleRevokeConsent(event: MutualConsentRevoked): void {
   const proposalId = event.params._toRevoke.toHexString()
   const proposal = Proposal.load(proposalId)!
-  log.warning("calling revoke line {}, prop {}", [event.address.toHexString(), proposalId, proposal.proposedAt.toString()]);
+  // log.warning("calling revoke line {}, prop {}", [event.address.toHexString(), proposalId, proposal.proposedAt.toString()]);
   proposal.revokedAt = event.block.timestamp;
 
   proposal.save();
