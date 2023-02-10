@@ -1,20 +1,20 @@
 {
   "mainnet": {
     "LineFactory": {
-      "address": "0xd008d9b4e08DCdaF7F68dAe936EF5cb5FB84F3f4",
-      "startBlock": 16203233 
+      "address": "0xe725e25961e04E685A573B1587F8297aC233cD07",
+      "startBlock": 16596721 
     },
     "CreditLib": {
-      "address": "0x8e73667B175887B106A9F803F8b62DeffC11535e",
-      "startBlock": 16203100
+      "address": "0x9dC5F61dc380BbC3fFBF62Ea1d485BB6122AA9dB",
+      "startBlock": 16596721
     },
     "ModuleFactory": {
-      "address": "0xC45677cf45080Df035fD4F2df082ae47EacA729e",
-      "startBlock": 16203233 
+      "address": "0xa968954770Af47881309d99E36d61C725082B48E",
+      "startBlock": 16596721 
     },
     "FeedRegistry": {
       "address": "0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf",
-      "startBlock": 12864088 
+      "startBlock": 16596721 
     }
   },
   "goerli": {
