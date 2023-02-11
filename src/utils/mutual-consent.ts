@@ -84,7 +84,8 @@ export function handleMutualConsentEvents(event: MutualConsentRegistered): void 
        // assembly script is retarded and doesnt allow switch cases on strings so we have to use numbers
       case ADD_CREDIT_U32:
         const inputs = decodeTxData(event.transaction.input.toHexString(), ADD_CREDIT_ABI);
-        if (inputs) {
+    log.warning("get proposal inputs succeed? - {}, {}", [(!inputs).toString()])
+    if (inputs) {
           // breakdown addCrdit function input params into individual values in typescript
           // ADD_CREDIT_ABI = '(uint128,uint128,uint256,address,address)';
           const args: string[] = [
@@ -113,14 +114,15 @@ function createProposal(
   args: dot_top,
   positionId: string = BYTES32_ZERO_STR
 ): void {
-  const proposalId = event.params._consentHash.toHexString();
+  const proposalId = event.params.proposalId.toHexString();
   const proposal = new Proposal(proposalId);
   
   proposal.line = event.address.toHexString();
-  // log.warning("create proposal id, pos, line - {}, {}, {}", [proposalId, positionId, event.transaction.input.toHexString()])
+  log.warning("create proposal id, pos, line - {}, {}, {}", [proposalId, positionId, event.transaction.input.toHexString()])
   proposal.position = positionId;
   proposal.mutualConsentFunc = functionSig;
   proposal.maker = event.transaction.from.toHexString();
+  proposal.taker = event.params.taker.toHexString();
   proposal.proposedAt = event.block.timestamp;
   proposal.msgData = event.transaction.input // TODO extrace from multisig data
   proposal.txInput = event.transaction.input
@@ -145,7 +147,7 @@ function computeId(line: Address, lender: Address, token: Address): string {
   return data ? crypto.keccak256(data).toHexString() : '';
 }
 
-function getCreditLibForNetwork():  CreditLib {
+function getCreditLibForNetwork(): CreditLib {
   const network = dataSource.network()
   // log.warning('subgraph network {}, is main/test {}/{}', [network, (network == 'mainnet').toString(), (network == 'goerli').toString()]);
   
@@ -174,7 +176,7 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, args: dot_
     Address.fromString(args[4]),
     Address.fromString(args[3])
   );
-    
+
   log.warning("Credit Lib for network *{}* =  {}. Call failed ?= {}", [dataSource.network(), creditLib._address.toHexString(), computeResult.reverted.toString()])
   // log.warning('credit lib computing position id {}', [computeResult.value.toHexString()]);
 

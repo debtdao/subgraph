@@ -14,21 +14,21 @@
     },
     "FeedRegistry": {
       "address": "0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf",
-      "startBlock": 16596721 
+      "startBlock": 12864088 
     }
   },
   "goerli": {
     "LineFactory": {
-      "address": "0x0E81C743aF01Dc8D77A0cC002daE94EB0433399d",
-      "startBlock": 7666923
+      "address": "0x400C6ec8B915e5703E043AA646EA5cb225288D6c",
+      "startBlock": 8466216
     },
     "CreditLib": {
-      "address": "0x09a8d8eD61D117A3C550345BcA19bf0B8237B27e",
-      "startBlock": 7666923
+      "address": "0x544a5646E1EF70dd8aDE296eC362BAd2C11426DC",
+      "startBlock": 8466216
     },
     "ModuleFactory": {
-      "address": "0x70a951E2D2Ee4Fc6D38325AB0e0ED1a789Eb2D8E",
-      "startBlock": 7666910
+      "address": "0x627Bbf3200EeC7c757289caED46C74AE241be0b0",
+      "startBlock": 8466216
     },
     "FeedRegistry": {
       "address": "0x4DF0abBe72A79cC65aDf694DE64535904aB43aAc",

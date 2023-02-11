@@ -132,9 +132,9 @@ templates:
           handler: handleCloseCredit
         - event: Default(indexed bytes32)
           handler: handleDefault
-        - event: MutualConsentRegistered(bytes32)
+        - event: MutualConsentRegistered(bytes32,address)
           handler: handleMutualConsentRegistered
-        - event: MutualConsentRevoked(indexed address,bytes32)
+        - event: MutualConsentRevoked(bytes32)
           handler: handleRevokeConsent
         - event: InterestAccrued(indexed bytes32,indexed uint256)
           handler: handleInterestAccrued

@@ -1,5 +1,6 @@
 import {
   BigDecimal,
+  log,
 } from "@graphprotocol/graph-ts"
 
 import { 
@@ -36,6 +37,8 @@ import {
 export function handleDeploySecuredLine(event: DeployedSecuredLine): void {
   // track all events emitted on new line
   SecuredLineTemplate.create(event.params.deployedAt);
+  log.warning("deploy line", [event.params.deployedAt.toString()])
+
 
   // dont need  to create LoC entity bc created in line's own deploy event
   const eventId = getEventId(typeof DeploySecuredLineEvent, event.transaction.hash, event.logIndex);

@@ -4,11 +4,11 @@ schema:
 dataSources:
   - name: LineFactory
     kind: ethereum/contract
-    network: mainnet
+    network: goerli
     source:
       abi: LineFactory
-      address: "0xd008d9b4e08DCdaF7F68dAe936EF5cb5FB84F3f4"
-      startBlock: 16203233
+      address: "0x400C6ec8B915e5703E043AA646EA5cb225288D6c"
+      startBlock: 8466216
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -25,11 +25,11 @@ dataSources:
           handler: handleDeploySecuredLine
   - name: ModuleFactory
     kind: ethereum/contract
-    network: mainnet
+    network: goerli
     source:
       abi: ModuleFactory
-      address: "0xC45677cf45080Df035fD4F2df082ae47EacA729e"
-      startBlock: 16203233
+      address: "0x627Bbf3200EeC7c757289caED46C74AE241be0b0"
+      startBlock: 8466216
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -48,11 +48,11 @@ dataSources:
           handler: handleDeployEscrow
   - name: FeedRegistry
     kind: ethereum/contract
-    network: mainnet
+    network: goerli
     source:
       abi: FeedRegistry
-      address: "0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf"
-      startBlock: 12864088
+      address: "0x4DF0abBe72A79cC65aDf694DE64535904aB43aAc"
+      startBlock: 7966450
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -74,7 +74,7 @@ dataSources:
 templates:
   - name: SecuredLine
     kind: ethereum/contract
-    network: mainnet
+    network: goerli
     source:
       abi: SecuredLine
     mapping:
@@ -132,8 +132,12 @@ templates:
           handler: handleCloseCredit
         - event: Default(indexed bytes32)
           handler: handleDefault
-        - event: MutualConsentRegistered(bytes32)
+        - event: MutualConsentRegistered(bytes32,address)
           handler: handleMutualConsentRegistered
+        - event: MutualConsentRevoked(bytes32)
+          handler: handleRevokeConsent
+        - event: MutualConsentAccepted(bytes32)
+          handler: handleRevokeConsent
         - event: InterestAccrued(indexed bytes32,indexed uint256)
           handler: handleInterestAccrued
         - event: RepayInterest(indexed bytes32,indexed uint256)
@@ -153,11 +157,9 @@ templates:
           handler: handleLiquidate
         - event: ReservesChanged(indexed address,indexed int256,uint256)
           handler: handleReservesChanged
-        - event: MutualConsentRevoked(indexed address,bytes32)
-          handler: handleRevokeConsent
   - name: Spigot
     kind: ethereum/contract
-    network: mainnet
+    network: goerli
     source:
       abi: Spigot
     mapping:
@@ -219,7 +221,7 @@ templates:
           handler: handleUpdateOwnerSplit
   - name: Escrow
     kind: ethereum/contract
-    network: mainnet
+    network: goerli
     source:
       abi: Escrow
     mapping:
