@@ -84,8 +84,7 @@ export function handleMutualConsentEvents(event: MutualConsentRegistered): void 
        // assembly script is retarded and doesnt allow switch cases on strings so we have to use numbers
       case ADD_CREDIT_U32:
         const inputs = decodeTxData(event.transaction.input.toHexString(), ADD_CREDIT_ABI);
-    log.warning("get proposal inputs succeed? - {}, {}", [(!inputs).toString()])
-    if (inputs) {
+        if (inputs) {
           // breakdown addCrdit function input params into individual values in typescript
           // ADD_CREDIT_ABI = '(uint128,uint128,uint256,address,address)';
           const args: string[] = [
