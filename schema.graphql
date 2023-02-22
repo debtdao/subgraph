@@ -94,18 +94,18 @@ type Position @entity {
 type Proposal @entity {
   id: ID!           # bytes32 mutualConsent hash # TODO add index on line address so globally unique
   mutualConsentFunc: String!  # function signature that requres mutualConsent to call
-  msgData: Bytes!  # hexdata passed directly into mutualConsent function call. 
+  msgData: Bytes!  # hexdata passed directly into mutualConsent function call.
   txInput: Bytes!  # original tx data for proposal tx. May include multisig or 3rd party smart contract interactions wrapping `msgData`
   args: [String!]   # human readable version of params
 
   maker: MarketplaceActor! # function signature that requres mutualConsent to call
   taker: MarketplaceActor  # function signature that requres mutualConsent to call
-  
+
   proposedAt: BigInt!
   revokedAt: BigInt
   acceptedAt: BigInt
   endedAt: BigInt
-  
+
   # optional resources related to proposal
   line: LineOfCredit
   position: Position
@@ -116,7 +116,7 @@ type Proposal @entity {
 type MarketplaceActor @entity {
   id: ID! # address of account
   lines: [LineOfCredit!]
-  positions: [Position!] 
+  positions: [Position!]
 }
 
 # type Lender implements MarketplaceActor @entity {
@@ -658,15 +658,4 @@ type DeployEscrowEvent implements DeployEvent @entity {
 
   # event params
   minCRatio: BigDecimal!
-}
-
-type SupportedToken @entity {
-  id: ID!
-  oracles: [Oracle!]!
-  token: Token!
-}
-
-type Oracle @entity {
-  id: ID!
-  supportedTokens: [SupportedToken!] @derivedFrom(field: "oracles")
 }

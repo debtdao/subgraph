@@ -10,9 +10,9 @@ import {
   Token, Oracle, SupportedToken
 } from "../generated/schema";
 
-import {
-  FeedConfirmed
-} from "../generated/FeedRegistry/FeedRegistry"
+// import {
+//   FeedConfirmed
+// } from "../generated/FeedRegistry/FeedRegistry"
 
 import {
   getOrCreateToken
