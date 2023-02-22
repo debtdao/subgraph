@@ -16,7 +16,7 @@ import {
   Position,
   MarketplaceActor,
   Proposal,
-  
+
   AddCreditEvent,
   IncreaseCreditEvent,
   SetRatesEvent,
@@ -52,7 +52,7 @@ const INCREASE_CREDIT_U32 = 3;
 const INCREASE_CREDIT_FUNC = '0xc3651574';
 const INCREASE_CREDIT_ABI = '(address,uint8,bytes4,bytes4)';
 
-export const MUTUAL_CONSENT_FUNCTIONS = new Map<string, u32>(); 
+export const MUTUAL_CONSENT_FUNCTIONS = new Map<string, u32>();
 MUTUAL_CONSENT_FUNCTIONS.set(ADD_CREDIT_FUNC, ADD_CREDIT_U32);
 MUTUAL_CONSENT_FUNCTIONS.set(INCREASE_CREDIT_FUNC, INCREASE_CREDIT_U32);
 MUTUAL_CONSENT_FUNCTIONS.set(SET_RATES_FUNC, SET_RATES_U32);
@@ -69,17 +69,17 @@ export function handleMutualConsentEvents(event: MutualConsentRegistered): void 
     const functionSig = event.transaction.input.toHexString().slice(0, 10);
     const hasFunc = MUTUAL_CONSENT_FUNCTIONS.has(functionSig);
     // log.warning('mutual consent mappings {} {}', [functionSig, hasFunc.toString()]);
-  
+
     if(!hasFunc) {
-      log.warning(
-        'No Mutual Consent Function registered in config for signature {}, total input is {}',
-        [functionSig, event.transaction.input.toHexString()]
-      );
+      // log.warning(
+      //   'No Mutual Consent Function registered in config for signature {}, total input is {}',
+      //   [functionSig, event.transaction.input.toHexString()]
+      // );
       return;
     }
-  
+
     const funcType = MUTUAL_CONSENT_FUNCTIONS.get(functionSig);
-    
+
     switch(funcType) {
        // assembly script is retarded and doesnt allow switch cases on strings so we have to use numbers
       case ADD_CREDIT_U32:
@@ -115,7 +115,7 @@ function createProposal(
 ): void {
   const proposalId = event.params.proposalId.toHexString();
   const proposal = new Proposal(proposalId);
-  
+
   proposal.line = event.address.toHexString();
   log.warning("create proposal id, pos, line - {}, {}, {}", [proposalId, positionId, event.transaction.input.toHexString()])
   proposal.position = positionId;
@@ -149,7 +149,7 @@ function computeId(line: Address, lender: Address, token: Address): string {
 function getCreditLibForNetwork(): CreditLib {
   const network = dataSource.network()
   // log.warning('subgraph network {}, is main/test {}/{}', [network, (network == 'mainnet').toString(), (network == 'goerli').toString()]);
-  
+
   if( network == 'mainnet' ) {
     return CreditLib.bind(CREDIT_LIB_MAINNET_ADDRESS);
   } else if ( network == 'goerli' ) {
@@ -157,7 +157,7 @@ function getCreditLibForNetwork(): CreditLib {
   } else {
     return CreditLib.bind(CREDIT_LIB_GOERLI_ADDRESS);
   }
-} 
+}
 
 function handleAddCreditMutualConsent(event: MutualConsentRegistered, args: dot_top | null): string {
   if(!args) {
@@ -184,7 +184,7 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, args: dot_
     id = computeResult.value.toHexString()
   } else {
     log.warning("computing position ID call to lib failed. inputs {}", [event.transaction.input.toHexString()]);
-    
+
     // this doesnt work for whatever reason. Returns a different result than CreditLib
     // id = computeId(
     //   event.address,
@@ -197,7 +197,7 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, args: dot_
   // cant compute position from input params. revert bc cant instantiate position
   if(!id) return BYTES32_ZERO_STR;
 
-  // credit hasnt been created yet so assume none exists in the db already 
+  // credit hasnt been created yet so assume none exists in the db already
   // some data will be overwritten but not events
   let credit = Position.load(id);
 
@@ -207,9 +207,9 @@ function handleAddCreditMutualConsent(event: MutualConsentRegistered, args: dot_
 
   credit.line = event.address.toHexString(); // line entity must exist for proposal to happen
   credit.status = POSITION_STATUS_PROPOSED;
-  
+
   // fill with null data since position doesnt exist yet
-  
+
   // Exact position terms are null on proposal. Fill in hanldeAddCredit.
   credit.borrower = ZERO_ADDRESS_STR;
   credit.queue = NOT_IN_QUEUE.toI32();
