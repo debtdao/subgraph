@@ -71,10 +71,10 @@ export function handleMutualConsentEvents(event: MutualConsentRegistered): void 
     // log.warning('mutual consent mappings {} {}', [functionSig, hasFunc.toString()]);
 
     if(!hasFunc) {
-      // log.warning(
-      //   'No Mutual Consent Function registered in config for signature {}, total input is {}',
-      //   [functionSig, event.transaction.input.toHexString()]
-      // );
+      log.warning(
+        'No Mutual Consent Function registered in config for signature {}, total input is {}',
+        [functionSig, event.transaction.input.toHexString()]
+      );
       return;
     }
 

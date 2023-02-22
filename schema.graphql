@@ -659,3 +659,15 @@ type DeployEscrowEvent implements DeployEvent @entity {
   # event params
   minCRatio: BigDecimal!
 }
+
+# TODO: Add back if adding feed registry back into subgraph
+# type SupportedToken @entity {
+#  id: ID!
+#  oracles: [Oracle!]!
+#  token: Token!
+# }
+#
+# type Oracle @entity {
+#  id: ID!
+#  supportedTokens: [SupportedToken!] @derivedFrom(field: "oracles")
+# }
