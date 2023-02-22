@@ -20,7 +20,7 @@
 - name: CalculationsCurve
   file: ./abis/Prices/Calculations/Curve.json
 # YearnLens Contracts
-- name: YearnLensContract
+- name: YearnLens
   file: ./abis/Prices/YearnLens.json
 # ChainLink Contracts
 - name: ChainLinkContract

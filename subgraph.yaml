@@ -4,11 +4,11 @@ schema:
 dataSources:
   - name: LineFactory
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: LineFactory
-      address: "0x400C6ec8B915e5703E043AA646EA5cb225288D6c"
-      startBlock: 8466216
+      address: "0xe725e25961e04E685A573B1587F8297aC233cD07"
+      startBlock: 16596721
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -25,11 +25,11 @@ dataSources:
           handler: handleDeploySecuredLine
   - name: ModuleFactory
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: ModuleFactory
-      address: "0x627Bbf3200EeC7c757289caED46C74AE241be0b0"
-      startBlock: 8466216
+      address: "0xa968954770Af47881309d99E36d61C725082B48E"
+      startBlock: 16596721
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -48,11 +48,11 @@ dataSources:
           handler: handleDeployEscrow
   - name: FeedRegistry
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: FeedRegistry
-      address: "0x4DF0abBe72A79cC65aDf694DE64535904aB43aAc"
-      startBlock: 7966450
+      address: "0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf"
+      startBlock: 12864088
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -74,7 +74,7 @@ dataSources:
 templates:
   - name: SecuredLine
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: SecuredLine
     mapping:
@@ -159,7 +159,7 @@ templates:
           handler: handleReservesChanged
   - name: Spigot
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: Spigot
     mapping:
@@ -182,7 +182,7 @@ templates:
           file: ./abis/Prices/Curve/PoolRegistry.json
         - name: CalculationsCurve
           file: ./abis/Prices/Calculations/Curve.json
-        - name: YearnLensContract
+        - name: YearnLens
           file: ./abis/Prices/YearnLens.json
         - name: ChainLinkContract
           file: ./abis/Prices/ChainLink.json
@@ -221,7 +221,7 @@ templates:
           handler: handleUpdateOwnerSplit
   - name: Escrow
     kind: ethereum/contract
-    network: goerli
+    network: mainnet
     source:
       abi: Escrow
     mapping:
