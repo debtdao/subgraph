@@ -92,7 +92,6 @@ templates:
           file: ./abis/Prices/ERC20.json
         - name: CreditLib
           file: ./abis/CreditLib.json
-        # Oracle ABIs for pricing credit/revenue tokens
         - name: CurveRegistry
           file: ./abis/Prices/Curve/Registry.json
         - name: CurvePoolRegistry
