@@ -46,31 +46,32 @@ dataSources:
           handler: handleDeploySpigot
         - event: DeployedEscrow(indexed address,indexed uint32,indexed address,address)
           handler: handleDeployEscrow
-  - name: FeedRegistry
-    kind: ethereum/contract
-    network: mainnet
-    source:
-      abi: FeedRegistry
-      address: "0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf"
-      startBlock: 12864088
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      file: ./src/feed-registry.ts
-      entities:
-        - Token
-        - SupportedToken
-        - Oracle
-      abis:
-        - name: FeedRegistry
-          file: ./abis/FeedRegistry/FeedRegistry.json
-        - name: ERC20
-          file: ./abis/Prices/ERC20.json
-      eventHandlers:
-        - event: FeedConfirmed(indexed address,indexed address,indexed
-            address,address,uint16,address)
-          handler: handleAddSupportedToken
+  # TODO: uncomment if want to use Chainlink Feed Registry
+  # - name: FeedRegistry
+  #   kind: ethereum/contract
+  #   network: mainnet
+  #   source:
+  #     abi: FeedRegistry
+  #     address: "0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf"
+  #     startBlock: 12864088
+  #   mapping:
+  #     kind: ethereum/events
+  #     apiVersion: 0.0.6
+  #     language: wasm/assemblyscript
+  #     file: ./src/feed-registry.ts
+  #     entities:
+  #       - Token
+  #       - SupportedToken
+  #       - Oracle
+  #     abis:
+  #       - name: FeedRegistry
+  #         file: ./abis/FeedRegistry/FeedRegistry.json
+  #       - name: ERC20
+  #         file: ./abis/Prices/ERC20.json
+  #     eventHandlers:
+  #       - event: FeedConfirmed(indexed address,indexed address,indexed
+  #           address,address,uint16,address)
+  #         handler: handleAddSupportedToken
 templates:
   - name: SecuredLine
     kind: ethereum/contract
@@ -117,7 +118,6 @@ templates:
           file: ./abis/Prices/ERC20.json
         - name: CreditLib
           file: ./abis/CreditLib.json
-        # Oracle ABIs for pricing credit/revenue tokens
         - name: CurveRegistry
           file: ./abis/Prices/Curve/Registry.json
         - name: CurvePoolRegistry

@@ -15,7 +15,6 @@ import {
   LineOfCredit,
   Token,
   LineReserve,
-  SupportedToken,
   Spigot,
   Escrow,
   SpigotController,
