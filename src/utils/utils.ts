@@ -51,6 +51,7 @@ export const NOT_IN_QUEUE = new BigInt(42069); // Can't set undefined so # to re
 export const ZERO_ADDRESS_STR = "0x0000000000000000000000000000000000000000";
 export const ZERO_ADDRESS = Address.fromString(ZERO_ADDRESS_STR);
 export const BYTES32_ZERO_STR = "0x00000000000000000000000000000000000000000000000000000000000000";
+export const ETH_ADDRESS_STR = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
 
 // Line statuses
 export const STATUS_UNINITIALIZED = "UNINITIALIZED";
@@ -174,9 +175,15 @@ export function getOrCreateToken(address: string, isOracle: bool = false): Token
   token = new Token(address);
 
   // get token metadata
-  token.decimals = readValue<BigInt>(erc.try_decimals(), new BigInt(18)).toI32();
-  token.symbol = readValue<string>(erc.try_symbol(), "TOKEN");
-  token.name = readValue<string>(erc.try_name(), "Unknown Token");
+  if (address == ETH_ADDRESS_STR) {
+    token.decimals = 18;
+    token.symbol = "ETH";
+    token.name = "Ether";
+  } else {
+    token.decimals = readValue<BigInt>(erc.try_decimals(), new BigInt(18)).toI32();
+    token.symbol = readValue<string>(erc.try_symbol(), "TOKEN");
+    token.name = readValue<string>(erc.try_name(), "Unknown Token");
+  }
 
   if(!isOracle) {
     token.save();
