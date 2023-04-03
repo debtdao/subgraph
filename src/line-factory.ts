@@ -1,6 +1,9 @@
 import {
   BigDecimal,
+  BigInt,
+  dataSource,
   log,
+  Address,
 } from "@graphprotocol/graph-ts"
 
 import { 
@@ -33,12 +36,20 @@ import {
   BIG_DECIMAL_ZERO,
 } from "./utils/utils";
 
+const V1_DEPRECATE_BLOCK = BigInt.fromI32(16696969)
+// TODO cant import from networks.json bc not included in generated files
+const V1_LINE_FACTORY: Address = Address.fromString("0xe725e25961e04E685A573B1587F8297aC233cD07");
+const V1_MODULE_FACTORY: Address = Address.fromString("0xa968954770Af47881309d99E36d61C725082B48E");
+
 
 export function handleDeploySecuredLine(event: DeployedSecuredLine): void {
+  if(dataSource.address() == V1_LINE_FACTORY && event.block.number.gt(V1_DEPRECATE_BLOCK)) {
+    return; // dont index contracts with bad spigots
+  }
+
   // track all events emitted on new line
   SecuredLineTemplate.create(event.params.deployedAt);
   log.warning("deploy line", [event.params.deployedAt.toString()])
-
 
   // dont need  to create LoC entity bc created in line's own deploy event
   const eventId = getEventId(typeof DeploySecuredLineEvent, event.transaction.hash, event.logIndex);
@@ -57,6 +68,10 @@ export function handleDeploySecuredLine(event: DeployedSecuredLine): void {
 }
 
 export function handleDeploySpigot(event: DeployedSpigot): void {
+  if(dataSource.address() == V1_MODULE_FACTORY && event.block.number.gt(V1_DEPRECATE_BLOCK)) {
+    return; // dont index contracts with bad spigots
+  }
+
   const addr = event.params.deployedAt;
   // track all events emitted on new spigot
   SpigotTemplate.create(addr);
@@ -86,6 +101,10 @@ export function handleDeploySpigot(event: DeployedSpigot): void {
 }
 
 export function handleDeployEscrow(event: DeployedEscrow): void {
+  if(dataSource.address() == V1_MODULE_FACTORY && event.block.number.gt(V1_DEPRECATE_BLOCK)) {
+    return; // dont index contracts with bad spigots
+  }
+
   const addr = event.params.deployedAt;
   // track all events emitted on new spigot
   EscrowTemplate.create(addr);

@@ -2,6 +2,7 @@ import {
   ethereum,
   crypto,
   log,
+  dataSource,
 
   Address,
   Bytes,
