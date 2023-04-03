@@ -4,13 +4,21 @@
       "address": "0xe725e25961e04E685A573B1587F8297aC233cD07",
       "startBlock": 16596721 
     },
-    "CreditLib": {
-      "address": "0x9dC5F61dc380BbC3fFBF62Ea1d485BB6122AA9dB",
-      "startBlock": 16596721
-    },
     "ModuleFactory": {
       "address": "0xa968954770Af47881309d99E36d61C725082B48E",
       "startBlock": 16596721 
+    },
+    "LineFactory2": {
+      "address": "0xc9eF6509A09b92043cedce689DfAA760048aBd7F",
+      "startBlock": 16970396 
+    },
+    "ModuleFactory2": {
+      "address": "0x00a3699f677c252ca32b887f9f66621920d392f8",
+      "startBlock": 16970379
+    },
+    "CreditLib": {
+      "address": "0x9dC5F61dc380BbC3fFBF62Ea1d485BB6122AA9dB",
+      "startBlock": 16596721
     },
     "FeedRegistry": {
       "address": "0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf",
