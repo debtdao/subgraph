@@ -43,6 +43,7 @@ import { Burn__Params } from "../../generated/templates/Spigot/UniswapPair";
 // Mutual Consent Function Signatures
 // generated IDs on remix then copied over
 const ADD_CREDIT_U32 = 0;
+const ADD_CREDIT_ARGS_LENGTH = 320;
 const ADD_CREDIT_FUNC = '0xcb836209';
 const ADD_CREDIT_ABI = '(uint128,uint128,uint256,address,address)';
 const SET_RATES_U32 = 2;
@@ -66,15 +67,22 @@ const CREDIT_LIB_MAINNET_ADDRESS: Address = Address.fromString("0x8e73667B175887
 export function handleMutualConsentEvents(event: MutualConsentRegistered): void {
     // event emits mutual consent hash which is not useful
     // use function input params and decode them instead
-    const functionSig = event.transaction.input.toHexString().slice(0, 10);
+    let inputData = event.transaction.input.toHexString();
+    const functionSig = inputData.slice(0, 10);
     const hasFunc = MUTUAL_CONSENT_FUNCTIONS.has(functionSig);
     // log.warning('mutual consent mappings {} {}', [functionSig, hasFunc.toString()]);
 
     if(!hasFunc) {
       log.warning(
         'No Mutual Consent Function registered in config for signature {}, total input is {}',
-        [functionSig, event.transaction.input.toHexString()]
+        [functionSig, inputData]
       );
+      
+      const addCreditDataIdx = inputData.indexOf(ADD_CREDIT_FUNC);
+      if(addCreditDataIdx > 0) {
+        inputData = inputData.slice(addCreditDataIdx, ADD_CREDIT_ARGS_LENGTH);
+      }
+      
       return;
     }
 
@@ -83,7 +91,7 @@ export function handleMutualConsentEvents(event: MutualConsentRegistered): void 
     switch(funcType) {
        // assembly script is retarded and doesnt allow switch cases on strings so we have to use numbers
       case ADD_CREDIT_U32:
-        const inputs = decodeTxData(event.transaction.input.toHexString(), ADD_CREDIT_ABI);
+        const inputs = decodeTxData(inputData, ADD_CREDIT_ABI);
         if (inputs) {
           // breakdown addCrdit function input params into individual values in typescript
           // ADD_CREDIT_ABI = '(uint128,uint128,uint256,address,address)';
